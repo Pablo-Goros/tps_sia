@@ -5,7 +5,7 @@ Ejemplos:
 
     python3 benchmark.py
     python3 benchmark.py --niveles niveles/nivel_0[1-4]*.txt --repeticiones 5
-    python3 benchmark.py --algoritmos astar --heuristicas manhattan matching
+    python3 benchmark.py --algoritmos astar --heuristicas manhattan empujes_inversos
     python3 benchmark.py --graficos
 
 Genera un CSV, una tabla en Markdown y (opcionalmente) graficos PNG en salidas/.
@@ -67,7 +67,7 @@ def construir_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--heuristicas",
         nargs="+",
-        default=["manhattan", "matching"],
+        default=["manhattan", "empujes_inversos"],
         choices=sorted(HEURISTICAS),
         help="se usan solo con greedy y astar",
     )

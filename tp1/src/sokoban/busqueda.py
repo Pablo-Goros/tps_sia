@@ -15,8 +15,13 @@ from .frontera import (
     frontera_a_estrella,
     frontera_greedy,
 )
-from .heuristicas import HEURISTICA_POR_DEFECTO, obtener_heuristica
-from .nodo import Heuristica, Nodo, expandir, reconstruir_camino, reconstruir_estados
+from .heuristicas import (
+    HEURISTICA_POR_DEFECTO,
+    Heuristica,
+    crear_heuristica,
+    obtener_heuristica,
+)
+from .nodo import Nodo, expandir, reconstruir_camino, reconstruir_estados
 from .problema import ProblemaSokoban
 
 _FRECUENCIA_CHEQUEO = 2048
@@ -130,7 +135,7 @@ def buscar(
     problema = problema or ProblemaSokoban(mapa, estado_inicial)
     _validar_problema(problema, mapa, estado_inicial)
 
-    h_inicial = heuristica(estado_inicial, mapa) if heuristica is not None else 0
+    h_inicial = heuristica(estado_inicial) if heuristica is not None else 0
     frontera = crear_frontera()
     frontera.agregar(Nodo(estado_inicial, padre=None, accion=None, g=0, h=h_inicial))
 
@@ -267,7 +272,7 @@ def ejecutar_busqueda(
     nombre_h = None
     if descripcion.usa_heuristica:
         elegida = obtener_heuristica(heuristica)
-        funcion_h = elegida.funcion
+        funcion_h = crear_heuristica(elegida.nombre, problema)
         nombre_h = elegida.nombre
 
     inicio = time.perf_counter()

@@ -21,7 +21,13 @@ from .estado import (
     Posicion,
     aplicar_accion,
 )
-from .heuristicas import HEURISTICAS, HEURISTICA_POR_DEFECTO, obtener_heuristica
+from .heuristicas import (
+    HEURISTICAS,
+    HEURISTICA_POR_DEFECTO,
+    costo_asignacion_minima,
+    crear_heuristica,
+    obtener_heuristica,
+)
 from .nivel import NivelInvalido, cargar_nivel, parsear_tablero, render_texto
 from .nodo import Nodo, expandir, reconstruir_camino, reconstruir_estados
 from .problema import ProblemaSokoban
@@ -59,6 +65,8 @@ __all__ = [
     "buscar_iddfs",
     "cargar_nivel",
     "comparar_algoritmos",
+    "costo_asignacion_minima",
+    "crear_heuristica",
     "dibujar_frame",
     "ejecutar_busqueda",
     "estados_desde_camino",

@@ -2,12 +2,11 @@
 
 from __future__ import annotations
 
-from typing import Callable, List, Optional
+from typing import List, Optional
 
-from .estado import Direccion, Estado, Mapa
+from .estado import Direccion, Estado
+from .heuristicas import Heuristica
 from .problema import ProblemaSokoban
-
-Heuristica = Callable[[Estado, Mapa], float]
 
 
 class Nodo:
@@ -54,7 +53,7 @@ def expandir(
     for estado, accion, costo in problema.generar_sucesores(
         nodo.estado, podar_deadlocks
     ):
-        h = heuristica(estado, problema.mapa) if heuristica is not None else 0
+        h = heuristica(estado) if heuristica is not None else 0
         hijos.append(Nodo(estado, padre=nodo, accion=accion, g=nodo.g + costo, h=h))
     return hijos
 
