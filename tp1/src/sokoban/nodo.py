@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Callable, List, Optional
 
-from .estado import Estado, Mapa
+from .estado import Direccion, Estado, Mapa
 from .sucesores import generar_sucesores
 
 Heuristica = Callable[[Estado, Mapa], float]
@@ -23,7 +23,7 @@ class Nodo:
         self,
         estado: Estado,
         padre: Optional["Nodo"] = None,
-        accion: Optional[str] = None,
+        accion: Optional[Direccion] = None,
         g: int = 0,
         h: float = 0,
     ) -> None:
@@ -57,8 +57,8 @@ def expandir(
     return hijos
 
 
-def reconstruir_camino(nodo: Optional[Nodo]) -> List[str]:
-    camino: List[str] = []
+def reconstruir_camino(nodo: Optional[Nodo]) -> List[Direccion]:
+    camino: List[Direccion] = []
     actual = nodo
     while actual is not None and actual.padre is not None:
         camino.append(actual.accion)

@@ -187,15 +187,27 @@ def dibujar_frame(
                     fill=COLORES["pared_luz"],
                 )
             else:
-                color = COLORES["piso_a"] if (x + y) % 2 == 0 else COLORES["piso_b"]
+                color = (
+                    COLORES["piso_a"]
+                    if (x + y) % 2 == 0
+                    else COLORES["piso_b"]
+                )
                 dibujo.rectangle(rect, fill=color)
 
     for objetivo in mapa.objetivos:
-        x0, y0, x1, y1 = caja_de(objetivo, margen=celda // 3)
-        cx, cy = (x0 + x1) / 2, (y0 + y1) / 2
-        radio = (x1 - x0) / 2
+        x_inicial, y_inicial, x_final, y_final = caja_de(
+            objetivo, margen=celda // 3
+        )
+        centro_x = (x_inicial + x_final) / 2
+        centro_y = (y_inicial + y_final) / 2
+        radio = (x_final - x_inicial) / 2
         dibujo.polygon(
-            [(cx, cy - radio), (cx + radio, cy), (cx, cy + radio), (cx - radio, cy)],
+            [
+                (centro_x, centro_y - radio),
+                (centro_x + radio, centro_y),
+                (centro_x, centro_y + radio),
+                (centro_x - radio, centro_y),
+            ],
             outline=COLORES["objetivo"],
             width=max(2, celda // 20),
         )
@@ -619,7 +631,10 @@ def animar(
         for caja in estado.cajas:
             color = COLORES["caja_ok"] if caja in mapa.objetivos else COLORES["caja"]
             rect = pygame.Rect(
-                caja[0] * CELDA + 5, caja[1] * CELDA + 5, CELDA - 10, CELDA - 10
+                caja[0] * CELDA + 5,
+                caja[1] * CELDA + 5,
+                CELDA - 10,
+                CELDA - 10,
             )
             pygame.draw.rect(pantalla, color, rect)
         centro = (

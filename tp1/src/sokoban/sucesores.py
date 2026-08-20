@@ -5,9 +5,9 @@ from __future__ import annotations
 from typing import List, Optional, Tuple
 
 from .distancias import celdas_muertas
-from .estado import ORDEN_ACCIONES, Estado, Mapa, aplicar_accion, empuja
+from .estado import Direccion, ORDEN_ACCIONES, Estado, Mapa, aplicar_accion, empuja
 
-Sucesor = Tuple[Estado, str, int]
+Sucesor = Tuple[Estado, Direccion, int]
 
 # Todo movimiento cuesta 1: el enunciado pide optimizar la cantidad de movimientos.
 COSTO_MOVIMIENTO = 1
@@ -55,9 +55,14 @@ def _caja_movida(nuevo: Estado, anterior: Estado) -> Optional[tuple]:
 def _bloque_congelado(estado: Estado, mapa: Mapa, caja) -> bool:
     """Bloque de 2x2 de paredes y cajas con alguna caja fuera de objetivo."""
     x, y = caja
-    for x0 in (x - 1, x):
-        for y0 in (y - 1, y):
-            celdas = [(x0, y0), (x0 + 1, y0), (x0, y0 + 1), (x0 + 1, y0 + 1)]
+    for x_inicial in (x - 1, x):
+        for y_inicial in (y - 1, y):
+            celdas = [
+                (x_inicial, y_inicial),
+                (x_inicial + 1, y_inicial),
+                (x_inicial, y_inicial + 1),
+                (x_inicial + 1, y_inicial + 1),
+            ]
             if all(c in mapa.paredes or c in estado.cajas for c in celdas):
                 cajas_del_bloque = [c for c in celdas if c in estado.cajas]
                 if any(c not in mapa.objetivos for c in cajas_del_bloque):

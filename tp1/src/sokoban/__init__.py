@@ -2,24 +2,29 @@
 
 from .busqueda import (
     ALGORITMOS,
+    EstadoBusqueda,
     ORDEN_ALGORITMOS,
     Resultado,
     buscar,
     buscar_iddfs,
     comparar_algoritmos,
     ejecutar_busqueda,
+    resolver,
 )
 from .estado import (
+    ABREVIATURAS,
     DIRECCIONES,
+    ORDEN_ACCIONES,
+    Direccion,
     Estado,
     Mapa,
-    NivelInvalido,
+    Posicion,
     aplicar_accion,
-    cargar_nivel,
-    parsear_tablero,
 )
 from .heuristicas import HEURISTICAS, HEURISTICA_POR_DEFECTO, obtener_heuristica
+from .nivel import NivelInvalido, cargar_nivel, parsear_tablero
 from .nodo import Nodo, expandir, reconstruir_camino, reconstruir_estados
+from .problema import ProblemaSokoban
 from .sucesores import generar_sucesores
 from .visualizacion import (
     dibujar_frame,
@@ -35,14 +40,20 @@ from .visualizacion import (
 
 __all__ = [
     "ALGORITMOS",
+    "ABREVIATURAS",
     "ORDEN_ALGORITMOS",
+    "ORDEN_ACCIONES",
     "DIRECCIONES",
+    "Direccion",
+    "EstadoBusqueda",
     "HEURISTICAS",
     "HEURISTICA_POR_DEFECTO",
     "Estado",
     "Mapa",
     "NivelInvalido",
     "Nodo",
+    "Posicion",
+    "ProblemaSokoban",
     "Resultado",
     "aplicar_accion",
     "buscar",
@@ -65,4 +76,5 @@ __all__ = [
     "reconstruir_estados",
     "render_texto",
     "reproducir_en_consola",
+    "resolver",
 ]

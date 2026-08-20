@@ -29,9 +29,15 @@ def tabla_empujes(mapa: Mapa) -> Dict[Posicion, Dict[Posicion, int]]:
         cola = deque([objetivo])
         while cola:
             actual = cola.popleft()
-            for dx, dy in DIRECCIONES.values():
-                origen_caja = (actual[0] - dx, actual[1] - dy)
-                origen_jugador = (actual[0] - 2 * dx, actual[1] - 2 * dy)
+            for desplazamiento_x, desplazamiento_y in DIRECCIONES.values():
+                origen_caja = (
+                    actual[0] - desplazamiento_x,
+                    actual[1] - desplazamiento_y,
+                )
+                origen_jugador = (
+                    actual[0] - 2 * desplazamiento_x,
+                    actual[1] - 2 * desplazamiento_y,
+                )
                 if origen_caja in mapa.paredes or origen_jugador in mapa.paredes:
                     continue
                 if origen_caja in distancias:

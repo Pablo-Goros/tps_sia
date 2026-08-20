@@ -3,12 +3,13 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Dict, FrozenSet, Optional, Tuple
+from typing import Dict, FrozenSet, Literal, Optional, Tuple
 
 Posicion = Tuple[int, int]
+Direccion = Literal["arriba", "abajo", "izquierda", "derecha"]
 
-# (dx, dy) con y creciendo hacia abajo.
-DIRECCIONES: Dict[str, Posicion] = {
+# Coordenadas cartesianas (x, y), con x horizontal e y creciendo hacia abajo.
+DIRECCIONES: Dict[Direccion, Posicion] = {
     "arriba": (0, -1),
     "abajo": (0, 1),
     "izquierda": (-1, 0),
@@ -16,9 +17,14 @@ DIRECCIONES: Dict[str, Posicion] = {
 }
 
 # Orden fijo de expansion: hace reproducibles las corridas.
-ORDEN_ACCIONES: Tuple[str, ...] = ("arriba", "abajo", "izquierda", "derecha")
+ORDEN_ACCIONES: Tuple[Direccion, ...] = (
+    "arriba",
+    "abajo",
+    "izquierda",
+    "derecha",
+)
 
-ABREVIATURAS: Dict[str, str] = {
+ABREVIATURAS: Dict[Direccion, str] = {
     "arriba": "U",
     "abajo": "D",
     "izquierda": "L",
@@ -40,10 +46,11 @@ class NivelInvalido(ValueError):
 
 @dataclass(frozen=True)
 class Mapa:
-    paredes: FrozenSet[Posicion]
-    objetivos: FrozenSet[Posicion]
     ancho: int
     alto: int
+    pisos: FrozenSet[Posicion]
+    paredes: FrozenSet[Posicion]
+    objetivos: FrozenSet[Posicion]
 
     def es_pared(self, pos: Posicion) -> bool:
         return pos in self.paredes
@@ -67,17 +74,22 @@ class Estado:
         return self.cajas - mapa.objetivos
 
 
-def aplicar_accion(estado: Estado, mapa: Mapa, accion: str) -> Optional[Estado]:
+def aplicar_accion(
+    estado: Estado, mapa: Mapa, accion: Direccion
+) -> Optional[Estado]:
     """Estado resultante de aplicar `accion`, o None si es invalida."""
-    dx, dy = DIRECCIONES[accion]
-    jx, jy = estado.jugador
-    destino = (jx + dx, jy + dy)
+    desplazamiento_x, desplazamiento_y = DIRECCIONES[accion]
+    jugador_x, jugador_y = estado.jugador
+    destino = (jugador_x + desplazamiento_x, jugador_y + desplazamiento_y)
 
     if destino in mapa.paredes:
         return None
 
     if destino in estado.cajas:
-        siguiente = (destino[0] + dx, destino[1] + dy)
+        siguiente = (
+            destino[0] + desplazamiento_x,
+            destino[1] + desplazamiento_y,
+        )
         if siguiente in mapa.paredes or siguiente in estado.cajas:
             return None
         # Se arma un frozenset nuevo: mutar el original corromperia al padre,
@@ -88,9 +100,12 @@ def aplicar_accion(estado: Estado, mapa: Mapa, accion: str) -> Optional[Estado]:
     return Estado(jugador=destino, cajas=estado.cajas)
 
 
-def empuja(estado: Estado, accion: str) -> bool:
-    dx, dy = DIRECCIONES[accion]
-    return (estado.jugador[0] + dx, estado.jugador[1] + dy) in estado.cajas
+def empuja(estado: Estado, accion: Direccion) -> bool:
+    desplazamiento_x, desplazamiento_y = DIRECCIONES[accion]
+    return (
+        estado.jugador[0] + desplazamiento_x,
+        estado.jugador[1] + desplazamiento_y,
+    ) in estado.cajas
 
 
 def parsear_tablero(texto: str) -> Tuple[Mapa, Estado]:
@@ -151,11 +166,19 @@ def parsear_tablero(texto: str) -> Tuple[Mapa, Estado]:
             )
         )
 
+    ancho = max(len(linea) for linea in lineas)
+    alto = len(lineas)
     mapa = Mapa(
         paredes=frozenset(paredes),
         objetivos=frozenset(objetivos),
-        ancho=max(len(linea) for linea in lineas),
-        alto=len(lineas),
+        ancho=ancho,
+        alto=alto,
+        pisos=frozenset(
+            (x, y)
+            for y in range(alto)
+            for x in range(ancho)
+            if (x, y) not in paredes
+        ),
     )
     estado = Estado(jugador=jugadores[0], cajas=frozenset(cajas))
     _verificar_cerrado(mapa, estado)
@@ -168,8 +191,8 @@ def _verificar_cerrado(mapa: Mapa, estado: Estado) -> None:
     vistos = {estado.jugador}
     while pendientes:
         x, y = pendientes.pop()
-        for dx, dy in DIRECCIONES.values():
-            vecino = (x + dx, y + dy)
+        for desplazamiento_x, desplazamiento_y in DIRECCIONES.values():
+            vecino = (x + desplazamiento_x, y + desplazamiento_y)
             if vecino in mapa.paredes or vecino in vistos:
                 continue
             if not mapa.dentro(vecino):

@@ -27,10 +27,11 @@ ONE_MOVE_BOARD = """\
 )
 def test_walking_beyond_board_boundaries_is_illegal() -> None:
     mapa = Mapa(
-        paredes=frozenset(),
-        objetivos=frozenset({(0, 0)}),
         ancho=2,
         alto=1,
+        pisos=frozenset({(0, 0), (1, 0)}),
+        paredes=frozenset(),
+        objetivos=frozenset({(0, 0)}),
     )
     estado = Estado(jugador=(1, 0), cajas=frozenset({(0, 0)}))
 
@@ -64,10 +65,11 @@ from sokoban.distancias import tabla_empujes
 from sokoban.estado import Mapa
 
 mapa = Mapa(
-    paredes=frozenset(),
-    objetivos=frozenset({(0, 0)}),
     ancho=1,
     alto=1,
+    pisos=frozenset({(0, 0)}),
+    paredes=frozenset(),
+    objetivos=frozenset({(0, 0)}),
 )
 tabla_empujes(mapa)
 """
@@ -127,10 +129,15 @@ def test_dfs_explores_successors_in_configured_order(monkeypatch) -> None:
     arriba_objetivo = Estado(jugador=(0, -1), cajas=frozenset({(1, 1)}))
     derecha_sin_salida = Estado(jugador=(1, 0), cajas=frozenset({(8, 8)}))
     mapa = Mapa(
-        paredes=frozenset(),
-        objetivos=frozenset({(1, 1)}),
         ancho=10,
         alto=10,
+        pisos=frozenset(
+            (x, y)
+            for y in range(10)
+            for x in range(10)
+        ),
+        paredes=frozenset(),
+        objetivos=frozenset({(1, 1)}),
     )
     estados_expandidos = []
 

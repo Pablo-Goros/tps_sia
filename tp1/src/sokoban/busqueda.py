@@ -5,9 +5,9 @@ from __future__ import annotations
 import itertools
 import time
 from dataclasses import dataclass, field
-from typing import Callable, Dict, List, Optional, Tuple
+from typing import Callable, Dict, List, Literal, Optional, Tuple
 
-from .estado import ABREVIATURAS, Estado, Mapa
+from .estado import ABREVIATURAS, Direccion, Estado, Mapa
 from .frontera import (
     Frontera,
     FronteraFIFO,
@@ -17,6 +17,7 @@ from .frontera import (
 )
 from .heuristicas import HEURISTICA_POR_DEFECTO, obtener_heuristica
 from .nodo import Heuristica, Nodo, expandir, reconstruir_camino, reconstruir_estados
+from .problema import ProblemaSokoban
 
 _FRECUENCIA_CHEQUEO = 2048
 
@@ -26,35 +27,64 @@ LIMITE_NODOS = "limite_nodos"
 TIMEOUT = "timeout"
 
 
-@dataclass
+EstadoBusqueda = Literal["exito", "fracaso", "corte"]
+
+
+@dataclass(frozen=True)
 class Resultado:
+    estado: EstadoBusqueda
     algoritmo: str
     heuristica: Optional[str]
-    exito: bool
-    motivo: str
     costo: Optional[int]
+    movimientos: Tuple[Direccion, ...]
     nodos_expandidos: int
     nodos_frontera: int
+    max_nodos_frontera: int
+    tiempo_segundos: float
+    motivo: Optional[str]
+    # Metricas y estados transitorios conservados hasta que las capas antiguas
+    # de benchmark y visualizacion se retiren en fases posteriores.
     nodos_generados: int
-    tiempo_seg: float
-    camino: List[str] = field(default_factory=list)
-    estados: List[Estado] = field(default_factory=list, repr=False)
+    _estados: Tuple[Estado, ...] = field(default_factory=tuple, repr=False)
+
+    @property
+    def exito(self) -> bool:
+        return self.estado == "exito"
+
+    @property
+    def camino(self) -> List[Direccion]:
+        """Compatibilidad temporal con los consumidores anteriores."""
+        return list(self.movimientos)
+
+    @property
+    def estados(self) -> List[Estado]:
+        """Compatibilidad temporal con la capa de visualizacion anterior."""
+        return list(self._estados)
+
+    @property
+    def tiempo_seg(self) -> float:
+        """Nombre transitorio usado por los scripts anteriores."""
+        return self.tiempo_segundos
 
     @property
     def camino_corto(self) -> str:
-        return "".join(ABREVIATURAS[accion] for accion in self.camino)
+        return "".join(ABREVIATURAS[accion] for accion in self.movimientos)
 
     def como_dict(self) -> Dict:
         return {
             "algoritmo": self.algoritmo,
             "heuristica": self.heuristica,
+            "estado": self.estado,
             "exito": self.exito,
             "motivo": self.motivo,
             "costo": self.costo,
+            "movimientos": list(self.movimientos),
             "nodos_expandidos": self.nodos_expandidos,
             "nodos_frontera": self.nodos_frontera,
+            "max_nodos_frontera": self.max_nodos_frontera,
             "nodos_generados": self.nodos_generados,
-            "tiempo_seg": round(self.tiempo_seg, 6),
+            "tiempo_segundos": round(self.tiempo_segundos, 6),
+            "tiempo_seg": round(self.tiempo_segundos, 6),
             "camino": self.camino,
             "camino_corto": self.camino_corto,
         }
@@ -242,18 +272,47 @@ def ejecutar_busqueda(
     tiempo = time.perf_counter() - inicio
     exito = nodo is not None
 
+    if nodo is not None:
+        estado_resultado: EstadoBusqueda = "exito"
+    elif motivo in (LIMITE_NODOS, TIMEOUT):
+        estado_resultado = "corte"
+    else:
+        estado_resultado = "fracaso"
+
     return Resultado(
+        estado=estado_resultado,
         algoritmo=descripcion.nombre,
         heuristica=nombre_h,
-        exito=exito,
-        motivo=motivo,
         costo=nodo.g if exito else None,
+        movimientos=tuple(reconstruir_camino(nodo)) if exito else (),
         nodos_expandidos=expandidos,
         nodos_frontera=en_frontera,
+        # La medicion exacta se implementa en la fase de correccion de metricas.
+        max_nodos_frontera=en_frontera,
+        tiempo_segundos=tiempo,
+        motivo=motivo,
         nodos_generados=generados,
-        tiempo_seg=tiempo,
-        camino=reconstruir_camino(nodo) if exito else [],
-        estados=reconstruir_estados(nodo) if (exito and guardar_estados) else [],
+        _estados=(
+            tuple(reconstruir_estados(nodo))
+            if exito and guardar_estados
+            else ()
+        ),
+    )
+
+
+def resolver(
+    problema: ProblemaSokoban,
+    algoritmo: str,
+    heuristica: Optional[str] = None,
+    max_expandidos: Optional[int] = None,
+) -> Resultado:
+    """Punto de entrada publico para resolver un problema de Sokoban."""
+    return ejecutar_busqueda(
+        algoritmo,
+        problema.estado_inicial,
+        problema.mapa,
+        heuristica=heuristica or HEURISTICA_POR_DEFECTO,
+        max_nodos=max_expandidos,
     )
 
 
