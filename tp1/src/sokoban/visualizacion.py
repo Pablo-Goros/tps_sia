@@ -6,8 +6,9 @@ import itertools
 import os
 from typing import Callable, Iterator, List, Optional, Sequence
 
-from .estado import Estado, Mapa, aplicar_accion
+from .estado import Estado, Mapa
 from .nivel import render_texto
+from .problema import ProblemaSokoban
 
 CELDA = 44
 MARGEN = 14
@@ -61,8 +62,9 @@ def estados_desde_camino(
     """Reproduce las acciones con `aplicar_accion`, lo que valida el camino."""
     estados = [estado_inicial]
     actual = estado_inicial
+    problema = ProblemaSokoban(mapa, estado_inicial)
     for i, accion in enumerate(camino):
-        siguiente = aplicar_accion(actual, mapa, accion)
+        siguiente = problema.aplicar_accion(actual, accion)
         if siguiente is None:
             raise ValueError(
                 "el camino es invalido: la accion {} ({}) no se puede aplicar".format(

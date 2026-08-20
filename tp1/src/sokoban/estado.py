@@ -88,35 +88,17 @@ class Estado:
 def aplicar_accion(
     estado: Estado, mapa: Mapa, accion: Direccion
 ) -> Optional[Estado]:
-    """Estado resultante de aplicar `accion`, o None si es invalida."""
-    desplazamiento_x, desplazamiento_y = DIRECCIONES[accion]
-    jugador_x, jugador_y = estado.jugador
-    destino = (jugador_x + desplazamiento_x, jugador_y + desplazamiento_y)
+    """Adaptador temporal hacia la regla canonica de ``ProblemaSokoban``."""
+    from .problema import ProblemaSokoban
 
-    if destino not in mapa.pisos:
-        return None
-
-    if destino in estado.cajas:
-        siguiente = (
-            destino[0] + desplazamiento_x,
-            destino[1] + desplazamiento_y,
-        )
-        if siguiente not in mapa.pisos or siguiente in estado.cajas:
-            return None
-        # Se arma un frozenset nuevo: mutar el original corromperia al padre,
-        # que sigue vivo en la frontera y en visitados.
-        cajas = (estado.cajas - {destino}) | {siguiente}
-        return Estado(jugador=destino, cajas=frozenset(cajas))
-
-    return Estado(jugador=destino, cajas=estado.cajas)
+    return ProblemaSokoban.aplicar_en_mapa(estado, mapa, accion)
 
 
 def empuja(estado: Estado, accion: Direccion) -> bool:
-    desplazamiento_x, desplazamiento_y = DIRECCIONES[accion]
-    return (
-        estado.jugador[0] + desplazamiento_x,
-        estado.jugador[1] + desplazamiento_y,
-    ) in estado.cajas
+    """Adaptador temporal hacia la regla canonica de ``ProblemaSokoban``."""
+    from .problema import ProblemaSokoban
+
+    return ProblemaSokoban.accion_empuja(estado, accion)
 
 
 __all__ = [

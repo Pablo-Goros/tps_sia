@@ -130,7 +130,7 @@ def test_dfs_explores_successors_in_configured_order(monkeypatch) -> None:
     )
     estados_expandidos = []
 
-    def expandir_controlado(nodo, mapa, heuristica, podar_deadlocks):
+    def expandir_controlado(nodo, problema, heuristica, podar_deadlocks):
         estados_expandidos.append(nodo.estado)
         if nodo.estado == raiz:
             return [

@@ -107,6 +107,15 @@ class _Limites:
         return None
 
 
+def _validar_problema(
+    problema: ProblemaSokoban, mapa: Mapa, estado_inicial: Estado
+) -> None:
+    if problema.mapa != mapa or problema.estado_inicial != estado_inicial:
+        raise ValueError(
+            "el problema debe contener el mapa y el estado inicial de la busqueda"
+        )
+
+
 def buscar(
     estado_inicial: Estado,
     mapa: Mapa,
@@ -114,9 +123,12 @@ def buscar(
     heuristica: Optional[Heuristica] = None,
     podar_deadlocks: bool = True,
     limites: Optional[_Limites] = None,
+    problema: Optional[ProblemaSokoban] = None,
 ) -> Tuple[Optional[Nodo], str, int, int, int]:
     """Devuelve `(nodo_objetivo, motivo, expandidos, tam_frontera, generados)`."""
     limites = limites or _Limites(None, None)
+    problema = problema or ProblemaSokoban(mapa, estado_inicial)
+    _validar_problema(problema, mapa, estado_inicial)
 
     h_inicial = heuristica(estado_inicial, mapa) if heuristica is not None else 0
     frontera = crear_frontera()
@@ -144,7 +156,7 @@ def buscar(
             if motivo is not None:
                 return None, motivo, expandidos, len(frontera), generados
 
-        for hijo in expandir(nodo, mapa, heuristica, podar_deadlocks):
+        for hijo in expandir(nodo, problema, heuristica, podar_deadlocks):
             if hijo.estado not in visitados:
                 frontera.agregar(hijo)
                 generados += 1
@@ -158,9 +170,12 @@ def buscar_iddfs(
     podar_deadlocks: bool = True,
     limites: Optional[_Limites] = None,
     profundidad_maxima: Optional[int] = None,
+    problema: Optional[ProblemaSokoban] = None,
 ) -> Tuple[Optional[Nodo], str, int, int, int]:
     """DFS con limite de profundidad creciente: memoria de DFS, optimo como BFS."""
     limites = limites or _Limites(None, None)
+    problema = problema or ProblemaSokoban(mapa, estado_inicial)
+    _validar_problema(problema, mapa, estado_inicial)
     expandidos_total = 0
     generados_total = 1
 
@@ -189,7 +204,7 @@ def buscar_iddfs(
                 hubo_corte = True
                 continue
 
-            for hijo in expandir(nodo, mapa, None, podar_deadlocks):
+            for hijo in expandir(nodo, problema, None, podar_deadlocks):
                 previa = mejor_profundidad.get(hijo.estado)
                 if previa is None or hijo.g < previa:
                     mejor_profundidad[hijo.estado] = hijo.g
@@ -235,6 +250,7 @@ def ejecutar_busqueda(
     max_nodos: Optional[int] = None,
     timeout: Optional[float] = None,
     guardar_estados: bool = True,
+    problema: Optional[ProblemaSokoban] = None,
 ) -> Resultado:
     """Corre un algoritmo y mide todo lo que pide el enunciado."""
     if clave_algoritmo not in ALGORITMOS:
@@ -245,6 +261,8 @@ def ejecutar_busqueda(
         )
 
     descripcion = ALGORITMOS[clave_algoritmo]
+    problema = problema or ProblemaSokoban(mapa, estado_inicial)
+    _validar_problema(problema, mapa, estado_inicial)
     funcion_h = None
     nombre_h = None
     if descripcion.usa_heuristica:
@@ -257,7 +275,11 @@ def ejecutar_busqueda(
 
     if descripcion.clave == "iddfs":
         nodo, motivo, expandidos, en_frontera, generados = buscar_iddfs(
-            estado_inicial, mapa, podar_deadlocks, limites
+            estado_inicial,
+            mapa,
+            podar_deadlocks,
+            limites,
+            problema=problema,
         )
     else:
         nodo, motivo, expandidos, en_frontera, generados = buscar(
@@ -267,6 +289,7 @@ def ejecutar_busqueda(
             funcion_h,
             podar_deadlocks,
             limites,
+            problema,
         )
 
     tiempo = time.perf_counter() - inicio
@@ -313,6 +336,7 @@ def resolver(
         problema.mapa,
         heuristica=heuristica or HEURISTICA_POR_DEFECTO,
         max_nodos=max_expandidos,
+        problema=problema,
     )
 
 

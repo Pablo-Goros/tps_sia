@@ -1,70 +1,28 @@
-"""Generacion de sucesores y poda de deadlocks."""
+"""Adaptadores temporales para la generacion de sucesores."""
 
 from __future__ import annotations
 
-from typing import List, Optional, Tuple
+from typing import List
 
-from .distancias import celdas_muertas
-from .estado import Direccion, ORDEN_ACCIONES, Estado, Mapa, aplicar_accion, empuja
-
-Sucesor = Tuple[Estado, Direccion, int]
-
-# Todo movimiento cuesta 1: el enunciado pide optimizar la cantidad de movimientos.
-COSTO_MOVIMIENTO = 1
+from .estado import Estado, Mapa
+from .problema import COSTO_MOVIMIENTO, ProblemaSokoban, Sucesor
 
 
 def generar_sucesores(
     estado: Estado, mapa: Mapa, podar_deadlocks: bool = True
 ) -> List[Sucesor]:
-    muertas = celdas_muertas(mapa) if podar_deadlocks else frozenset()
-    sucesores: List[Sucesor] = []
-
-    for accion in ORDEN_ACCIONES:
-        hubo_empuje = empuja(estado, accion)
-        nuevo = aplicar_accion(estado, mapa, accion)
-        if nuevo is None:
-            continue
-        if podar_deadlocks and hubo_empuje and es_deadlock(nuevo, estado, mapa, muertas):
-            continue
-        sucesores.append((nuevo, accion, COSTO_MOVIMIENTO))
-
-    return sucesores
+    problema = ProblemaSokoban(mapa=mapa, estado_inicial=estado)
+    return problema.generar_sucesores(estado, podar_deadlocks)
 
 
-def es_deadlock(nuevo: Estado, anterior: Estado, mapa: Mapa, muertas) -> bool:
-    """True si el ultimo empuje dejo el nivel sin solucion posible.
-
-    Solo se mira la caja que se acaba de mover: el resto ya fue validado al
-    generar el estado anterior. La poda es conservadora (descarta unicamente
-    estados que con certeza no llevan a solucion), asi que no afecta la
-    optimalidad de BFS ni de A*.
-    """
-    movida = _caja_movida(nuevo, anterior)
-    if movida is None:
-        return False
-    if movida in muertas:
-        return True
-    return _bloque_congelado(nuevo, mapa, movida)
+def es_deadlock(nuevo: Estado, anterior: Estado, mapa: Mapa, muertas=None) -> bool:
+    problema = ProblemaSokoban(mapa=mapa, estado_inicial=anterior)
+    return problema.es_deadlock(nuevo, anterior)
 
 
-def _caja_movida(nuevo: Estado, anterior: Estado) -> Optional[tuple]:
-    diferencia = nuevo.cajas - anterior.cajas
-    return next(iter(diferencia)) if diferencia else None
-
-
-def _bloque_congelado(estado: Estado, mapa: Mapa, caja) -> bool:
-    """Bloque de 2x2 de paredes y cajas con alguna caja fuera de objetivo."""
-    x, y = caja
-    for x_inicial in (x - 1, x):
-        for y_inicial in (y - 1, y):
-            celdas = [
-                (x_inicial, y_inicial),
-                (x_inicial + 1, y_inicial),
-                (x_inicial, y_inicial + 1),
-                (x_inicial + 1, y_inicial + 1),
-            ]
-            if all(c in mapa.paredes or c in estado.cajas for c in celdas):
-                cajas_del_bloque = [c for c in celdas if c in estado.cajas]
-                if any(c not in mapa.objetivos for c in cajas_del_bloque):
-                    return True
-    return False
+__all__ = [
+    "COSTO_MOVIMIENTO",
+    "Sucesor",
+    "es_deadlock",
+    "generar_sucesores",
+]
