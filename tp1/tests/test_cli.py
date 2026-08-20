@@ -1,3 +1,4 @@
+import json
 import os
 from pathlib import Path
 import subprocess
@@ -139,3 +140,51 @@ def test_un_corte_devuelve_estado_y_motivo_distintos_del_fracaso(
     assert "Estado:                  corte" in completado.stdout
     assert "Costo:                   -" in completado.stdout
     assert "Motivo:                  limite_nodos" in completado.stdout
+
+
+def test_error_de_configuracion_se_informa_sin_traceback(tmp_path: Path) -> None:
+    inexistente = tmp_path / "no_existe.json"
+
+    completado = ejecutar_cli(
+        "experimentar", "--configuracion", str(inexistente)
+    )
+
+    assert completado.returncode == 2
+    assert "configuración inválida" in completado.stderr
+    assert "no se pudo leer" in completado.stderr
+    assert "Traceback" not in completado.stderr
+
+
+def test_experimentar_ejecuta_cinco_repeticiones_y_escribe_ambos_csv(
+    tmp_path: Path,
+) -> None:
+    nivel = tmp_path / "nivel.txt"
+    nivel.write_text("#####\n#@$.#\n#####", encoding="utf-8")
+    configuracion = tmp_path / "configuracion.json"
+    configuracion.write_text(
+        json.dumps(
+            {
+                "semilla": 7,
+                "repeticiones": 5,
+                "niveles": [{"nombre": "micro", "ruta": "nivel.txt"}],
+                "algoritmos": ["astar"],
+                "heuristicas": ["manhattan"],
+                "salidas": {
+                    "ejecuciones": "resultados/ejecuciones.csv",
+                    "resumen": "resultados/resumen.csv",
+                },
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    completado = ejecutar_cli(
+        "experimentar", "--configuracion", str(configuracion)
+    )
+
+    assert completado.returncode == 0, completado.stderr
+    assert "[5/5]" in completado.stdout
+    assert "Ejecuciones: 5" in completado.stdout
+    assert "Resumen:     1 grupos" in completado.stdout
+    assert (tmp_path / "resultados/ejecuciones.csv").is_file()
+    assert (tmp_path / "resultados/resumen.csv").is_file()

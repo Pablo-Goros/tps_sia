@@ -9,6 +9,7 @@ from typing import Optional, Sequence, TextIO
 
 from .busqueda import ALGORITMOS, ORDEN_ALGORITMOS, Resultado, resolver
 from .estado import ABREVIATURAS, Direccion, Estado
+from .experimentos import ErrorConfiguracion, ejecutar_desde_configuracion
 from .heuristicas import HEURISTICAS, HEURISTICA_POR_DEFECTO
 from .nivel import NivelInvalido, cargar_nivel, render_texto
 from .problema import ProblemaSokoban
@@ -238,10 +239,25 @@ def _resolver(argumentos: argparse.Namespace) -> int:
     return 0 if resultado.exito else 1
 
 
+def _experimentar(argumentos: argparse.Namespace) -> int:
+    try:
+        resultado = ejecutar_desde_configuracion(
+            argumentos.configuracion,
+            informar=print,
+        )
+    except ErrorConfiguracion as error:
+        raise ErrorCLI("configuración inválida: {}".format(error)) from error
+
+    print("\nEjecuciones: {}".format(len(resultado.ejecuciones)))
+    print("Resumen:     {} grupos".format(len(resultado.resumen)))
+    print("CSV crudo:   {}".format(resultado.salida_ejecuciones))
+    print("CSV resumen: {}".format(resultado.salida_resumen))
+    return 0
+
+
 def _fase_posterior(comando: str) -> int:
-    fase = 8 if comando == "experimentar" else 9
     raise ErrorCLI(
-        "el comando {} se implementará en la fase {}".format(comando, fase)
+        "el comando {} se implementará en la fase 9".format(comando)
     )
 
 
@@ -255,6 +271,8 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     try:
         if argumentos.comando == "resolver":
             return _resolver(argumentos)
+        if argumentos.comando == "experimentar":
+            return _experimentar(argumentos)
         return _fase_posterior(argumentos.comando)
     except ErrorCLI as error:
         print("Error: {}".format(error), file=sys.stderr)

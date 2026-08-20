@@ -1,0 +1,37 @@
+{
+  "semilla": 20260820,
+  "repeticiones": 5,
+  "niveles": [
+    {
+      "nombre": "sin_solucion",
+      "ruta": "niveles/nivel_00_sin_solucion.txt"
+    },
+    {
+      "nombre": "trivial",
+      "ruta": "niveles/nivel_01_trivial.txt"
+    },
+    {
+      "nombre": "facil",
+      "ruta": "niveles/nivel_02_facil.txt"
+    },
+    {
+      "nombre": "medio",
+      "ruta": "niveles/nivel_03_medio.txt"
+    }
+  ],
+  "algoritmos": [
+    "bfs",
+    "dfs",
+    "greedy",
+    "astar"
+  ],
+  "heuristicas": [
+    "manhattan",
+    "empujes_inversos"
+  ],
+  "max_expandidos": 100000,
+  "salidas": {
+    "ejecuciones": "resultados/ejecuciones.csv",
+    "resumen": "resultados/resumen.csv"
+  }
+}
