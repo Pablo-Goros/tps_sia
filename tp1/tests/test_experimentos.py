@@ -64,6 +64,9 @@ def test_las_rutas_se_resuelven_desde_el_archivo_de_configuracion(
     assert configuracion.salida_resumen == (
         tmp_path / "salida/resumen.csv"
     ).resolve()
+    assert configuracion.salida_figuras == (
+        tmp_path / "resultados/figuras"
+    ).resolve()
     assert configuracion.repeticiones == 5
 
 

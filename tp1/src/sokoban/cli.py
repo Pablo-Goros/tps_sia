@@ -13,6 +13,7 @@ from .experimentos import ErrorConfiguracion, ejecutar_desde_configuracion
 from .heuristicas import HEURISTICAS, HEURISTICA_POR_DEFECTO
 from .nivel import NivelInvalido, cargar_nivel, render_texto
 from .problema import ProblemaSokoban
+from .reportes import ErrorReporte, generar_desde_configuracion
 
 
 COMANDOS = ("resolver", "experimentar", "graficar")
@@ -255,10 +256,18 @@ def _experimentar(argumentos: argparse.Namespace) -> int:
     return 0
 
 
-def _fase_posterior(comando: str) -> int:
-    raise ErrorCLI(
-        "el comando {} se implementará en la fase 9".format(comando)
-    )
+def _graficar(argumentos: argparse.Namespace) -> int:
+    try:
+        figuras = generar_desde_configuracion(argumentos.configuracion)
+    except (ErrorConfiguracion, ErrorReporte) as error:
+        raise ErrorCLI(
+            "no se pudieron generar las figuras: {}".format(error)
+        ) from error
+
+    print("Figuras generadas:")
+    for figura in figuras:
+        print("  {}".format(figura))
+    return 0
 
 
 def main(argv: Optional[Sequence[str]] = None) -> int:
@@ -273,7 +282,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             return _resolver(argumentos)
         if argumentos.comando == "experimentar":
             return _experimentar(argumentos)
-        return _fase_posterior(argumentos.comando)
+        return _graficar(argumentos)
     except ErrorCLI as error:
         print("Error: {}".format(error), file=sys.stderr)
         return 2

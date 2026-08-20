@@ -32,6 +32,7 @@
   "max_expandidos": 100000,
   "salidas": {
     "ejecuciones": "resultados/ejecuciones.csv",
-    "resumen": "resultados/resumen.csv"
+    "resumen": "resultados/resumen.csv",
+    "figuras": "resultados/figuras"
   }
 }

@@ -188,3 +188,14 @@ def test_experimentar_ejecuta_cinco_repeticiones_y_escribe_ambos_csv(
     assert "Resumen:     1 grupos" in completado.stdout
     assert (tmp_path / "resultados/ejecuciones.csv").is_file()
     assert (tmp_path / "resultados/resumen.csv").is_file()
+
+
+def test_graficar_informa_errores_sin_traceback(tmp_path: Path) -> None:
+    inexistente = tmp_path / "no_existe.json"
+
+    completado = ejecutar_cli("graficar", "--configuracion", str(inexistente))
+
+    assert completado.returncode == 2
+    assert "no se pudieron generar las figuras" in completado.stderr
+    assert "no se pudo leer" in completado.stderr
+    assert "Traceback" not in completado.stderr

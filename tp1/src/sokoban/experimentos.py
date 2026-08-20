@@ -78,6 +78,7 @@ class ConfiguracionExperimentos:
     max_expandidos: Optional[int]
     salida_ejecuciones: Path
     salida_resumen: Path
+    salida_figuras: Path
 
 
 @dataclass(frozen=True)
@@ -167,12 +168,18 @@ def cargar_configuracion(
         objeto["salidas"],
         "salidas",
         requeridas={"ejecuciones", "resumen"},
+        opcionales={"figuras"},
     )
     salida_ejecuciones = _resolver_ruta(
         salidas["ejecuciones"], base, "salidas.ejecuciones"
     )
     salida_resumen = _resolver_ruta(
         salidas["resumen"], base, "salidas.resumen"
+    )
+    salida_figuras = _resolver_ruta(
+        salidas.get("figuras", "resultados/figuras"),
+        base,
+        "salidas.figuras",
     )
     for nombre, salida in (
         ("salidas.ejecuciones", salida_ejecuciones),
@@ -186,6 +193,14 @@ def cargar_configuracion(
             )
     if salida_ejecuciones == salida_resumen:
         raise ErrorConfiguracion("las dos salidas CSV deben ser diferentes")
+    if salida_figuras in (salida_ejecuciones, salida_resumen):
+        raise ErrorConfiguracion(
+            "salidas.figuras debe ser diferente de las salidas CSV"
+        )
+    if salida_figuras == ruta_configuracion:
+        raise ErrorConfiguracion(
+            "salidas.figuras no puede sobrescribir la configuración"
+        )
 
     return ConfiguracionExperimentos(
         ruta=ruta_configuracion,
@@ -197,6 +212,7 @@ def cargar_configuracion(
         max_expandidos=max_expandidos,
         salida_ejecuciones=salida_ejecuciones,
         salida_resumen=salida_resumen,
+        salida_figuras=salida_figuras,
     )
 
 
@@ -209,6 +225,7 @@ def preparar_niveles(
     for salida in (
         configuracion.salida_ejecuciones,
         configuracion.salida_resumen,
+        configuracion.salida_figuras,
     ):
         if salida in rutas_niveles:
             raise ErrorConfiguracion(
