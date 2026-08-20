@@ -22,7 +22,7 @@ from .estado import (
     aplicar_accion,
 )
 from .heuristicas import HEURISTICAS, HEURISTICA_POR_DEFECTO, obtener_heuristica
-from .nivel import NivelInvalido, cargar_nivel, parsear_tablero
+from .nivel import NivelInvalido, cargar_nivel, parsear_tablero, render_texto
 from .nodo import Nodo, expandir, reconstruir_camino, reconstruir_estados
 from .problema import ProblemaSokoban
 from .sucesores import generar_sucesores
@@ -34,7 +34,6 @@ from .visualizacion import (
     generar_video,
     guardar_frames,
     iterar_frames,
-    render_texto,
     reproducir_en_consola,
 )
 

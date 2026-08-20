@@ -4,7 +4,8 @@ from pathlib import Path
 import pytest
 
 from sokoban.busqueda import ejecutar_busqueda
-from sokoban.estado import Estado, aplicar_accion, cargar_nivel, parsear_tablero
+from sokoban.estado import Estado, aplicar_accion
+from sokoban.nivel import cargar_nivel, parsear_tablero
 from sokoban.nodo import Nodo, reconstruir_camino, reconstruir_estados
 
 

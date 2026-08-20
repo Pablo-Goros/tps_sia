@@ -38,7 +38,10 @@ def tabla_empujes(mapa: Mapa) -> Dict[Posicion, Dict[Posicion, int]]:
                     actual[0] - 2 * desplazamiento_x,
                     actual[1] - 2 * desplazamiento_y,
                 )
-                if origen_caja in mapa.paredes or origen_jugador in mapa.paredes:
+                if (
+                    origen_caja not in mapa.pisos
+                    or origen_jugador not in mapa.pisos
+                ):
                     continue
                 if origen_caja in distancias:
                     continue
@@ -67,11 +70,4 @@ def celdas_muertas(mapa: Mapa) -> FrozenSet[Posicion]:
     la caja de ahi: empujarla a esa celda hace el nivel irresoluble.
     """
     alcanzables = set(distancia_minima_a_objetivo(mapa))
-    muertas = set()
-    for y in range(mapa.alto):
-        for x in range(mapa.ancho):
-            celda = (x, y)
-            if celda in mapa.paredes or celda in alcanzables:
-                continue
-            muertas.add(celda)
-    return frozenset(muertas)
+    return frozenset(mapa.pisos - alcanzables)

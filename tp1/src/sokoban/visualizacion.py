@@ -6,18 +6,8 @@ import itertools
 import os
 from typing import Callable, Iterator, List, Optional, Sequence
 
-from .estado import (
-    CAJA,
-    CAJA_EN_OBJETIVO,
-    JUGADOR,
-    JUGADOR_EN_OBJETIVO,
-    OBJETIVO,
-    PARED,
-    PISO,
-    Estado,
-    Mapa,
-    aplicar_accion,
-)
+from .estado import Estado, Mapa, aplicar_accion
+from .nivel import render_texto
 
 CELDA = 44
 MARGEN = 14
@@ -63,27 +53,6 @@ EXTENSIONES_VIDEO = (".mp4", ".mkv", ".webm", ".mov", ".avi")
 
 
 # --- Consola ---
-
-
-def render_texto(estado: Estado, mapa: Mapa) -> str:
-    """Vuelve a la notacion XSB del nivel."""
-    filas = []
-    for y in range(mapa.alto):
-        fila = []
-        for x in range(mapa.ancho):
-            pos = (x, y)
-            if pos in mapa.paredes:
-                fila.append(PARED)
-            elif pos == estado.jugador:
-                fila.append(JUGADOR_EN_OBJETIVO if pos in mapa.objetivos else JUGADOR)
-            elif pos in estado.cajas:
-                fila.append(CAJA_EN_OBJETIVO if pos in mapa.objetivos else CAJA)
-            elif pos in mapa.objetivos:
-                fila.append(OBJETIVO)
-            else:
-                fila.append(PISO)
-        filas.append("".join(fila).rstrip())
-    return "\n".join(filas)
 
 
 def estados_desde_camino(
@@ -186,7 +155,7 @@ def dibujar_frame(
                     [rect[0] + 2, rect[1] + 1, rect[2] - 2, rect[1] + 1],
                     fill=COLORES["pared_luz"],
                 )
-            else:
+            elif pos in mapa.pisos:
                 color = (
                     COLORES["piso_a"]
                     if (x + y) % 2 == 0
@@ -620,7 +589,7 @@ def animar(
                 rect = pygame.Rect(x * CELDA, y * CELDA, CELDA, CELDA)
                 if (x, y) in mapa.paredes:
                     pygame.draw.rect(pantalla, COLORES["pared"], rect)
-                else:
+                elif (x, y) in mapa.pisos:
                     pygame.draw.rect(pantalla, COLORES["piso_a"], rect)
         for objetivo in mapa.objetivos:
             centro = (

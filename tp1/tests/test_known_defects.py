@@ -7,8 +7,9 @@ import pytest
 
 import sokoban.busqueda as modulo_busqueda
 from sokoban.busqueda import LIMITE_NODOS, buscar, ejecutar_busqueda
-from sokoban.estado import Estado, Mapa, aplicar_accion, parsear_tablero
+from sokoban.estado import Estado, Mapa, aplicar_accion
 from sokoban.frontera import FronteraLIFO
+from sokoban.nivel import parsear_tablero
 from sokoban.nodo import Nodo
 
 
@@ -21,10 +22,6 @@ ONE_MOVE_BOARD = """\
 """
 
 
-@pytest.mark.xfail(
-    strict=True,
-    reason="movement currently treats coordinates outside the board as floor",
-)
 def test_walking_beyond_board_boundaries_is_illegal() -> None:
     mapa = Mapa(
         ancho=2,
@@ -38,10 +35,6 @@ def test_walking_beyond_board_boundaries_is_illegal() -> None:
     assert aplicar_accion(estado, mapa, "derecha") is None
 
 
-@pytest.mark.xfail(
-    strict=True,
-    reason="the rectangular map model currently turns missing row cells into floor",
-)
 def test_missing_cells_in_uneven_rows_are_not_floor() -> None:
     mapa, estado = parsear_tablero(
         """\
@@ -55,10 +48,6 @@ def test_missing_cells_in_uneven_rows_are_not_floor() -> None:
     assert aplicar_accion(estado, mapa, "derecha") is None
 
 
-@pytest.mark.xfail(
-    strict=True,
-    reason="reverse-push preprocessing currently has no board-boundary guard",
-)
 def test_reverse_push_preprocessing_cannot_escape_the_board() -> None:
     script = """
 from sokoban.distancias import tabla_empujes
