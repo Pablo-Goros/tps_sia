@@ -6,7 +6,6 @@ from .busqueda import (
     ORDEN_ALGORITMOS,
     Resultado,
     buscar,
-    buscar_iddfs,
     comparar_algoritmos,
     ejecutar_busqueda,
     resolver,
@@ -32,16 +31,6 @@ from .nivel import NivelInvalido, cargar_nivel, parsear_tablero, render_texto
 from .nodo import Nodo, expandir, reconstruir_camino, reconstruir_estados
 from .problema import ProblemaSokoban
 from .sucesores import generar_sucesores
-from .visualizacion import (
-    dibujar_frame,
-    estados_desde_camino,
-    frames_de_solucion,
-    generar_gif,
-    generar_video,
-    guardar_frames,
-    iterar_frames,
-    reproducir_en_consola,
-)
 
 __all__ = [
     "ALGORITMOS",
@@ -62,26 +51,17 @@ __all__ = [
     "Resultado",
     "aplicar_accion",
     "buscar",
-    "buscar_iddfs",
     "cargar_nivel",
     "comparar_algoritmos",
     "costo_asignacion_minima",
     "crear_heuristica",
-    "dibujar_frame",
     "ejecutar_busqueda",
-    "estados_desde_camino",
     "expandir",
-    "frames_de_solucion",
-    "generar_gif",
-    "generar_video",
-    "guardar_frames",
-    "iterar_frames",
     "generar_sucesores",
     "obtener_heuristica",
     "parsear_tablero",
     "reconstruir_camino",
     "reconstruir_estados",
     "render_texto",
-    "reproducir_en_consola",
     "resolver",
 ]

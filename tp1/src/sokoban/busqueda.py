@@ -1,13 +1,12 @@
-"""Bucle generico de busqueda, IDDFS y wrapper de metricas."""
+"""Algoritmos de busqueda y medicion de resultados."""
 
 from __future__ import annotations
 
-import itertools
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Callable, Dict, List, Literal, Optional, Tuple
 
-from .estado import ABREVIATURAS, Direccion, Estado, Mapa
+from .estado import Direccion, Estado, Mapa
 from .frontera import (
     Frontera,
     FronteraFIFO,
@@ -21,7 +20,7 @@ from .heuristicas import (
     crear_heuristica,
     obtener_heuristica,
 )
-from .nodo import Nodo, expandir, reconstruir_camino, reconstruir_estados
+from .nodo import Nodo, expandir, reconstruir_camino
 from .problema import ProblemaSokoban
 
 EXITO = "exito"
@@ -45,52 +44,10 @@ class Resultado:
     max_nodos_frontera: int
     tiempo_segundos: float
     motivo: Optional[str]
-    # Metricas y estados transitorios conservados hasta que las capas antiguas
-    # de benchmark y visualizacion se retiren en fases posteriores.
-    nodos_generados: int
-    _estados: Tuple[Estado, ...] = field(default_factory=tuple, repr=False)
 
     @property
     def exito(self) -> bool:
         return self.estado == "exito"
-
-    @property
-    def camino(self) -> List[Direccion]:
-        """Compatibilidad temporal con los consumidores anteriores."""
-        return list(self.movimientos)
-
-    @property
-    def estados(self) -> List[Estado]:
-        """Compatibilidad temporal con la capa de visualizacion anterior."""
-        return list(self._estados)
-
-    @property
-    def tiempo_seg(self) -> float:
-        """Nombre transitorio usado por los scripts anteriores."""
-        return self.tiempo_segundos
-
-    @property
-    def camino_corto(self) -> str:
-        return "".join(ABREVIATURAS[accion] for accion in self.movimientos)
-
-    def como_dict(self) -> Dict:
-        return {
-            "algoritmo": self.algoritmo,
-            "heuristica": self.heuristica,
-            "estado": self.estado,
-            "exito": self.exito,
-            "motivo": self.motivo,
-            "costo": self.costo,
-            "movimientos": list(self.movimientos),
-            "nodos_expandidos": self.nodos_expandidos,
-            "nodos_frontera": self.nodos_frontera,
-            "max_nodos_frontera": self.max_nodos_frontera,
-            "nodos_generados": self.nodos_generados,
-            "tiempo_segundos": round(self.tiempo_segundos, 6),
-            "tiempo_seg": round(self.tiempo_segundos, 6),
-            "camino": self.camino,
-            "camino_corto": self.camino_corto,
-        }
 
 
 class _Limites:
@@ -426,63 +383,6 @@ def buscar(
     return None, SIN_SOLUCION, expandidos, 0, generados
 
 
-def buscar_iddfs(
-    estado_inicial: Estado,
-    mapa: Mapa,
-    podar_deadlocks: bool = True,
-    limites: Optional[_Limites] = None,
-    profundidad_maxima: Optional[int] = None,
-    problema: Optional[ProblemaSokoban] = None,
-) -> Tuple[Optional[Nodo], str, int, int, int]:
-    """DFS con limite de profundidad creciente: memoria de DFS, optimo como BFS."""
-    limites = limites or _Limites(None, None)
-    problema = problema or ProblemaSokoban(mapa, estado_inicial)
-    _validar_problema(problema, mapa, estado_inicial)
-    expandidos_total = 0
-    generados_total = 1
-
-    for limite in itertools.count(0):
-        if profundidad_maxima is not None and limite > profundidad_maxima:
-            return None, SIN_SOLUCION, expandidos_total, 0, generados_total
-
-        pila: List[Nodo] = [Nodo(estado_inicial, padre=None, accion=None, g=0)]
-        # Profundidad minima con la que se vio cada estado en esta iteracion.
-        mejor_profundidad: Dict[Estado, int] = {estado_inicial: 0}
-        hubo_corte = False
-
-        while pila:
-            nodo = pila.pop()
-
-            if nodo.estado.es_objetivo(mapa):
-                return nodo, EXITO, expandidos_total, len(pila), generados_total
-
-            if nodo.g >= limite:
-                hubo_corte = True
-                continue
-
-            motivo = limites.excedido(expandidos_total)
-            if motivo is not None:
-                return None, motivo, expandidos_total, len(pila), generados_total
-
-            hijos = expandir(nodo, problema, None, podar_deadlocks)
-            expandidos_total += 1
-            nuevos = []
-            for hijo in hijos:
-                previa = mejor_profundidad.get(hijo.estado)
-                if previa is None or hijo.g < previa:
-                    mejor_profundidad[hijo.estado] = hijo.g
-                    nuevos.append(hijo)
-            for hijo in reversed(nuevos):
-                pila.append(hijo)
-                generados_total += 1
-
-        # Sin cortes por profundidad, el espacio alcanzable esta agotado.
-        if not hubo_corte:
-            return None, SIN_SOLUCION, expandidos_total, 0, generados_total
-
-    raise AssertionError("inalcanzable")
-
-
 @dataclass(frozen=True)
 class DescripcionAlgoritmo:
     clave: str
@@ -497,13 +397,12 @@ ALGORITMOS: Dict[str, DescripcionAlgoritmo] = {
     for d in (
         DescripcionAlgoritmo("bfs", "BFS", False, True, FronteraFIFO),
         DescripcionAlgoritmo("dfs", "DFS", False, False, FronteraLIFO),
-        DescripcionAlgoritmo("iddfs", "IDDFS", False, True, None),
         DescripcionAlgoritmo("greedy", "Greedy", True, False, frontera_greedy),
         DescripcionAlgoritmo("astar", "A*", True, True, frontera_a_estrella),
     )
 }
 
-ORDEN_ALGORITMOS: Tuple[str, ...] = ("bfs", "dfs", "iddfs", "greedy", "astar")
+ORDEN_ALGORITMOS: Tuple[str, ...] = ("bfs", "dfs", "greedy", "astar")
 
 
 def ejecutar_busqueda(
@@ -514,7 +413,6 @@ def ejecutar_busqueda(
     podar_deadlocks: bool = True,
     max_nodos: Optional[int] = None,
     timeout: Optional[float] = None,
-    guardar_estados: bool = True,
     problema: Optional[ProblemaSokoban] = None,
 ) -> Resultado:
     """Corre un algoritmo y mide todo lo que pide el enunciado."""
@@ -558,22 +456,6 @@ def ejecutar_busqueda(
         resultado_busqueda = _buscar_a_estrella(
             problema, funcion_h, podar_deadlocks, limites
         )
-    elif descripcion.clave == "iddfs":
-        nodo, motivo, expandidos, en_frontera, generados = buscar_iddfs(
-            estado_inicial,
-            mapa,
-            podar_deadlocks,
-            limites,
-            problema=problema,
-        )
-        resultado_busqueda = _ResultadoBusqueda(
-            nodo=nodo,
-            motivo=motivo,
-            expandidos=expandidos,
-            en_frontera=en_frontera,
-            max_en_frontera=max(1, en_frontera),
-            generados=generados,
-        )
     else:
         raise AssertionError("algoritmo registrado sin implementacion")
 
@@ -581,7 +463,6 @@ def ejecutar_busqueda(
     motivo = resultado_busqueda.motivo
     expandidos = resultado_busqueda.expandidos
     en_frontera = resultado_busqueda.en_frontera
-    generados = resultado_busqueda.generados
 
     tiempo = time.perf_counter() - inicio
     exito = nodo is not None
@@ -604,12 +485,6 @@ def ejecutar_busqueda(
         max_nodos_frontera=resultado_busqueda.max_en_frontera,
         tiempo_segundos=tiempo,
         motivo=motivo,
-        nodos_generados=generados,
-        _estados=(
-            tuple(reconstruir_estados(nodo))
-            if exito and guardar_estados
-            else ()
-        ),
     )
 
 
@@ -650,7 +525,6 @@ def comparar_algoritmos(
             podar_deadlocks=podar_deadlocks,
             max_nodos=max_nodos,
             timeout=timeout,
-            guardar_estados=False,
         )
         for clave in claves
     ]

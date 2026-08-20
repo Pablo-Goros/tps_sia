@@ -83,7 +83,7 @@ def test_required_algorithms_solve_one_move_board(algoritmo: str) -> None:
 
     assert resultado.exito
     assert resultado.costo == 1
-    assert resultado.camino == ["derecha"]
+    assert resultado.movimientos == ("derecha",)
 
 
 @pytest.mark.parametrize(
