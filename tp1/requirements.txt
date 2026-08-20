@@ -1,0 +1,8 @@
+# El motor de busqueda funciona con la biblioteca estandar de Python 3.9+.
+# Estas dependencias son solo para las salidas opcionales:
+Pillow>=9.0        # GIF, PNG y frames del video (visualizar.py, --gif)
+matplotlib>=3.5    # benchmark.py --graficos
+pygame>=2.1        # --animar (ventana con la animacion)
+
+# Ademas, para exportar video MP4 hace falta ffmpeg en el PATH
+# (no es un paquete de Python):  brew install ffmpeg  /  apt install ffmpeg

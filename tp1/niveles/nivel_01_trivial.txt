@@ -1,0 +1,6 @@
+; 1 caja, 1 objetivo. Sirve para verificar el motor de punta a punta.
+#######
+#     #
+# $.@ #
+#     #
+#######

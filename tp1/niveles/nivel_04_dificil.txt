@@ -1,0 +1,10 @@
+; 4 cajas con paredes internas. BFS ya sufre, A* con matching_empujes vuela.
+##########
+#        #
+#  $  $  #
+#  .##.  #
+#  @     #
+#  .##.  #
+#  $  $  #
+#        #
+##########

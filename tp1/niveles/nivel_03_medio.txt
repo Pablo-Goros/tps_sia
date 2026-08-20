@@ -1,0 +1,7 @@
+; 3 cajas alineadas: se empuja cada una hacia abajo.
+#########
+#       #
+# $ $ $ #
+#   @   #
+# . . . #
+#########

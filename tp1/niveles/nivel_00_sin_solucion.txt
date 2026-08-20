@@ -1,0 +1,9 @@
+; Los objetivos son inalcanzables para las cajas: la busqueda debe fracasar.
+########
+#      #
+#  $   #
+#  @   #
+#  $   #
+#  ##  #
+#  #..##
+########

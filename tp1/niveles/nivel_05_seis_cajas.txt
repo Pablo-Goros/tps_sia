@@ -1,0 +1,11 @@
+; 6 cajas: cada una necesita un solo empuje, pero el espacio de estados explota.
+; Muestra la diferencia de escalabilidad entre desinformados e informados.
+##########
+#        #
+#  $ $ $ #
+#  . . . #
+#    @   #
+#  . . . #
+#  $ $ $ #
+#        #
+##########
