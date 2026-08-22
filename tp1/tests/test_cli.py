@@ -6,6 +6,8 @@ import sys
 
 import pytest
 
+from sokoban.reportes import NOMBRES_FIGURAS
+
 
 RAIZ_PROYECTO = Path(__file__).resolve().parents[1]
 NIVEL_UN_MOVIMIENTO = RAIZ_PROYECTO / "niveles" / "nivel_01_trivial.txt"
@@ -198,4 +200,40 @@ def test_graficar_informa_errores_sin_traceback(tmp_path: Path) -> None:
     assert completado.returncode == 2
     assert "no se pudieron generar las figuras" in completado.stderr
     assert "no se pudo leer" in completado.stderr
+    assert "Traceback" not in completado.stderr
+
+
+def test_ayuda_de_graficar_expone_los_filtros() -> None:
+    completado = ejecutar_cli("graficar", "--ayuda")
+
+    assert completado.returncode == 0
+    for opcion in ("--niveles", "--algoritmos", "--heuristicas", "--salida-figuras"):
+        assert opcion in completado.stdout
+    assert "iddfs" not in completado.stdout
+
+
+def test_graficar_filtrado_escribe_donde_se_le_pide(tmp_path: Path) -> None:
+    pytest.importorskip("matplotlib")
+    destino = tmp_path / "figuras_elegidas"
+
+    completado = ejecutar_cli(
+        "graficar",
+        "--algoritmos",
+        "bfs",
+        "--niveles",
+        "facil",
+        "medio",
+        "--salida-figuras",
+        str(destino),
+    )
+
+    assert completado.returncode == 0, completado.stderr
+    assert {ruta.name for ruta in destino.iterdir()} == set(NOMBRES_FIGURAS)
+
+
+def test_graficar_rechaza_un_nivel_ausente_de_la_configuracion() -> None:
+    completado = ejecutar_cli("graficar", "--niveles", "inexistente")
+
+    assert completado.returncode == 2
+    assert "nivel fuera de la configuración" in completado.stderr
     assert "Traceback" not in completado.stderr

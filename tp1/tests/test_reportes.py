@@ -8,9 +8,15 @@ from sokoban.experimentos import COLUMNAS_RESUMEN, cargar_configuracion
 from sokoban.reportes import (
     ErrorReporte,
     NOMBRES_FIGURAS,
+    SUBCARPETA_FILTRADAS,
     cargar_resumen,
+    crear_series,
+    filtrar_configuracion,
+    filtrar_mediciones,
+    generar_desde_configuracion,
     generar_figuras,
     requiere_escala_logaritmica,
+    validar_resumen,
 )
 
 
@@ -143,3 +149,132 @@ def test_genera_exactamente_cuatro_png_con_rotulos_y_barras_de_error(
         "Tiempo promedio (segundos)",
     )
     assert rotulos["costo_solucion.png"][2] == "Costo promedio (movimientos)"
+
+
+def crear_datos_filtrables(carpeta: Path) -> Path:
+    """Configuración con dos niveles, un método desinformado y uno informado."""
+    configuracion = carpeta / "configuracion.json"
+    configuracion.write_text(
+        json.dumps(
+            {
+                "semilla": 1,
+                "repeticiones": 5,
+                "niveles": [
+                    {"nombre": "micro", "ruta": "micro.txt"},
+                    {"nombre": "mini", "ruta": "mini.txt"},
+                ],
+                "algoritmos": ["bfs", "astar"],
+                "heuristicas": ["manhattan", "empujes_inversos"],
+                "salidas": {
+                    "ejecuciones": "resultados/ejecuciones.csv",
+                    "resumen": "resultados/resumen.csv",
+                    "figuras": "resultados/figuras",
+                },
+            }
+        ),
+        encoding="utf-8",
+    )
+    (carpeta / "micro.txt").write_text("#####\n#@$.#\n#####", encoding="utf-8")
+    (carpeta / "mini.txt").write_text("######\n#@$ .#\n######", encoding="utf-8")
+
+    resumen = carpeta / "resultados" / "resumen.csv"
+    resumen.parent.mkdir()
+    with resumen.open("w", encoding="utf-8", newline="") as archivo:
+        escritor = csv.DictWriter(
+            archivo, fieldnames=COLUMNAS_RESUMEN, lineterminator="\n"
+        )
+        escritor.writeheader()
+        for nivel in ("micro", "mini"):
+            for algoritmo, heuristica in (
+                ("bfs", ""),
+                ("astar", "manhattan"),
+                ("astar", "empujes_inversos"),
+            ):
+                escritor.writerow(
+                    {
+                        "nivel": nivel,
+                        "algoritmo": algoritmo,
+                        "heuristica": heuristica,
+                        "repeticiones": 5,
+                        "exitos": 5,
+                        "fracasos": 0,
+                        "cortes": 0,
+                        "tasa_exito": 1.0,
+                        "costo_promedio": 1.0,
+                        "nodos_expandidos_promedio": 1.0,
+                        "nodos_frontera_promedio": 0.0,
+                        "max_nodos_frontera_promedio": 1.0,
+                        "tiempo_promedio_segundos": 0.001,
+                        "tiempo_desvio_segundos": 0.0002,
+                    }
+                )
+    return configuracion
+
+
+def test_filtrar_respeta_el_orden_de_la_configuracion(tmp_path: Path) -> None:
+    configuracion = cargar_configuracion(crear_datos_filtrables(tmp_path))
+
+    filtrada = filtrar_configuracion(
+        configuracion,
+        niveles=["mini", "micro"],
+        algoritmos=["astar", "bfs"],
+        heuristicas=["empujes_inversos"],
+    )
+
+    assert tuple(nivel.nombre for nivel in filtrada.niveles) == ("micro", "mini")
+    assert filtrada.algoritmos == ("bfs", "astar")
+    assert filtrada.heuristicas == ("empujes_inversos",)
+    assert tuple(serie.clave for serie in crear_series(filtrada)) == (
+        ("bfs", ""),
+        ("astar", "empujes_inversos"),
+    )
+
+
+def test_filtrar_rechaza_lo_que_la_configuracion_no_declara(
+    tmp_path: Path,
+) -> None:
+    configuracion = cargar_configuracion(crear_datos_filtrables(tmp_path))
+
+    with pytest.raises(ErrorReporte, match="nivel fuera de la configuración"):
+        filtrar_configuracion(configuracion, niveles=["gigante"])
+    with pytest.raises(ErrorReporte, match="algoritmo fuera de la configuración"):
+        filtrar_configuracion(configuracion, algoritmos=["greedy"])
+    with pytest.raises(ErrorReporte, match="no puede estar vacía"):
+        filtrar_configuracion(configuracion, algoritmos=["astar"], heuristicas=[])
+
+
+def test_filtrar_mediciones_deja_solo_las_series_pedidas(tmp_path: Path) -> None:
+    ruta = crear_datos_filtrables(tmp_path)
+    configuracion = cargar_configuracion(ruta)
+    mediciones = cargar_resumen(configuracion.salida_resumen)
+    filtrada = filtrar_configuracion(
+        configuracion, niveles=["micro"], algoritmos=["bfs"]
+    )
+
+    conservadas = filtrar_mediciones(filtrada, mediciones)
+
+    assert len(mediciones) == 6
+    assert tuple(medicion.clave for medicion in conservadas) == (("micro", "bfs", ""),)
+    # El resumen sobrante no debe invalidar el subconjunto pedido.
+    validar_resumen(filtrada, conservadas)
+
+
+def test_las_figuras_filtradas_no_pisan_las_del_informe(tmp_path: Path) -> None:
+    pytest.importorskip("matplotlib")
+    ruta = crear_datos_filtrables(tmp_path)
+    figuras_informe = tmp_path / "resultados" / "figuras"
+
+    completas = generar_desde_configuracion(ruta)
+    filtradas = generar_desde_configuracion(ruta, algoritmos=["bfs"])
+    elegidas = generar_desde_configuracion(
+        ruta, algoritmos=["bfs"], salida_figuras=tmp_path / "elegida"
+    )
+
+    assert {destino.parent for destino in completas} == {figuras_informe}
+    assert {destino.parent for destino in filtradas} == {
+        figuras_informe / SUBCARPETA_FILTRADAS
+    }
+    assert {destino.parent for destino in elegidas} == {tmp_path / "elegida"}
+    assert {ruta.name for ruta in figuras_informe.iterdir()} == set(
+        NOMBRES_FIGURAS
+    ) | {SUBCARPETA_FILTRADAS}

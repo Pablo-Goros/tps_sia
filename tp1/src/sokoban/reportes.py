@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import csv
 import math
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from os import PathLike
 from pathlib import Path
 from typing import Dict, Iterable, List, Optional, Sequence, Tuple
@@ -24,6 +24,7 @@ NOMBRES_FIGURAS: Tuple[str, ...] = (
     "costo_solucion.png",
 )
 UMBRAL_ESCALA_LOGARITMICA = 100.0
+SUBCARPETA_FILTRADAS = "filtradas"
 
 COLORES: Tuple[str, ...] = (
     "#4C78A8",
@@ -204,6 +205,50 @@ def crear_series(configuracion: ConfiguracionExperimentos) -> Tuple[Serie, ...]:
     return tuple(series)
 
 
+def filtrar_configuracion(
+    configuracion: ConfiguracionExperimentos,
+    niveles: Optional[Sequence[str]] = None,
+    algoritmos: Optional[Sequence[str]] = None,
+    heuristicas: Optional[Sequence[str]] = None,
+) -> ConfiguracionExperimentos:
+    """Restringe la configuración a un subconjunto de sus propias opciones.
+
+    Cada selección se ordena como en la configuración, no como en la línea de
+    comandos, para que dos corridas con el mismo subconjunto produzcan figuras
+    idénticas.
+    """
+    nombres_niveles = tuple(nivel.nombre for nivel in configuracion.niveles)
+    elegidos = _seleccionar(niveles, nombres_niveles, "nivel")
+    seleccion_algoritmos = _seleccionar(
+        algoritmos, configuracion.algoritmos, "algoritmo"
+    )
+    seleccion_heuristicas = _seleccionar(
+        heuristicas, configuracion.heuristicas, "heurística"
+    )
+
+    return replace(
+        configuracion,
+        niveles=tuple(
+            nivel for nivel in configuracion.niveles if nivel.nombre in elegidos
+        ),
+        algoritmos=seleccion_algoritmos,
+        heuristicas=seleccion_heuristicas,
+    )
+
+
+def filtrar_mediciones(
+    configuracion: ConfiguracionExperimentos,
+    mediciones: Sequence[MedicionResumen],
+) -> Tuple[MedicionResumen, ...]:
+    """Conserva únicamente las mediciones que la configuración describe."""
+    claves = {
+        (nivel.nombre, serie.algoritmo, serie.heuristica)
+        for nivel in configuracion.niveles
+        for serie in crear_series(configuracion)
+    }
+    return tuple(medicion for medicion in mediciones if medicion.clave in claves)
+
+
 def requiere_escala_logaritmica(valores: Sequence[float]) -> bool:
     """Decide la escala únicamente a partir de una razón numérica estable."""
     positivos = [valor for valor in valores if valor > 0 and math.isfinite(valor)]
@@ -306,10 +351,70 @@ def generar_figuras(
 
 def generar_desde_configuracion(
     ruta: str | PathLike[str],
+    niveles: Optional[Sequence[str]] = None,
+    algoritmos: Optional[Sequence[str]] = None,
+    heuristicas: Optional[Sequence[str]] = None,
+    salida_figuras: Optional[str | PathLike[str]] = None,
 ) -> Tuple[Path, ...]:
+    """Genera las figuras, opcionalmente restringidas a un subconjunto."""
     configuracion = cargar_configuracion(ruta)
     mediciones = cargar_resumen(configuracion.salida_resumen)
-    return generar_figuras(configuracion, mediciones)
+    filtrada = filtrar_configuracion(
+        configuracion,
+        niveles=niveles,
+        algoritmos=algoritmos,
+        heuristicas=heuristicas,
+    )
+    filtrada = replace(
+        filtrada,
+        salida_figuras=destino_figuras(configuracion, filtrada, salida_figuras),
+    )
+    return generar_figuras(filtrada, filtrar_mediciones(filtrada, mediciones))
+
+
+def destino_figuras(
+    configuracion: ConfiguracionExperimentos,
+    filtrada: ConfiguracionExperimentos,
+    salida_figuras: Optional[str | PathLike[str]] = None,
+) -> Path:
+    """Elige dónde escribir las figuras sin pisar las del informe.
+
+    Una corrida filtrada no describe la configuración completa, así que sus
+    figuras van a una subcarpeta salvo que se pida un destino explícito.
+    """
+    if salida_figuras is not None:
+        return Path(salida_figuras).expanduser().resolve()
+    if (
+        filtrada.niveles == configuracion.niveles
+        and filtrada.algoritmos == configuracion.algoritmos
+        and filtrada.heuristicas == configuracion.heuristicas
+    ):
+        return configuracion.salida_figuras
+    return configuracion.salida_figuras / SUBCARPETA_FILTRADAS
+
+
+def _seleccionar(
+    pedidos: Optional[Sequence[str]],
+    disponibles: Sequence[str],
+    etiqueta: str,
+) -> Tuple[str, ...]:
+    """Valida lo pedido contra lo disponible y respeta el orden de origen."""
+    if pedidos is None:
+        return tuple(disponibles)
+    elegidos = set()
+    for pedido in pedidos:
+        if pedido not in disponibles:
+            raise ErrorReporte(
+                "{} fuera de la configuración: {!r}; disponibles: {}".format(
+                    etiqueta, pedido, ", ".join(disponibles) or "ninguno"
+                )
+            )
+        elegidos.add(pedido)
+    if not elegidos:
+        raise ErrorReporte(
+            "la selección de {}s no puede estar vacía".format(etiqueta)
+        )
+    return tuple(opcion for opcion in disponibles if opcion in elegidos)
 
 
 def _dibujar_barras(
@@ -461,10 +566,14 @@ __all__ = [
     "ErrorReporte",
     "MedicionResumen",
     "NOMBRES_FIGURAS",
+    "SUBCARPETA_FILTRADAS",
     "Serie",
     "UMBRAL_ESCALA_LOGARITMICA",
     "cargar_resumen",
     "crear_series",
+    "destino_figuras",
+    "filtrar_configuracion",
+    "filtrar_mediciones",
     "generar_desde_configuracion",
     "generar_figuras",
     "requiere_escala_logaritmica",

@@ -98,6 +98,35 @@ Las métricas de nodos usan escala logarítmica cuando la razón entre el máxim
 el mínimo positivo es al menos 100. La decisión depende sólo de los datos, por
 lo que es reproducible.
 
+#### Graficar un subconjunto
+
+Las cuatro figuras se pueden restringir a ciertos niveles, algoritmos o
+heurísticas, que es lo útil para aislar una comparación en la presentación:
+
+```powershell
+python -m sokoban graficar --algoritmos bfs dfs
+python -m sokoban graficar --algoritmos astar --heuristicas manhattan empujes_inversos
+python -m sokoban graficar --niveles facil medio --algoritmos bfs astar
+python -m sokoban graficar --algoritmos greedy --salida-figuras resultados/figuras/greedy
+```
+
+| Opción | Descripción |
+|---|---|
+| `--niveles NOMBRE ...` | Niveles por su `nombre` en la configuración. |
+| `--algoritmos ALGORITMO ...` | Subconjunto de los algoritmos configurados. |
+| `--heuristicas HEURISTICA ...` | Subconjunto de las heurísticas configuradas; sólo afecta a Greedy y A*. |
+| `--salida-figuras RUTA` | Carpeta de destino de las cuatro figuras. |
+
+Cada selección debe estar declarada en la configuración; si no, el comando
+termina con código 2 y lista las opciones disponibles. Las figuras respetan el
+orden de la configuración y no el de la línea de comandos, así que el mismo
+subconjunto produce siempre las mismas imágenes.
+
+Una corrida filtrada no describe la configuración completa, por lo que sus
+figuras van a `resultados/figuras/filtradas/` en lugar de pisar las del informe.
+Con `--salida-figuras` se elige otra carpeta, y sin filtros se sobrescriben las
+figuras oficiales como antes.
+
 ## Formato y niveles
 
 El parser acepta los símbolos XSB siguientes y conserva filas desiguales y

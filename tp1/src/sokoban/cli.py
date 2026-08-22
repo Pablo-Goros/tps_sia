@@ -13,7 +13,11 @@ from .experimentos import ErrorConfiguracion, ejecutar_desde_configuracion
 from .heuristicas import HEURISTICAS, HEURISTICA_POR_DEFECTO
 from .nivel import NivelInvalido, cargar_nivel, render_texto
 from .problema import ProblemaSokoban
-from .reportes import ErrorReporte, generar_desde_configuracion
+from .reportes import (
+    SUBCARPETA_FILTRADAS,
+    ErrorReporte,
+    generar_desde_configuracion,
+)
 
 
 COMANDOS = ("resolver", "experimentar", "graficar")
@@ -120,6 +124,40 @@ def construir_parser() -> AnalizadorArgumentos:
         "--configuracion",
         default="configuracion.json",
         help="ruta del archivo de configuración",
+    )
+    graficar.add_argument(
+        "--niveles",
+        nargs="+",
+        metavar="NOMBRE",
+        help="grafica sólo estos niveles, por su nombre en la configuración",
+    )
+    graficar.add_argument(
+        "--algoritmos",
+        nargs="+",
+        choices=ORDEN_ALGORITMOS,
+        metavar="ALGORITMO",
+        help="grafica sólo estos algoritmos ({})".format(
+            ", ".join(ORDEN_ALGORITMOS)
+        ),
+    )
+    graficar.add_argument(
+        "--heuristicas",
+        nargs="+",
+        choices=tuple(sorted(HEURISTICAS)),
+        metavar="HEURISTICA",
+        help="grafica sólo estas heurísticas ({})".format(
+            ", ".join(sorted(HEURISTICAS))
+        ),
+    )
+    graficar.add_argument(
+        "--salida-figuras",
+        metavar="RUTA",
+        help=(
+            "carpeta de destino; al filtrar, por defecto se usa la subcarpeta "
+            "{!r} para no pisar las figuras del informe".format(
+                SUBCARPETA_FILTRADAS
+            )
+        ),
     )
     return parser
 
@@ -258,7 +296,13 @@ def _experimentar(argumentos: argparse.Namespace) -> int:
 
 def _graficar(argumentos: argparse.Namespace) -> int:
     try:
-        figuras = generar_desde_configuracion(argumentos.configuracion)
+        figuras = generar_desde_configuracion(
+            argumentos.configuracion,
+            niveles=argumentos.niveles,
+            algoritmos=argumentos.algoritmos,
+            heuristicas=argumentos.heuristicas,
+            salida_figuras=argumentos.salida_figuras,
+        )
     except (ErrorConfiguracion, ErrorReporte) as error:
         raise ErrorCLI(
             "no se pudieron generar las figuras: {}".format(error)
