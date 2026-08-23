@@ -1,0 +1,11 @@
+; Tablero donde Greedy y A* difieren: mismo nivel, misma heuristica, distinto
+; camino. A* resuelve en 28 movimientos; Greedy tarda 72 porque persigue la
+; caja que mas baja la heuristica y despues tiene que rodear.
+#########
+#   $ . #
+#  .    #
+##  #  ##
+# @  #  #
+#    #$ #
+#       #
+#########
