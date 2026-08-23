@@ -20,6 +20,9 @@ dev = [
 analysis = [
     "matplotlib>=3.8",
 ]
+visual = [
+    "pillow>=10",
+]
 
 [tool.setuptools.packages.find]
 where = ["src"]

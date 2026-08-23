@@ -12,17 +12,19 @@ tanto, el costo de una solución es su cantidad de movimientos.
 
 - Python 3.11 o posterior.
 - Matplotlib únicamente para generar las figuras.
+- Pillow únicamente para animar soluciones, y ffmpeg en el PATH sólo para el
+  formato de video.
 
 Desde esta carpeta:
 
 ```powershell
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
-python -m pip install -e ".[dev,analysis]"
+python -m pip install -e ".[dev,analysis,visual]"
 ```
 
 El motor y los experimentos usan la biblioteca estándar. El extra `dev` agrega
-pytest y `analysis` agrega Matplotlib.
+pytest, `analysis` agrega Matplotlib y `visual` agrega Pillow.
 
 ## Uso de la CLI
 
@@ -126,6 +128,53 @@ Una corrida filtrada no describe la configuración completa, por lo que sus
 figuras van a `resultados/figuras/filtradas/` en lugar de pisar las del informe.
 Con `--salida-figuras` se elige otra carpeta, y sin filtros se sobrescriben las
 figuras oficiales como antes.
+
+### Animar una solución
+
+```powershell
+python -m sokoban animar --nivel niveles/nivel_03_medio.txt
+python -m sokoban animar --nivel niveles/nivel_02_facil.txt --algoritmo bfs --escala 56
+python -m sokoban animar --nivel niveles/nivel_06_original.txt --algoritmo dfs `
+  --max-expandidos 2000000 --formato mp4
+python -m sokoban animar --nivel niveles/nivel_01_trivial.txt `
+  --frames resultados/animaciones/frames
+```
+
+Resuelve el nivel, imprime las mismas métricas que `resolver` y dibuja un frame
+por movimiento. Sin `--salida`, el archivo va a
+`resultados/animaciones/<nivel>_<algoritmo>.<formato>`.
+
+| Opción | Descripción |
+|---|---|
+| `--salida RUTA` | Archivo de destino; la extensión define el formato. |
+| `--formato {gif,mp4}` | Formato cuando no se da `--salida`. |
+| `--fps N` | Cuadros por segundo del video. |
+| `--ms N` | Milisegundos por paso del GIF. |
+| `--escala N` | Lado de cada celda en píxeles. |
+| `--submuestreo N` | Dibuja uno de cada N pasos. |
+| `--max-frames N` | Tope de frames; `0` lo desactiva. |
+| `--sin-encabezado` | Sólo el tablero, sin título ni barra de progreso. |
+| `--frames CARPETA` | Además guarda un PNG por frame. |
+
+#### Soluciones largas
+
+DFS devuelve caminos de miles de movimientos, y ahí los dos formatos se
+comportan distinto:
+
+- El **GIF** se topea en 400 frames y dibuja uno de cada N pasos, porque cada
+  frame queda guardado dentro del archivo. Sirve para ver la forma de la
+  solución, no cada movimiento.
+- El **video** no tiene tope: los frames se generan de a uno y se mandan a
+  ffmpeg por streaming, así que la memoria no depende del largo del camino. Es
+  la salida para mostrar una solución completa sin saltos.
+
+Los caminos de 600 pasos o más pasan a 60 cuadros por segundo en lugar de 12,
+para que la animación dure algo razonable. Antes de renderizar, el comando
+informa cuántos frames son y cuánto va a durar el video.
+
+Como referencia, la solución de DFS para `nivel_06_original` son 7 103
+movimientos: 7 104 frames a 60 fps, 1:58 minutos de video y 2,6 MB, en unos 26
+segundos de renderizado.
 
 ## Formato y niveles
 

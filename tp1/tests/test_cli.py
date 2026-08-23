@@ -237,3 +237,72 @@ def test_graficar_rechaza_un_nivel_ausente_de_la_configuracion() -> None:
     assert completado.returncode == 2
     assert "nivel fuera de la configuración" in completado.stderr
     assert "Traceback" not in completado.stderr
+
+
+def test_ayuda_de_animar_expone_las_opciones_de_salida() -> None:
+    completado = ejecutar_cli("animar", "--ayuda")
+
+    assert completado.returncode == 0
+    for opcion in ("--nivel RUTA", "--salida RUTA", "--formato {gif,mp4}",
+                   "--fps N", "--max-frames N", "--frames CARPETA"):
+        assert opcion in completado.stdout
+
+
+def test_animar_genera_un_gif_en_la_ruta_pedida(tmp_path: Path) -> None:
+    pytest.importorskip("PIL")
+    destino = tmp_path / "solucion.gif"
+
+    completado = ejecutar_cli(
+        "animar",
+        "--nivel",
+        str(NIVEL_UN_MOVIMIENTO),
+        "--salida",
+        str(destino),
+    )
+
+    assert completado.returncode == 0, completado.stderr
+    assert destino.read_bytes().startswith(b"GIF89a")
+    assert str(destino) in completado.stdout
+
+
+def test_animar_informa_cuando_no_hay_solucion_que_mostrar() -> None:
+    sin_solucion = RAIZ_PROYECTO / "niveles" / "nivel_00_sin_solucion.txt"
+
+    completado = ejecutar_cli("animar", "--nivel", str(sin_solucion))
+
+    assert completado.returncode == 2
+    assert "no hay solución que animar" in completado.stderr
+    assert "Traceback" not in completado.stderr
+
+
+def test_animar_usa_resultados_animaciones_cuando_no_se_da_salida(
+    tmp_path: Path,
+) -> None:
+    pytest.importorskip("PIL")
+    nivel = tmp_path / "micro.txt"
+    nivel.write_text("#####\n#@$.#\n#####\n", encoding="utf-8")
+    destino = RAIZ_PROYECTO / "resultados" / "animaciones" / "micro_astar.gif"
+    destino.unlink(missing_ok=True)
+
+    try:
+        completado = ejecutar_cli("animar", "--nivel", str(nivel))
+
+        assert completado.returncode == 0, completado.stderr
+        assert destino.read_bytes().startswith(b"GIF89a")
+    finally:
+        destino.unlink(missing_ok=True)
+
+
+def test_animar_rechaza_una_heuristica_en_un_metodo_desinformado() -> None:
+    completado = ejecutar_cli(
+        "animar",
+        "--nivel",
+        str(NIVEL_UN_MOVIMIENTO),
+        "--algoritmo",
+        "bfs",
+        "--heuristica",
+        "manhattan",
+    )
+
+    assert completado.returncode == 2
+    assert "no acepta heurísticas" in completado.stderr

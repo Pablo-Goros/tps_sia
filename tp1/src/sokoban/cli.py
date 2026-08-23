@@ -7,6 +7,21 @@ import sys
 from pathlib import Path
 from typing import Optional, Sequence, TextIO
 
+from .animacion import (
+    CARPETA_ANIMACIONES,
+    CELDA,
+    MAX_FRAMES_GIF,
+    MS_POR_PASO,
+    ErrorAnimacion,
+    duracion_formateada,
+    es_video,
+    estados_de_la_solucion,
+    fps_sugerido,
+    generar_gif,
+    generar_video,
+    guardar_frames,
+    indices_de_frames,
+)
 from .busqueda import ALGORITMOS, ORDEN_ALGORITMOS, Resultado, resolver
 from .estado import ABREVIATURAS, Direccion, Estado
 from .experimentos import ErrorConfiguracion, ejecutar_desde_configuracion
@@ -20,7 +35,7 @@ from .reportes import (
 )
 
 
-COMANDOS = ("resolver", "experimentar", "graficar")
+COMANDOS = ("resolver", "experimentar", "graficar", "animar")
 
 
 class AnalizadorArgumentos(argparse.ArgumentParser):
@@ -158,6 +173,101 @@ def construir_parser() -> AnalizadorArgumentos:
                 SUBCARPETA_FILTRADAS
             )
         ),
+    )
+
+    animar = subcomandos.add_parser(
+        "animar",
+        help="anima la solucion de un nivel como GIF o video",
+        description="Anima paso a paso la solucion de un nivel.",
+    )
+    animar.add_argument(
+        "--nivel",
+        required=True,
+        metavar="RUTA",
+        help="ruta del archivo de nivel en formato XSB",
+    )
+    animar.add_argument(
+        "--algoritmo",
+        choices=ORDEN_ALGORITMOS,
+        default="astar",
+        help="algoritmo de búsqueda (por defecto: astar)",
+    )
+    animar.add_argument(
+        "--heuristica",
+        choices=tuple(sorted(HEURISTICAS)),
+        default=None,
+        help=(
+            "heurística para greedy o astar "
+            "(por defecto: {})".format(HEURISTICA_POR_DEFECTO)
+        ),
+    )
+    animar.add_argument(
+        "--max-expandidos",
+        type=_entero_positivo,
+        metavar="N",
+        help="corta la búsqueda antes de expandir más de N nodos",
+    )
+    animar.add_argument(
+        "--salida",
+        metavar="RUTA",
+        help=(
+            "archivo de destino; la extensión define el formato "
+            "(por defecto: {}/<nivel>_<algoritmo>.gif)".format(CARPETA_ANIMACIONES)
+        ),
+    )
+    animar.add_argument(
+        "--formato",
+        choices=("gif", "mp4"),
+        default="gif",
+        help="formato cuando no se da --salida (por defecto: gif)",
+    )
+    animar.add_argument(
+        "--fps",
+        type=_entero_positivo,
+        metavar="N",
+        help="cuadros por segundo del video; por defecto se elige según el largo",
+    )
+    animar.add_argument(
+        "--ms",
+        type=_entero_positivo,
+        default=MS_POR_PASO,
+        metavar="N",
+        help="milisegundos por paso del GIF (por defecto: {})".format(MS_POR_PASO),
+    )
+    animar.add_argument(
+        "--escala",
+        type=_entero_positivo,
+        default=CELDA,
+        metavar="N",
+        help="lado de cada celda en píxeles (por defecto: {})".format(CELDA),
+    )
+    animar.add_argument(
+        "--submuestreo",
+        type=_entero_positivo,
+        default=1,
+        metavar="N",
+        help="dibuja uno de cada N pasos",
+    )
+    animar.add_argument(
+        "--max-frames",
+        type=int,
+        metavar="N",
+        help=(
+            "tope de frames; si el camino es más largo se saltean pasos. "
+            "Por defecto {} para GIF y sin tope para video (0 = sin tope)".format(
+                MAX_FRAMES_GIF
+            )
+        ),
+    )
+    animar.add_argument(
+        "--sin-encabezado",
+        action="store_true",
+        help="dibuja sólo el tablero, sin título ni barra de progreso",
+    )
+    animar.add_argument(
+        "--frames",
+        metavar="CARPETA",
+        help="además guarda un PNG por frame en esta carpeta",
     )
     return parser
 
@@ -314,6 +424,121 @@ def _graficar(argumentos: argparse.Namespace) -> int:
     return 0
 
 
+def _ruta_de_animacion(argumentos: argparse.Namespace) -> Path:
+    if argumentos.salida:
+        return Path(argumentos.salida)
+    nombre = Path(argumentos.nivel).stem
+    return CARPETA_ANIMACIONES / "{}_{}.{}".format(
+        nombre, argumentos.algoritmo, argumentos.formato
+    )
+
+
+def _tope_de_frames(argumentos: argparse.Namespace, video: bool) -> Optional[int]:
+    """El GIF se topea por defecto; el video no, que es para lo que sirve."""
+    if argumentos.max_frames is None:
+        return None if video else MAX_FRAMES_GIF
+    return argumentos.max_frames or None
+
+
+def _mostrar_progreso(escritos: int, total: int) -> None:
+    print(
+        "\r  renderizando {}/{} frames".format(escritos, total),
+        end="\n" if escritos >= total else "",
+        flush=True,
+    )
+
+
+def _animar(argumentos: argparse.Namespace) -> int:
+    _validar_resolver(argumentos)
+    try:
+        mapa, estado_inicial = cargar_nivel(Path(argumentos.nivel))
+    except (OSError, NivelInvalido) as error:
+        raise ErrorCLI("no se pudo cargar el nivel: {}".format(error)) from error
+
+    problema = ProblemaSokoban(mapa, estado_inicial)
+    resultado = resolver(
+        problema,
+        argumentos.algoritmo,
+        heuristica=argumentos.heuristica,
+        max_expandidos=argumentos.max_expandidos,
+    )
+    imprimir_resultado(resultado)
+    if not resultado.exito:
+        raise ErrorCLI(
+            "no hay solución que animar: {}".format(resultado.motivo)
+        )
+
+    destino = _ruta_de_animacion(argumentos)
+    video = es_video(destino)
+    tope = _tope_de_frames(argumentos, video)
+
+    try:
+        estados = estados_de_la_solucion(problema, resultado.movimientos)
+        cantidad = len(
+            indices_de_frames(len(estados), argumentos.submuestreo, tope)
+        )
+        titulo = "{}  ·  {}".format(
+            Path(argumentos.nivel).stem, resultado.algoritmo
+        )
+        subtitulo = "  ·  ".join(
+            parte
+            for parte in (
+                resultado.heuristica,
+                "{} movimientos".format(resultado.costo),
+            )
+            if parte
+        )
+        comunes = {
+            "movimientos": resultado.movimientos,
+            "titulo": titulo,
+            "subtitulo": subtitulo,
+            "celda": argumentos.escala,
+            "encabezado": not argumentos.sin_encabezado,
+            "submuestreo": argumentos.submuestreo,
+            "max_frames": tope,
+        }
+
+        print()
+        if video:
+            fps = argumentos.fps or fps_sugerido(cantidad)
+            print(
+                "  {} frames a {} fps ({})".format(
+                    cantidad, fps, duracion_formateada(cantidad, fps)
+                )
+            )
+            generar_video(
+                estados,
+                mapa,
+                destino,
+                fps=fps,
+                progreso=_mostrar_progreso,
+                **comunes,
+            )
+        else:
+            generar_gif(
+                estados, mapa, destino, ms_por_paso=argumentos.ms, **comunes
+            )
+            salteados = -(-len(estados) // cantidad)
+            aviso = (
+                "  (uno de cada {} pasos)".format(salteados)
+                if cantidad < len(estados)
+                else ""
+            )
+            print("  {} frames{}".format(cantidad, aviso))
+
+        print("Animación: {}".format(destino.resolve()))
+
+        if argumentos.frames:
+            rutas = guardar_frames(
+                estados, mapa, argumentos.frames, **comunes
+            )
+            print("Frames:    {} PNG en {}".format(len(rutas), argumentos.frames))
+    except ErrorAnimacion as error:
+        raise ErrorCLI("no se pudo animar la solución: {}".format(error)) from error
+
+    return 0
+
+
 def main(argv: Optional[Sequence[str]] = None) -> int:
     parser = construir_parser()
     argumentos = parser.parse_args(argv)
@@ -326,6 +551,8 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             return _resolver(argumentos)
         if argumentos.comando == "experimentar":
             return _experimentar(argumentos)
+        if argumentos.comando == "animar":
+            return _animar(argumentos)
         return _graficar(argumentos)
     except ErrorCLI as error:
         print("Error: {}".format(error), file=sys.stderr)
