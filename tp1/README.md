@@ -67,8 +67,8 @@ python -m sokoban experimentar --configuracion configuracion.json
 ```
 
 El comando valida toda la configuración, resuelve sus rutas desde la ubicación
-del JSON y prepara los cuatro niveles antes de iniciar cualquier cronómetro.
-Después crea las 120 corridas configuradas, baraja solamente su orden con una
+del JSON y prepara los cinco niveles antes de iniciar cualquier cronómetro.
+Después crea las 150 corridas configuradas, baraja solamente su orden con una
 instancia local de `random.Random(semilla)` y ejecuta cinco repeticiones por
 combinación.
 
@@ -195,7 +195,7 @@ Se exige exactamente un jugador, al menos una caja y un objetivo, y la misma
 cantidad de cajas y objetivos. Una coordenada ausente de una fila no se infiere
 como piso.
 
-La configuración reproducible usa cuatro niveles representativos:
+La configuración reproducible usa cinco niveles representativos:
 
 | Nombre | Archivo | Propósito |
 |---|---|---|
@@ -203,6 +203,14 @@ La configuración reproducible usa cuatro niveles representativos:
 | `trivial` | `nivel_01_trivial.txt` | Prueba pequeña de punta a punta. |
 | `facil` | `nivel_02_facil.txt` | Comparar métodos con dos cajas. |
 | `medio` | `nivel_03_medio.txt` | Exponer diferencias de costo y expansiones. |
+| `greedy_vs_astar` | `nivel_07_greedy_vs_astar.txt` | Separar Greedy de A\* y una heurística de la otra. |
+
+En los cuatro primeros niveles las dos heurísticas devuelven el mismo valor en
+todo estado que la búsqueda visita: son habitaciones abiertas, y sin paredes que
+obliguen a rodear la distancia de empuje coincide con la Manhattan. Tampoco
+distinguen a Greedy de A\*, porque la heurística es buena guía y Greedy llega al
+óptimo. `greedy_vs_astar` existe para romper las dos cosas a la vez: A\* resuelve
+en 28 movimientos y Greedy en 46 o 72 según la heurística.
 
 Los niveles 04 a 06 permanecen como casos adicionales, pero no forman parte de
 la corrida reproducible del informe.

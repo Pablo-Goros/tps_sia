@@ -17,6 +17,10 @@
     {
       "nombre": "medio",
       "ruta": "niveles/nivel_03_medio.txt"
+    },
+    {
+      "nombre": "greedy_vs_astar",
+      "ruta": "niveles/nivel_07_greedy_vs_astar.txt"
     }
   ],
   "algoritmos": [
