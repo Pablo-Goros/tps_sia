@@ -1,0 +1,53 @@
+{
+  "base_config": "tp2/configuracion.json",
+  "repetitions": 5,
+  "output_dir": "tp2/resultados/experimentos",
+  "overrides_common": {
+    "num_triangles": 100,
+    "eval_resolution": [64, 64],
+    "population_size": 100,
+    "num_offspring": 60,
+    "selection": {
+      "parent_method": "ruleta",
+      "survival_method": "elite",
+      "survival_strategy": "aditiva",
+      "generational_gap": 0.8
+    },
+    "crossover": {
+      "method": "uniforme",
+      "pc": 0.85
+    },
+    "mutation": {
+      "method": "multigen_uniforme",
+      "pm": 0.1
+    },
+    "stopping": {
+      "max_generations": 1000,
+      "timeout_seconds": 600,
+      "target_fitness": null,
+      "target_mse": null,
+      "content_window": null,
+      "structure_window": null
+    }
+  },
+  "variants": [
+    { "name": "sel_elite",       "group": "seleccion_padres", "selection": { "parent_method": "elite" } },
+    { "name": "sel_ruleta",      "group": "seleccion_padres", "selection": { "parent_method": "ruleta" } },
+    { "name": "sel_universal",   "group": "seleccion_padres", "selection": { "parent_method": "universal" } },
+    { "name": "sel_ranking",     "group": "seleccion_padres", "selection": { "parent_method": "ranking" } },
+    { "name": "sel_boltzmann",   "group": "seleccion_padres", "selection": { "parent_method": "boltzmann" } },
+    { "name": "sel_torneo_det",  "group": "seleccion_padres", "selection": { "parent_method": "torneo_deterministico" } },
+    { "name": "sel_torneo_prob", "group": "seleccion_padres", "selection": { "parent_method": "torneo_probabilistico" } },
+
+    { "name": "cross_dos_puntos", "group": "cruce", "crossover": { "method": "dos_puntos" } },
+    { "name": "cross_uniforme",   "group": "cruce", "crossover": { "method": "uniforme" } },
+
+    { "name": "mut_gen",               "group": "mutacion", "mutation": { "method": "gen" } },
+    { "name": "mut_multigen_limitada", "group": "mutacion", "mutation": { "method": "multigen_limitada" } },
+    { "name": "mut_multigen_uniforme", "group": "mutacion", "mutation": { "method": "multigen_uniforme" } },
+    { "name": "mut_no_uniforme",       "group": "mutacion", "mutation": { "method": "no_uniforme" } },
+
+    { "name": "surv_aditiva",   "group": "supervivencia", "selection": { "survival_strategy": "aditiva" } },
+    { "name": "surv_exclusiva", "group": "supervivencia", "selection": { "survival_strategy": "exclusiva" } }
+  ]
+}
