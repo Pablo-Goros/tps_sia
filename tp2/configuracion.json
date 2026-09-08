@@ -1,0 +1,50 @@
+{
+  "image_path": "ejemplos/japon.png",
+  "num_triangles": 30,
+  "eval_resolution": [64, 64],
+  "background_color": [255, 255, 255, 255],
+  "population_size": 40,
+  "num_offspring": 40,
+  "selection": {
+    "parent_method": "ruleta",
+    "survival_method": "elite",
+    "survival_strategy": "aditiva",
+    "generational_gap": 0.8,
+    "params": {
+      "t0": 1.0,
+      "tc": 0.01,
+      "k_rate": 0.01,
+      "tournament_m": 3,
+      "tournament_threshold": 0.75
+    }
+  },
+  "crossover": {
+    "method": "uniforme",
+    "pc": 0.85,
+    "params": {
+      "p_swap": 0.5
+    }
+  },
+  "mutation": {
+    "method": "multigen_uniforme",
+    "pm": 0.1,
+    "params": {
+      "max_genes_to_mutate": 3,
+      "non_uniform_b": 2.0
+    }
+  },
+  "stopping": {
+    "max_generations": 200,
+    "timeout_seconds": 60,
+    "target_fitness": null,
+    "target_mse": null,
+    "content_window": null,
+    "content_delta": 1e-05,
+    "structure_window": null,
+    "structure_threshold": 0.0001
+  },
+  "output": {
+    "output_dir": "salidas",
+    "snapshot_interval": 25
+  }
+}
