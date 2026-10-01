@@ -1,0 +1,27 @@
+{
+  "datos": {
+    "ruta": "tp3/datos/fraud_dataset.csv",
+    "objetivo": "big_model_fraud_probability",
+    "columnas_prohibidas": ["flagged_fraud"],
+    "normalizacion": "z-score"
+  },
+  "perceptron": {
+    "activacion": "logistica",
+    "eta": 0.1,
+    "beta": 0.5,
+    "tamano_lote": 1,
+    "escala_init": 0.01,
+    "umbral_saturacion": 0.05
+  },
+  "entrenamiento": {
+    "epocas": 400,
+    "epsilon": 0.0,
+    "mezclar": true,
+    "semillas": [1, 2, 3, 4, 5]
+  },
+  "barridos": {
+    "etas": [0.0001, 0.0005, 0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 1.0],
+    "betas": [0.05, 0.1, 0.25, 0.5, 1.0, 2.0, 5.0],
+    "epocas_barrido": 60
+  }
+}
