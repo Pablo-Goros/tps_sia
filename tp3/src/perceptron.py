@@ -33,6 +33,7 @@ class Historia:
     norma_gradiente: List[float] = field(default_factory=list)
     derivada_media: List[float] = field(default_factory=list)   # media de theta'(h)
     fraccion_saturada: List[float] = field(default_factory=list)  # % con theta'(h) chico
+    mse_validacion: List[float] = field(default_factory=list)  # sólo si se pasa X_val
     epocas_corridas: int = 0
     mejor_mse: float = float("inf")
     mejores_pesos: Optional[np.ndarray] = None
@@ -45,6 +46,7 @@ class Historia:
             "norma_gradiente": self.norma_gradiente,
             "derivada_media": self.derivada_media,
             "fraccion_saturada": self.fraccion_saturada,
+            "mse_validacion": self.mse_validacion,
             "epocas_corridas": self.epocas_corridas,
             "mejor_mse": self.mejor_mse,
             "tiempo_segundos": self.tiempo_segundos,
@@ -94,8 +96,14 @@ class PerceptronSimple:
         mezclar: bool = True,
         registrar_diagnostico: bool = True,
         verbose: int = 0,
+        X_val: Optional[np.ndarray] = None,
+        y_val: Optional[np.ndarray] = None,
     ) -> Historia:
-        """Entrena y devuelve la historia por época (MSE sobre todo el conjunto)."""
+        """Entrena y devuelve la historia por época (MSE sobre todo el conjunto).
+
+        Si se pasa (X_val, y_val), registra además el MSE de validación por época
+        (sin usarlo para actualizar pesos), para estudiar generalización/sobreajuste.
+        """
         import time
 
         Xb = self._con_bias(X)
@@ -132,6 +140,9 @@ class PerceptronSimple:
                 d_norm = d / (2.0 * self.beta) if self.activacion.nombre == "logistica" else d
                 hist.derivada_media.append(float(np.mean(d)))
                 hist.fraccion_saturada.append(float(np.mean(d_norm < self.umbral_saturacion)))
+
+            if X_val is not None:
+                hist.mse_validacion.append(error_cuadratico_medio(y_val, self.predecir(X_val)))
 
             if mse < hist.mejor_mse:
                 hist.mejor_mse = mse

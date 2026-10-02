@@ -50,3 +50,28 @@ def resumen(y: np.ndarray, o: np.ndarray) -> Dict[str, float]:
         "salida_min": float(np.min(o)),
         "salida_max": float(np.max(o)),
     }
+
+
+# --------------------------------------------------------------------------- #
+# Métricas de CLASIFICACIÓN (estudio de generalización / umbral de detección).
+# `clase` es el ground truth binario (flagged_fraud) y `puntaje` la probabilidad
+# estimada; con un umbral u, se predice fraude cuando puntaje >= u.
+
+def matriz_confusion(clase: np.ndarray, puntaje: np.ndarray, umbral: float) -> Dict[str, int]:
+    pred = puntaje >= umbral
+    real = clase == 1
+    return {"vp": int(np.sum(pred & real)), "fp": int(np.sum(pred & ~real)),
+            "fn": int(np.sum(~pred & real)), "vn": int(np.sum(~pred & ~real))}
+
+
+def clasificacion(clase: np.ndarray, puntaje: np.ndarray, umbral: float) -> Dict[str, float]:
+    """Precision, recall, F1, especificidad y accuracy para un umbral dado."""
+    m = matriz_confusion(clase, puntaje, umbral)
+    vp, fp, fn, vn = m["vp"], m["fp"], m["fn"], m["vn"]
+    precision = vp / (vp + fp) if vp + fp else 0.0
+    recall = vp / (vp + fn) if vp + fn else 0.0
+    f1 = 2 * precision * recall / (precision + recall) if precision + recall else 0.0
+    return {**m, "umbral": float(umbral), "precision": precision, "recall": recall, "f1": f1,
+            "especificidad": vn / (vn + fp) if vn + fp else 0.0,
+            "accuracy": (vp + vn) / len(clase),
+            "tasa_alertas": float(np.mean(puntaje >= umbral))}

@@ -40,7 +40,7 @@ def _np2list(d: Dict) -> Dict:
 
 
 # --------------------------------------------------------------------------- #
-def experimento_barrido_eta(Xs, y, estados) -> List[Dict]:
+def experimento_barrido_eta(Xs, y, semillas=SEMILLAS) -> List[Dict]:
     """E1: ¿el piso de error del lineal es por mala optimización o por capacidad?
 
     Si el mínimo error no mejora para NINGÚN eta, el techo es estructural.
@@ -49,7 +49,7 @@ def experimento_barrido_eta(Xs, y, estados) -> List[Dict]:
     for activacion, beta in (("lineal", 0.5), ("logistica", 0.5)):
         for eta in ETAS:
             mses, divergio = [], 0
-            for s in SEMILLAS[:3]:
+            for s in semillas[:3]:
                 m = PerceptronSimple(Xs.shape[1], activacion, eta=eta, beta=beta,
                                      tamano_lote=1, semilla=s)
                 h = m.entrenar(Xs, y, epocas=EPOCAS_BARRIDO, registrar_diagnostico=False)
@@ -70,12 +70,12 @@ def experimento_barrido_eta(Xs, y, estados) -> List[Dict]:
     return filas
 
 
-def experimento_barrido_beta(Xs, y, eta_logistica) -> List[Dict]:
+def experimento_barrido_beta(Xs, y, eta_logistica, semillas=SEMILLAS) -> List[Dict]:
     """E2: efecto de beta sobre la saturación de la sigmoidea."""
     filas = []
     for beta in BETAS:
         mses, sat, der = [], [], []
-        for s in SEMILLAS[:3]:
+        for s in semillas[:3]:
             m = PerceptronSimple(Xs.shape[1], "logistica", eta=eta_logistica, beta=beta,
                                  tamano_lote=1, semilla=s)
             h = m.entrenar(Xs, y, epocas=EPOCAS_BARRIDO)
@@ -92,12 +92,12 @@ def experimento_barrido_beta(Xs, y, eta_logistica) -> List[Dict]:
     return filas
 
 
-def experimento_curvas(Xs, y, config_lineal, config_logistica) -> Dict:
+def experimento_curvas(Xs, y, config_lineal, config_logistica, semillas=SEMILLAS) -> Dict:
     """E3: curvas de aprendizaje largas (media +- desvío sobre semillas)."""
     salida = {}
     for nombre, cfg in (("lineal", config_lineal), ("logistica", config_logistica)):
         curvas, finales, modelos = [], [], []
-        for s in SEMILLAS:
+        for s in semillas:
             m = PerceptronSimple(Xs.shape[1], nombre, eta=cfg["eta"], beta=cfg["beta"],
                                  tamano_lote=1, semilla=s)
             h = m.entrenar(Xs, y, epocas=EPOCAS_LARGO, verbose=0)
@@ -117,7 +117,7 @@ def experimento_curvas(Xs, y, config_lineal, config_logistica) -> Dict:
             "metricas_por_semilla": finales,
             "metricas_medias": {k: float(np.mean([f[k] for f in finales])) for k in finales[0]},
             "metricas_desvio": {k: float(np.std([f[k] for f in finales])) for k in finales[0]},
-            "mejor_semilla": SEMILLAS[mejor],
+            "mejor_semilla": semillas[mejor],
             "pesos_mejor": m_mejor.w.tolist(),
             "predicciones_mejor": m_mejor.predecir(Xs).tolist(),
             "fraccion_saturada_por_epoca": h_mejor.fraccion_saturada,
@@ -127,7 +127,7 @@ def experimento_curvas(Xs, y, config_lineal, config_logistica) -> Dict:
     return salida
 
 
-def experimento_capacidad(Xs, y, config_lineal, config_logistica) -> Dict:
+def experimento_capacidad(Xs, y, config_lineal, config_logistica, semillas=SEMILLAS) -> Dict:
     """E4: ¿el error deja de bajar aunque se multipliquen las épocas?
 
     Mide el MSE a 25/50/100/200/400/800 épocas: si la mejora marginal tiende a
@@ -137,7 +137,7 @@ def experimento_capacidad(Xs, y, config_lineal, config_logistica) -> Dict:
     salida = {}
     for nombre, cfg in (("lineal", config_lineal), ("logistica", config_logistica)):
         m = PerceptronSimple(Xs.shape[1], nombre, eta=cfg["eta"], beta=cfg["beta"],
-                             tamano_lote=1, semilla=SEMILLAS[0])
+                             tamano_lote=1, semilla=semillas[0])
         h = m.entrenar(Xs, y, epocas=max(cortes))
         salida[nombre] = {
             "cortes": cortes,
@@ -154,7 +154,7 @@ def experimento_capacidad(Xs, y, config_lineal, config_logistica) -> Dict:
     return salida
 
 
-def experimento_diagnostico(Xs, y, config_lineal, config_logistica) -> Dict:
+def experimento_diagnostico(Xs, y, config_lineal, config_logistica, semillas=SEMILLAS) -> Dict:
     """E7: diagnóstico fino de underfitting y de saturación de la sigmoidea.
 
     - ¿Dónde se equivoca cada modelo? (error por zona del objetivo)
@@ -169,7 +169,7 @@ def experimento_diagnostico(Xs, y, config_lineal, config_logistica) -> Dict:
 
     for nombre, cfg in (("lineal", config_lineal), ("logistica", config_logistica)):
         m = PerceptronSimple(Xs.shape[1], nombre, eta=cfg["eta"], beta=cfg["beta"],
-                             tamano_lote=1, semilla=SEMILLAS[0])
+                             tamano_lote=1, semilla=semillas[0])
         h = m.entrenar(Xs, y, epocas=EPOCAS_LARGO)
         o = m.predecir(Xs)
         r = o - y
@@ -206,13 +206,13 @@ def experimento_diagnostico(Xs, y, config_lineal, config_logistica) -> Dict:
     return salida
 
 
-def experimento_regimen(Xs, y, config_lineal, config_logistica) -> List[Dict]:
+def experimento_regimen(Xs, y, config_lineal, config_logistica, semillas=SEMILLAS) -> List[Dict]:
     """E5: online vs mini-batch vs batch, a igual presupuesto de épocas."""
     filas = []
     for nombre, cfg in (("lineal", config_lineal), ("logistica", config_logistica)):
         for etiqueta, lote in (("online", 1), ("mini-batch-32", 32), ("batch", None)):
             m = PerceptronSimple(Xs.shape[1], nombre, eta=cfg["eta"], beta=cfg["beta"],
-                                 tamano_lote=lote, semilla=SEMILLAS[0])
+                                 tamano_lote=lote, semilla=semillas[0])
             h = m.entrenar(Xs, y, epocas=200, registrar_diagnostico=False)
             filas.append({"activacion": nombre, "regimen": etiqueta,
                           "mse_final": h.mse[-1], "tiempo_s": h.tiempo_segundos})
@@ -221,13 +221,13 @@ def experimento_regimen(Xs, y, config_lineal, config_logistica) -> List[Dict]:
     return filas
 
 
-def experimento_sin_normalizar(X, y, config_lineal, config_logistica) -> List[Dict]:
+def experimento_sin_normalizar(X, y, config_lineal, config_logistica, semillas=SEMILLAS) -> List[Dict]:
     """E6: justifica el preprocesamiento. Sin estandarizar, el lineal diverge y
     la logística arranca completamente saturada."""
     filas = []
     for nombre, cfg in (("lineal", config_lineal), ("logistica", config_logistica)):
         m = PerceptronSimple(X.shape[1], nombre, eta=cfg["eta"], beta=cfg["beta"],
-                             tamano_lote=1, semilla=SEMILLAS[0])
+                             tamano_lote=1, semilla=semillas[0])
         h = m.entrenar(X, y, epocas=20)
         mse = h.mse[-1]
         filas.append({
@@ -242,8 +242,8 @@ def experimento_sin_normalizar(X, y, config_lineal, config_logistica) -> List[Di
 
 
 # --------------------------------------------------------------------------- #
-def main() -> None:
-    os.makedirs(DIR_SALIDA, exist_ok=True)
+def correr(semillas: List[int] = SEMILLAS) -> Dict:
+    """Corre E1-E7 completos con el conjunto de semillas dado y devuelve los resultados."""
     print("== Cargando y explorando el conjunto de datos ==")
     X, y, features, df = cargar(RUTA_DATOS)
     exploracion = explorar(df)
@@ -267,7 +267,7 @@ def main() -> None:
           f"MSE={ref_logistica['mse']:.6f} R2={ref_logistica['r2']:.4f}")
 
     print("\n== E1: barrido de tasa de aprendizaje ==")
-    barrido_eta = experimento_barrido_eta(Xs, y, None)
+    barrido_eta = experimento_barrido_eta(Xs, y, semillas)
     mejor = {}
     for act in ("lineal", "logistica"):
         cand = [f for f in barrido_eta if f["activacion"] == act and f["mse_medio"] is not None]
@@ -277,29 +277,29 @@ def main() -> None:
     print(f"  -> eta elegido: lineal={cfg_lineal['eta']}  logistica={cfg_log['eta']}")
 
     print("\n== E2: barrido de beta (logística) ==")
-    barrido_beta = experimento_barrido_beta(Xs, y, cfg_log["eta"])
+    barrido_beta = experimento_barrido_beta(Xs, y, cfg_log["eta"], semillas)
     cfg_log["beta"] = min(barrido_beta, key=lambda f: f["mse_medio"])["beta"]
     print(f"  -> beta elegido: {cfg_log['beta']}")
 
     print("\n== E3: curvas de aprendizaje ==")
-    curvas = experimento_curvas(Xs, y, cfg_lineal, cfg_log)
+    curvas = experimento_curvas(Xs, y, cfg_lineal, cfg_log, semillas)
 
     print("\n== E4: saturación de capacidades ==")
-    capacidad = experimento_capacidad(Xs, y, cfg_lineal, cfg_log)
+    capacidad = experimento_capacidad(Xs, y, cfg_lineal, cfg_log, semillas)
 
     print("\n== E7: diagnóstico fino ==")
-    diagnostico = experimento_diagnostico(Xs, y, cfg_lineal, cfg_log)
+    diagnostico = experimento_diagnostico(Xs, y, cfg_lineal, cfg_log, semillas)
 
     print("\n== E5: régimen de entrenamiento ==")
-    regimen = experimento_regimen(Xs, y, cfg_lineal, cfg_log)
+    regimen = experimento_regimen(Xs, y, cfg_lineal, cfg_log, semillas)
 
     print("\n== E6: sin normalizar (justificación del preprocesamiento) ==")
-    sin_norm = experimento_sin_normalizar(X, y, cfg_lineal, cfg_log)
+    sin_norm = experimento_sin_normalizar(X, y, cfg_lineal, cfg_log, semillas)
 
     resultados = {
         "exploracion": exploracion,
         "configuracion": {
-            "semillas": SEMILLAS, "epocas_barrido": EPOCAS_BARRIDO,
+            "semillas": list(semillas), "epocas_barrido": EPOCAS_BARRIDO,
             "epocas_largo": EPOCAS_LARGO, "normalizacion": "z-score sobre los 9 features",
             "regimen": "online (tamano_lote=1)",
             "config_lineal": cfg_lineal, "config_logistica": cfg_log,
@@ -319,9 +319,15 @@ def main() -> None:
         "flagged_fraud": df["flagged_fraud"].tolist(),
     }
 
+    return _np2list(resultados)
+
+
+def main() -> None:
+    os.makedirs(DIR_SALIDA, exist_ok=True)
+    resultados = correr(SEMILLAS)
     ruta = os.path.join(DIR_SALIDA, "resultados.json")
     with open(ruta, "w") as fh:
-        json.dump(_np2list(resultados), fh)
+        json.dump(resultados, fh)
     print(f"\nResultados guardados en {ruta}")
 
 

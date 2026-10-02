@@ -7,7 +7,8 @@ Cada activación expone:
   - ``imagen``     : el rango de salida, necesario para saber si hay que
                      escalar los valores deseados antes de entrenar.
 
-Las fórmulas siguen la Clase 10.2 de la cátedra:
+Las fórmulas siguen las Clases 10.1 y 10.2 de la cátedra:
+    escalón     theta(h) = signo(h) en {-1, 1}    (Rosenblatt: Δw = η(ζ-O)x, sin derivada)
     lineal      theta(h) = h                      theta'(h) = 1
     logística   theta(h) = 1 / (1 + e^(-2*beta*h))  theta'(h) = 2*beta*theta(h)*(1 - theta(h))
     tanh        theta(h) = tanh(beta*h)             theta'(h) = beta*(1 - theta(h)^2)
@@ -44,6 +45,16 @@ def _sigmoide_estable(z: np.ndarray) -> np.ndarray:
 
 def construir_activacion(nombre: str, beta: float = 0.5) -> Activacion:
     nombre = nombre.lower()
+
+    if nombre in ("escalon", "escalón", "signo"):
+        # No es derivable; dtheta = 1 hace que la regla general Δw = η(ζ-O)θ'(h)x
+        # se reduzca a la regla de Rosenblatt de la Clase 10.1.
+        return Activacion(
+            nombre="escalon",
+            theta=lambda h: np.where(h >= 0.0, 1.0, -1.0),
+            dtheta=lambda h, o: np.ones_like(h),
+            imagen=(-1.0, 1.0),
+        )
 
     if nombre == "lineal":
         return Activacion(

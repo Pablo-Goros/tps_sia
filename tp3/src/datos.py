@@ -104,3 +104,33 @@ def referencia_logistica_analitica(X: np.ndarray, y: np.ndarray,
     z = np.log(yc / (1.0 - yc))
     w, *_ = np.linalg.lstsq(Xb, z, rcond=None)
     return w, 1.0 / (1.0 + np.exp(-(Xb @ w)))
+
+
+# --------------------------------------------------------------------------- #
+# Particiones para el estudio de generalización.
+
+def estratos(y: np.ndarray, clase: np.ndarray, n_bins: int = 10) -> np.ndarray:
+    """Estrato = decil del objetivo x clase de fraude.
+
+    Estratificar por deciles de y mantiene la distribución de la probabilidad de
+    BigModel (incluida la masa en los extremos) en cada partición; cruzarlo con
+    flagged_fraud asegura la misma proporción de fraudes (11.6 %), necesaria para
+    que las métricas de clasificación y el umbral sean comparables entre particiones.
+    flagged_fraud se usa SÓLO para partir, nunca como entrada ni como objetivo.
+    """
+    cortes = np.quantile(y, np.linspace(0, 1, n_bins + 1)[1:-1])
+    return np.digitize(y, cortes) * 2 + clase.astype(int)
+
+
+def k_fold(n: int, k: int, rng: np.random.Generator,
+           estrato: Optional[np.ndarray] = None) -> List[Tuple[np.ndarray, np.ndarray]]:
+    """Lista de k pares (idx_entrenamiento, idx_validacion), estratificada si se pasa `estrato`."""
+    fold = np.empty(n, dtype=int)
+    if estrato is None:
+        fold[rng.permutation(n)] = np.arange(n) % k
+    else:
+        for e in np.unique(estrato):
+            idx = rng.permutation(np.where(estrato == e)[0])
+            # Se rota el fold de arranque por estrato para no cargar siempre el fold 0.
+            fold[idx] = (np.arange(len(idx)) + rng.integers(k)) % k
+    return [(np.where(fold != f)[0], np.where(fold == f)[0]) for f in range(k)]
