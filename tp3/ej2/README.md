@@ -142,3 +142,73 @@ a 0/1 para logística. Con semilla 0, tanh, beta 1, SGD con eta 0.3 y
 lotes de 2, ambas arquitecturas `[2,2,1]` y `[2,3,2,1]` logran los cuatro
 aciertos y costo menor que 0.001. Se comprueba además XOR con dos
 salidas softmax.
+
+## Paso 3 — Baseline
+
+Desde la raíz del repositorio (dependencias: NumPy y Matplotlib):
+
+```bash
+python -m tps_sia.tp3.ej2.src.baseline
+```
+
+Entrena un único MLP `[784, 128, 10]`, ReLU en la capa oculta y softmax
+con cross-entropy en la salida. Usa SGD con tasa 0.01, mini-batches de 32,
+inicialización automática He/Xavier y 30 épocas. `baseline.json` conserva
+la configuración; las semillas del modelo y de la partición son 42.
+Los píxeles ya están en `[0, 1]` y se usan sin reescalado.
+
+Se mantiene la partición estratificada 80/20: 9960 muestras de train y
+2489 de validación. Sólo train actualiza los pesos; las métricas de ambos
+conjuntos se calculan al terminar cada época con los mismos parámetros.
+El resultado corresponde a la última época, sin selección de checkpoints
+ni parada por validación. No se carga `digits_test.csv`.
+
+El comando guarda en `ej2/results/baseline/`:
+
+- `results.json`: configuración, SHA-256 del CSV, entorno, distribución
+  de clases, historia completa, métricas finales y resultado del sanity check.
+- `history.csv`: loss y accuracy de train y validación por época.
+- `model.npz`: modelo final, historia y estado para reanudar.
+- `learning_curves.png`: curvas de loss y accuracy de train vs. validación.
+- `confusion_matrix.csv` y `confusion_matrix.png`: conteos en validación;
+  filas = dígito real, columnas = predicción, siempre con las diez clases.
+  La fila del 8 se marca sin muestras: no permite evaluar su reconocimiento.
+
+La ejecución informa `OK` si la accuracy final de validación alcanza el
+90 % y `REVISAR` si queda por debajo. Ese umbral es un chequeo orientativo
+del pipeline, no una garantía de desempeño para cada clase o en producción.
+El desbalance del 5 y la ausencia del 8 deben considerarse al interpretar
+la accuracy global.
+
+Ejecución de referencia con la configuración incluida:
+
+| Métrica final (época 30) | Train | Validación |
+|---|---:|---:|
+| Cross-entropy | 0.15395 | 0.19498 |
+| Accuracy | 95.97 % | 94.38 % |
+
+Supera el sanity check del 90 %. El modelo recargado reproduce la matriz
+de confusión y la loss de validación guardadas; los gráficos se regeneran
+desde `results.json`. La clase 5 obtiene 44 aciertos de 54 muestras de
+validación (81.48 %), por debajo de la accuracy global.
+
+El entrenamiento y el análisis están separados: los gráficos se pueden
+regenerar a partir del JSON sin volver a entrenar:
+
+```bash
+python -m tps_sia.tp3.ej2.src.plots
+```
+
+Para próximas ejecuciones se puede pasar `--config ruta.json` y
+`--output-dir ruta` al baseline, y `--results ruta/results.json` a los
+gráficos. Cada ejecución empieza un modelo nuevo; usar un directorio
+distinto permite conservar cada experimento. Las salidas generadas se
+excluyen de Git.
+
+Si OpenBLAS usa demasiados hilos para estos mini-batches, se puede ejecutar
+en PowerShell con un hilo (el ajuste afecta al proceso y sus hijos):
+
+```powershell
+$env:OPENBLAS_NUM_THREADS = "1"
+python -m tps_sia.tp3.ej2.src.baseline
+```
