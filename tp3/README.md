@@ -164,7 +164,13 @@ El modelo final se entrena con las 7500 muestras y se guarda en
 
 ## Ejercicio 2 — Clasificación de dígitos (perceptrón multicapa)
 
-Pendiente.
+Implementada la [carga y exploración de datos](ej2/README.md): caché `.npz`,
+etiquetas one-hot de diez salidas y partición estratificada 80/20 con semilla 42.
+Implementados también el MLP matricial y SGD, con mini-batches,
+inicialización Xavier/He, historia por época y guardar/cargar. Los
+[chequeos del paso 2](ej2/README.md#validación-del-paso-2) verifican gradientes
+por diferencias centradas y XOR en ambas arquitecturas del enunciado.
+Los experimentos con dígitos y los optimizadores momentum/Adam están pendientes.
 
 ---
 
