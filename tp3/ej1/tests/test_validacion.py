@@ -1,27 +1,17 @@
 """Ejercicios de validación del enunciado + chequeos de las derivadas.
 
-    python3 -m tp3.tests.test_validacion
+    python -m tps_sia.tp3.ej1.tests.test_validacion
 """
 from __future__ import annotations
 
+from pathlib import Path
+from tempfile import TemporaryDirectory
+
 import numpy as np
 
-from tp3.src.activaciones import construir_activacion
-from tp3.src.perceptron import PerceptronSimple
-
-
-def test_derivadas_numericas():
-    """theta'(h) analítica vs. diferencia centrada, para cada activación."""
-    h = np.linspace(-3, 3, 61)
-    eps = 1e-6
-    for nombre in ("lineal", "logistica", "tanh"):
-        for beta in (0.25, 0.5, 2.0):
-            act = construir_activacion(nombre, beta)
-            analitica = act.dtheta(h, act.theta(h))
-            numerica = (act.theta(h + eps) - act.theta(h - eps)) / (2 * eps)
-            err = np.max(np.abs(analitica - numerica))
-            assert err < 1e-6, f"{nombre} beta={beta}: error {err}"
-            print(f"  ok  θ'({nombre}, β={beta})  error máx = {err:.2e}")
+from tps_sia.tp3.shared.activations import construir_activacion
+from tps_sia.tp3.shared.tests.test_activations import test_derivadas_numericas
+from tps_sia.tp3.ej1.src.perceptron import PerceptronSimple
 
 
 # Entradas de las funciones lógicas del enunciado (ejercicio de validación).
@@ -70,7 +60,7 @@ def test_perceptron_logistico_recupera_su_propia_sigmoide():
     y = act.theta(w_real[0] + X @ w_real[1:])
     m = PerceptronSimple(2, "logistica", eta=0.5, beta=0.5, tamano_lote=1, semilla=0)
     h = m.entrenar(X, y, epocas=800, mezclar=True)
-    print(f"  ok  logística sobre σ(w·x): MSE={h.mse[-1]:.2e}, "
+    print(f"  ok  logística sobre sigmoid(w*x): MSE={h.mse[-1]:.2e}, "
           f"w={np.round(m.w, 3)} (esperado {w_real})")
     assert h.mse[-1] < 1e-5
     assert np.max(np.abs(m.w - w_real)) < 0.1
@@ -98,12 +88,14 @@ def test_salida_logistica_dentro_de_0_1():
     print("  ok  la logística nunca sale de [0,1] ni desborda")
 
 
-def test_guardar_y_cargar(tmp="/tmp/_tp3_modelo.npz"):
+def test_guardar_y_cargar():
     m = PerceptronSimple(3, "logistica", eta=0.1, beta=0.5, semilla=7)
     X = np.random.default_rng(0).normal(size=(10, 3))
     antes = m.predecir(X)
-    m.guardar(tmp)
-    otro = PerceptronSimple.cargar(tmp)
+    with TemporaryDirectory() as directory:
+        path = Path(directory) / "model.npz"
+        m.guardar(path)
+        otro = PerceptronSimple.cargar(path)
     assert np.allclose(antes, otro.predecir(X))
     print("  ok  guardar/cargar preserva el modelo")
 

@@ -10,8 +10,8 @@ Las repeticiones son independientes y se corren en paralelo (un proceso por
 repetición). Este script SÓLO ejecuta y persiste; el análisis está en
 analisis_repeticiones.py.
 
-    python3 -m tp3.src.repeticiones_aprendizaje                  # 3 repeticiones
-    python3 -m tp3.src.repeticiones_aprendizaje --repeticiones 5 --procesos 2
+    python -m tps_sia.tp3.ej1.src.repeticiones_aprendizaje                  # 3 repeticiones
+    python -m tps_sia.tp3.ej1.src.repeticiones_aprendizaje --repeticiones 5 --procesos 2
 """
 from __future__ import annotations
 
@@ -79,7 +79,7 @@ def main() -> None:
                   f"{info['tiempo_s'] / 60:.1f} min -> {info['ruta']}")
 
     print(f"\nListo en {(time.perf_counter() - t0) / 60:.1f} min. Para el análisis:\n"
-          f"  python3 -m tp3.src.analisis_repeticiones")
+          f"  python -m tps_sia.tp3.ej1.src.analisis_repeticiones")
 
 
 if __name__ == "__main__":

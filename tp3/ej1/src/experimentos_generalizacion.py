@@ -33,7 +33,7 @@ entrenamiento (si no, la validación "ve" su propia media y desvío).
 flagged_fraud nunca es entrada ni objetivo: sólo estratifica y evalúa el umbral.
 Este script sólo ejecuta y persiste; el análisis está en graficos_generalizacion.py.
 
-    python3 -m tp3.src.experimentos_generalizacion [--procesos 7]
+    python -m tps_sia.tp3.ej1.src.experimentos_generalizacion [--procesos 7]
 """
 from __future__ import annotations
 
@@ -41,6 +41,7 @@ import argparse
 import itertools
 import json
 import os
+from pathlib import Path
 import time
 from concurrent.futures import ProcessPoolExecutor
 from typing import Dict, List, Sequence
@@ -51,8 +52,9 @@ from .datos import Normalizador, cargar, estratos, k_fold
 from .metricas import clasificacion, resumen
 from .perceptron import PerceptronSimple
 
-RUTA_DATOS = "tp3/datos/fraud_dataset.csv"
-DIR_SALIDA = "tp3/salidas/generalizacion"
+EJERCICIO = Path(__file__).resolve().parents[1]
+RUTA_DATOS = EJERCICIO / "datos" / "fraud_dataset.csv"
+DIR_SALIDA = EJERCICIO / "salidas" / "generalizacion"
 
 K = 5
 REPETICIONES_CV = 3

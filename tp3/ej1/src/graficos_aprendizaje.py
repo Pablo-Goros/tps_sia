@@ -8,13 +8,14 @@ from __future__ import annotations
 
 import json
 import os
+from pathlib import Path
 
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 
-DIR = "tp3/salidas/aprendizaje"
+DIR = Path(__file__).resolve().parents[1] / "salidas" / "aprendizaje"
 
 # Paleta categórica validada (slots 1-3) + tintas de texto.
 C_LINEAL = "#2a78d6"

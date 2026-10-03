@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import json
 import os
+from pathlib import Path
 from typing import Dict, List
 
 import numpy as np
@@ -24,8 +25,9 @@ from .datos import (Normalizador, cargar, explorar, referencia_logistica_analiti
 from .metricas import resumen
 from .perceptron import PerceptronSimple
 
-RUTA_DATOS = "tp3/datos/fraud_dataset.csv"
-DIR_SALIDA = "tp3/salidas/aprendizaje"
+EJERCICIO = Path(__file__).resolve().parents[1]
+RUTA_DATOS = EJERCICIO / "datos" / "fraud_dataset.csv"
+DIR_SALIDA = EJERCICIO / "salidas" / "aprendizaje"
 
 SEMILLAS = [1, 2, 3, 4, 5]
 ETAS = [1e-4, 5e-4, 1e-3, 5e-3, 1e-2, 5e-2, 1e-1, 5e-1, 1.0]

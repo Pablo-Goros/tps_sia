@@ -10,9 +10,10 @@ import platform
 
 import numpy as np
 
-from .datos_digitos import DIGITS, EJERCICIO, N_CLASES, cargar, particionar
-from .mlp import MLP
-from .optimizadores import SGD
+from .datos_digitos import CACHE, DIGITS, EJERCICIO
+from tps_sia.tp3.shared.digit_dataset import N_CLASES, cargar, particionar
+from tps_sia.tp3.shared.mlp import MLP
+from tps_sia.tp3.shared.optimizers import SGD
 
 
 CONFIG = EJERCICIO / "baseline.json"
@@ -43,7 +44,7 @@ def run(config_path: Path = CONFIG, output_dir: Path = RESULTS) -> dict:
         raise ValueError("El baseline de clasificación usa softmax y cross-entropy.")
     if not 0 <= config["sanity_accuracy"] <= 1:
         raise ValueError("sanity_accuracy debe estar entre 0 y 1.")
-    X, y = cargar()
+    X, y = cargar(DIGITS, CACHE)
     X_train, y_train, X_val, y_val = particionar(X, y, semilla=config["split_seed"])
     model = MLP(
         config["architecture"], activacion=config["activation"],

@@ -3,7 +3,7 @@
 Desde la raíz del repositorio:
 
 ```bash
-python tps_sia/tp3/ej2/src/datos_digitos.py
+python -m tps_sia.tp3.ej2.src.datos_digitos
 ```
 
 La primera ejecución parsea `digits.csv` y genera `cache/digits.npz` dentro
@@ -17,10 +17,10 @@ deserializar `image` con `ast.literal_eval` y convertir a `float32`, sin
 reescalar los píxeles. `X` tiene forma `(N, 784)` e `y` usa one-hot de
 forma `(N, 10)`, también `float32`: la columna `d` corresponde al dígito `d`.
 
-Para usar los datos desde otros módulos de `src`:
+Para usar los defaults del ejercicio desde otros módulos:
 
 ```python
-from .datos_digitos import cargar, particionar
+from tps_sia.tp3.ej2.src.datos_digitos import cargar, particionar
 
 X, y = cargar()
 X_train, y_train, X_val, y_val = particionar(X, y)
@@ -73,16 +73,16 @@ obtuvieron exclusivamente de `digits.csv`.
 
 ## Paso 2 — MLP y SGD
 
-`src/mlp.py` implementa `MLP` con arquitectura como lista, forward y
+`shared/mlp.py` implementa `MLP` con arquitectura como lista, forward y
 backprop matriciales. Reutiliza tanh, ReLU y logística de
-`ej1/src/activaciones.py`. La salida por defecto es softmax con
+`shared/activations.py`. `ej2/src/mlp.py` reexporta la misma clase. La salida por defecto es softmax con
 cross-entropy, calculada mediante log-softmax estable; su delta es
 `(p - y) / N`. Para una sola salida se debe elegir `salida="logistica"`.
 
 Ejemplo de configuración para el próximo paso de entrenamiento:
 
 ```python
-from tps_sia.tp3.ej2.src.mlp import MLP
+from tps_sia.tp3.shared.mlp import MLP
 
 modelo = MLP([784, 128, 10], activacion="relu", eta=0.01,
              tamano_lote=32, inicializacion="auto", semilla=42)
@@ -118,7 +118,8 @@ modelo = MLP([784, 128, 10], activacion="relu", eta=0.01,
   y estado aleatorio para reanudar con el mismo orden de mini-batches.
   El archivo `.npz` se carga con `allow_pickle=False`.
 
-`src/optimizadores.py` separa SGD del MLP. La interfaz `Optimizador` expone
+`shared/optimizers.py` separa SGD del MLP; `src/optimizadores.py` conserva
+la importación anterior. La interfaz `Optimizador` expone
 `paso(parametros, gradientes)` (actualización in-place) y `configuracion()`.
 Se puede inyectar `optimizador=SGD(eta=...)`; momentum y Adam quedan para
 el paso siguiente.
@@ -212,3 +213,56 @@ en PowerShell con un hilo (el ajuste afecta al proceso y sus hijos):
 $env:OPENBLAS_NUM_THREADS = "1"
 python -m tps_sia.tp3.ej2.src.baseline
 ```
+
+
+## Paso 3a — Núcleo compartido
+
+Las implementaciones reutilizables residen en `tps_sia/tp3/shared/`:
+`activations.py`, `mlp.py`, `optimizers.py` y `digit_dataset.py`.
+El paquete no importa módulos de los ejercicios. Ej1 consume las activaciones;
+ej2 consume el MLP, SGD y loader. Los módulos anteriores de activaciones,
+MLP y optimizadores sólo reexportan las mismas clases y funciones; se conservan
+sus APIs en español y el formato de modelo y caché versión 1.
+
+El loader común requiere ambas rutas explícitas. Por ejemplo, desde la raíz:
+
+```python
+from pathlib import Path
+from tps_sia.tp3.shared.digit_dataset import cargar, particionar
+from tps_sia.tp3.shared.mlp import MLP
+from tps_sia.tp3.shared.optimizers import SGD
+
+exercise = Path("tps_sia/tp3/ej2").resolve()
+X, y = cargar(exercise.parent / "data" / "digits.csv",
+              exercise / "cache" / "digits.npz")
+X_train, y_train, X_val, y_val = particionar(X, y)
+modelo = MLP([784, 128, 10], activacion="relu", optimizador=SGD(0.01),
+             tamano_lote=32, semilla=42)
+```
+
+Cada consumidor elige su dataset y caché. El wrapper
+`ej2/src/datos_digitos.py` mantiene `cargar()` sin argumentos, los cachés
+separados para otros CSV y el comando de exploración. La invocación histórica
+`python tps_sia/tp3/ej2/src/datos_digitos.py` delega al comando de paquete.
+Los defaults del baseline siguen apuntando a `ej2/baseline.json`,
+`ej2/cache/` y `ej2/results/baseline/`, resueltos desde el módulo.
+
+Chequeos comunes con datos sintéticos, desde la raíz:
+
+```bash
+python -m tps_sia.tp3.shared.tests.test_activations
+python -m tps_sia.tp3.shared.tests.test_mlp
+python -m tps_sia.tp3.shared.tests.test_digit_dataset
+python -m tps_sia.tp3.ej2.tests.test_shared_compatibility
+```
+
+`ej2.tests.test_validacion` delega a los chequeos comunes del MLP. Los
+chequeos propios de los CSV reales permanecen en
+`ej2.tests.test_datos_digitos`; los del perceptrón simple permanecen en
+`ej1.tests.test_validacion`, que también reutiliza el chequeo de derivadas.
+
+La extracción se verificó cargando el modelo SGD de referencia, sin
+reentrenarlo: las salidas de las 2489 muestras de validación coinciden
+exactamente con las previas al cambio, al igual que las particiones.
+Se reprodujeron la loss y la matriz de confusión guardadas; la configuración
+y los archivos de referencia conservaron sus SHA-256.

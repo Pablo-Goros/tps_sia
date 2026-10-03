@@ -21,7 +21,7 @@ from typing import Dict, List, Optional
 
 import numpy as np
 
-from .activaciones import Activacion, construir_activacion
+from tps_sia.tp3.shared.activations import Activacion, construir_activacion
 from .metricas import error_cuadratico_medio
 
 

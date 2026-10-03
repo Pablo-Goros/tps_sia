@@ -4,12 +4,13 @@ Lee salidas/generalizacion/resultados.json (producido por
 experimentos_generalizacion.py) y genera las figuras 11-17 y la tabla resumen.
 Métricas de evaluación: precision, recall y F1 (recall como prioridad).
 
-    python3 -m tp3.src.graficos_generalizacion
+    python -m tps_sia.tp3.ej1.src.graficos_generalizacion
 """
 from __future__ import annotations
 
 import json
 import os
+from pathlib import Path
 
 import matplotlib
 matplotlib.use("Agg")
@@ -19,7 +20,7 @@ import numpy as np
 # Importarlo aplica también el estilo (rcParams) de los gráficos de aprendizaje.
 from .graficos_aprendizaje import C_LINEAL, C_LOGIS, C_REF, TINTA, TINTA_2
 
-DIR = "tp3/salidas/generalizacion"
+DIR = Path(__file__).resolve().parents[1] / "salidas" / "generalizacion"
 C_ESTRAT = "#1baf7a"      # slot 3 (aqua): partición estratificada / recall
 C_PRECISION = "#4a3aa7"   # slot 7 (violeta): precision / transacciones con fraude
 C_LEGITIMA = "#a3a29c"    # gris neutro: transacciones legítimas

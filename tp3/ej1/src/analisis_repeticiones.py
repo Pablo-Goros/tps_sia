@@ -10,13 +10,14 @@ Genera:
     09_repeticiones_curvas.png               curvas de aprendizaje de cada repetición
     10_repeticiones_barridos.png             barridos de η y β de cada repetición
 
-    python3 -m tp3.src.analisis_repeticiones
+    python -m tps_sia.tp3.ej1.src.analisis_repeticiones
 """
 from __future__ import annotations
 
 import glob
 import json
 import os
+from pathlib import Path
 from typing import Dict, List
 
 import matplotlib
@@ -26,7 +27,7 @@ import numpy as np
 
 from .graficos_aprendizaje import C_LINEAL, C_LOGIS, C_REF, TINTA, _guardar
 
-DIR = "tp3/salidas/aprendizaje"
+DIR = Path(__file__).resolve().parents[1] / "salidas" / "aprendizaje"
 DIR_REP = os.path.join(DIR, "repeticiones")
 MODELOS = (("lineal", "Lineal"), ("logistica", "Logística"))
 
@@ -36,7 +37,7 @@ def cargar_corridas() -> List[Dict]:
                    key=lambda r: int(r.rsplit("_", 1)[1].split(".")[0]))
     if not rutas:
         raise SystemExit(f"No hay corridas en {DIR_REP}. Correr antes:\n"
-                         "  python3 -m tp3.src.repeticiones_aprendizaje")
+                         "  python -m tps_sia.tp3.ej1.src.repeticiones_aprendizaje")
     corridas = []
     for ruta in rutas:
         with open(ruta) as fh:

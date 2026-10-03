@@ -5,24 +5,41 @@ Sistemas de Inteligencia Artificial — ITBA
 ## Validación de la implementación
 
 ```bash
-python3 -m tp3.tests.test_validacion
+python -m tps_sia.tp3.ej1.tests.test_validacion
+python -m tps_sia.tp3.ej2.tests.test_validacion
+python -m tps_sia.tp3.ej2.tests.test_datos_digitos
+python -m tps_sia.tp3.ej2.tests.test_shared_compatibility
 ```
 
 Ejercicios de validación del enunciado: AND con perceptrón escalón, XOR (no resoluble con un
 perceptrón simple), recta con el lineal, `y = tanh(x)` y sigmoide con el no lineal, y
 chequeo numérico de las derivadas.
 
-## Código común
+## Organización del código
+
+Los comandos se ejecutan con `python -m ...` desde la raíz del repositorio.
+Dependencias para TP3: NumPy, Pandas y Matplotlib.
 
 | Archivo | Contenido |
 |---|---|
-| `src/activaciones.py` | θ y θ′: escalón, lineal, logística, tanh, ReLU |
-| `src/perceptron.py` | Perceptrón simple (`Δw = η(ζ−O)θ′(h)x`), online / mini-batch / batch, guardar y cargar |
-| `src/datos.py` | Carga, exploración, z-score, soluciones analíticas, estratos y k-fold |
-| `src/metricas.py` | MSE, MAE, R²; precision, recall, F1, matriz de confusión |
+| `shared/activations.py` | θ y θ′: escalón, lineal, logística, tanh, ReLU |
+| `shared/mlp.py` | MLP matricial, backprop, entrenamiento e historia, guardar/cargar |
+| `shared/optimizers.py` | SGD e interfaz de optimizadores |
+| `shared/digit_dataset.py` | Loader cacheado con rutas explícitas y partición estratificada de dígitos |
+| `shared/tests/` | Chequeos reutilizables con datos sintéticos |
+| `ej1/src/perceptron.py` | Perceptrón simple, online / mini-batch / batch, guardar/cargar |
+| `ej1/src/datos.py` | Fraude: carga, exploración, z-score, soluciones analíticas, estratos y k-fold |
+| `ej1/src/metricas.py` | MSE, MAE, R²; precision, recall, F1, matriz de confusión |
 
-Los scripts `experimentos_*` entrenan y guardan JSON; los de `graficos_*` / `analisis_*` sólo
-leen y grafican.
+`shared` no depende de los ejercicios. Las rutas anteriores
+`ej1/src/activaciones.py`, `ej2/src/mlp.py` y `ej2/src/optimizadores.py`
+reexportan las mismas implementaciones. `ej2/src/datos_digitos.py` conserva
+los defaults y el comando de exploración de ej2. Ver las
+[importaciones y comprobaciones del paso 3a](ej2/README.md#paso-3a--núcleo-compartido).
+
+Cada ejercicio conserva sus datasets, comandos, configuraciones y resultados.
+Los scripts `experimentos_*` entrenan y guardan JSON; los de `graficos_*` /
+`analisis_*` sólo leen y grafican.
 
 ---
 
@@ -35,17 +52,18 @@ BigModel (`fraud_dataset.csv`, 7500 transacciones).
 
 ```bash
 # Aprendizaje (todas las muestras)
-python3 -m tp3.src.experimentos_aprendizaje       # ≈ 11 min
-python3 -m tp3.src.graficos_aprendizaje           # figuras y tabla
-python3 -m tp3.src.repeticiones_aprendizaje       # 3 corridas en paralelo, ≈ 13 min
-python3 -m tp3.src.analisis_repeticiones          # análisis de las repeticiones
+python -m tps_sia.tp3.ej1.src.experimentos_aprendizaje       # ≈ 11 min
+python -m tps_sia.tp3.ej1.src.graficos_aprendizaje           # figuras y tabla
+python -m tps_sia.tp3.ej1.src.repeticiones_aprendizaje       # 3 corridas en paralelo, ≈ 13 min
+python -m tps_sia.tp3.ej1.src.analisis_repeticiones          # análisis de las repeticiones
 
 # Generalización (k-fold)
-python3 -m tp3.src.experimentos_generalizacion    # ≈ 8 min
-python3 -m tp3.src.graficos_generalizacion        # figuras y tabla
+python -m tps_sia.tp3.ej1.src.experimentos_generalizacion    # ≈ 8 min
+python -m tps_sia.tp3.ej1.src.graficos_generalizacion        # figuras y tabla
 ```
 
-Salidas en `salidas/aprendizaje/` y `salidas/generalizacion/`.
+Salidas en `ej1/salidas/aprendizaje/` y `ej1/salidas/generalizacion/`,
+resueltas desde cada módulo sin depender del directorio de trabajo.
 
 ### Datos
 
@@ -158,7 +176,7 @@ lineal, con el mismo recall, sólo alcanza una precision de 0.62.
 | 0.85 (el de BigModel) | 0.796 | 0.961 | 177 | 28 |
 
 El modelo final se entrena con las 7500 muestras y se guarda en
-`salidas/generalizacion/modelo_final.json`, con pesos, normalización y umbral.
+`ej1/salidas/generalizacion/modelo_final.json`, con pesos, normalización y umbral.
 
 ---
 
@@ -170,7 +188,10 @@ Implementados también el MLP matricial y SGD, con mini-batches,
 inicialización Xavier/He, historia por época y guardar/cargar. Los
 [chequeos del paso 2](ej2/README.md#validación-del-paso-2) verifican gradientes
 por diferencias centradas y XOR en ambas arquitecturas del enunciado.
-Los experimentos con dígitos y los optimizadores momentum/Adam están pendientes.
+El [baseline](ej2/README.md#paso-3--baseline) `[784,128,10]`, ReLU y SGD
+está ejecutado: 95.97 % de accuracy de entrenamiento y 94.38 % de validación.
+El núcleo común ya está extraído a `shared`, conservando las APIs, comandos
+y modelos guardados. Los barridos comparativos y momentum/Adam están pendientes.
 
 ---
 
