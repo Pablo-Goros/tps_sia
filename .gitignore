@@ -2,3 +2,5 @@ salidas/
 *.egg-info/
 tp3/*/cache/
 tp3/ej2/results/v2/
+tp3/ej2/results/v2_appendix/
+__pycache__/

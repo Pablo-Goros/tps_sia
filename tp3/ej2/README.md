@@ -770,3 +770,52 @@ Con unas 95 corridas nuevas y 30–60 épocas típicas por la parada temprana, l
 completa se estima en 1.5–3.5 h en serie (la etapa 6, con 24 corridas, es la más
 cara); con `--workers 4` y un hilo por proceso, del orden de 0.5–1 h. Cada corrida
 ocupa 3–12 MB (checkpoint y mejor modelo, con estado del optimizador).
+
+## Paso 7c — Apéndice de la búsqueda v2 y evaluación final
+
+La búsqueda v2 se ejecutó completa (58 corridas; selección en `results/v2/selection.json`:
+`[784,256,10]`, tanh, momentum 0.1, lote 32). Este paso no reentrena ni modifica
+`selection.json`, `configs/search_v2.json` ni los `stage_N.json`. Los resultados de
+`results/v2/` y `results/v2_appendix/` se conservan localmente y están excluidos de Git.
+
+### Apéndice (comprobaciones posteriores, no selección)
+
+```bash
+python -m tps_sia.tp3.ej2.src.appendix run --part relu --workers 4
+python -m tps_sia.tp3.ej2.src.appendix run --part stages_3_5 --workers 4
+python -m tps_sia.tp3.ej2.src.appendix report
+```
+
+- **A, `relu`**: la configuración seleccionada con `activation="relu"` (inicialización
+  automática: He en capas ocultas), semillas 0, 1, 2, 3 y 42, comparada con tanh por la
+  regla de la etapa 7 (diferencia de medias contra 2σ agrupado).
+- **B, `stages_3_5`**: los factores de las etapas 3–5 (ancho, profundidad, lote) sobre la
+  base de esas etapas, con semillas 0, 1 y 42; informa la diferencia contra el valor de
+  semilla 42 de la etapa original, que es exploratorio.
+- Las corridas ya existentes en `results/v2/runs` se reutilizan por `config_id` sólo para
+  lectura (se verifican configuración, dataset y SHA-256 del modelo); las faltantes se
+  entrenan en `results/v2_appendix/<parte>/runs`. `report` sólo lee los `summary.json` y
+  genera `results/v2_appendix/report.md` y una figura por factor en
+  `results/v2_appendix/analysis/`.
+- Ninguno de estos comandos lee el conjunto de test; el runner compartido lo rechaza.
+
+### Evaluación final sobre `digits_test.csv` (una sola vez)
+
+```bash
+python -m tps_sia.tp3.ej2.src.final_evaluation
+```
+
+Carga el checkpoint candidato de `selection.json` sin reentrenar, verifica su SHA-256 y lo
+evalúa sobre `digits_test.csv` con el loader compartido. Escribe en `results/v2/`
+`final_evaluation.json`, `final_evaluation.md`, `confusion_matrix.png` y
+`per_class_recall.png`, con la accuracy global y la accuracy sin el 8 (clase ausente en
+`digits.csv`) en la misma tabla, métricas por clase, matriz de confusión cruda y
+normalizada, destino de los 8 y la accuracy de validación del mismo modelo. Si
+`final_evaluation.json` ya existe, el comando se niega a repetir la evaluación salvo con
+`--overwrite`. El test no se usa para ninguna selección ni umbral.
+
+Tests (datos sintéticos):
+
+```bash
+python -m unittest -v tps_sia.tp3.ej2.tests.test_appendix tps_sia.tp3.ej2.tests.test_final_evaluation
+```

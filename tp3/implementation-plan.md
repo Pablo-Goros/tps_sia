@@ -199,7 +199,8 @@ Una vez completos los requisitos y su análisis, considerar el opcional de ruido
 - [x] Paso 5: control del entrenamiento y checkpoints completos.
 - [x] Paso 6: runner, métricas y análisis reutilizables.
 - [x] Paso 7: comparaciones y selección del ejercicio 2.
-- [x] Paso 7b: protocolo v2 de un factor a la vez para el ejercicio 2 — implementado y probado con smoke test; **búsqueda sin ejecutar**.
+- [x] Paso 7b: protocolo v2 de un factor a la vez para el ejercicio 2 — implementado y ejecutado (58 corridas; selección en `ej2/results/v2/selection.json`).
+- [x] Paso 7c: apéndice de la búsqueda v2 (ReLU en la configuración final; etapas 3–5 con tres semillas) y evaluación final del ejercicio 2 sobre `digits_test.csv`.
 - [ ] Paso 8: datos, experimentos y selección del ejercicio 3 — **parcial**: datos y partición (puntos 1–3) hechos; reentrenamientos, búsqueda y selección (puntos 4–9) sin hacer.
 - [ ] Paso 9: evaluación final e informes.
 - [ ] Extensiones opcionales, después de completar lo obligatorio.
@@ -342,3 +343,13 @@ duplicados, coincide con `shared.digit_dataset.particionar`, que usa el runner.
 La comprobación de integridad cuenta 0 imágenes de `digits_test.csv` en
 `more_digits.csv` y 0 en `digits.csv`; sólo se registran conteos.
 `ej3/tests/test_dataset.py` cubre la partición y las salidas con datos sintéticos.
+
+Paso 7c (2026-10-03): apéndice y evaluación final del ejercicio 2. `ej2/src/appendix.py`
+ejecuta dos comprobaciones posteriores que no pueden cambiar la selección y reutilizan por
+`config_id` las corridas de `results/v2/runs` sin escribir allí: (A) ReLU en la
+configuración seleccionada con cinco semillas, comparada por la regla de la etapa 7, y
+(B) los factores de las etapas 3–5 con semillas 0, 1 y 42. `ej2/src/final_evaluation.py`
+evaluó una sola vez el checkpoint candidato (SHA-256 verificado) sobre `digits_test.csv`,
+informando juntas la accuracy global y la accuracy sin el 8; se niega a repetir la
+evaluación sin `--overwrite`. Ningún archivo de la búsqueda v2 se modificó. El paso 9
+(informes y entrega de ambos ejercicios) sigue abierto.
