@@ -146,3 +146,49 @@ def generate(results_path: str | Path, output_dir: str | Path | None = None) -> 
                         ax.legend()
                 fig.savefig(directory / 'selected_weights.png', dpi=160)
                 plt.close(fig)
+
+
+def plot_accuracy_bars(labels, means, errors, path: str | Path, title: str = '',
+                       ylabel: str = 'Accuracy de validación') -> None:
+    """Bars with optional seed spread (None or 0 means a single seed)."""
+    import matplotlib
+    matplotlib.use('Agg')
+    import matplotlib.pyplot as plt
+
+    fig, ax = plt.subplots(figsize=(max(6, 0.8 * len(labels) + 2), 4.5), constrained_layout=True)
+    yerr = [0 if e is None else e for e in errors]
+    ax.bar(range(len(labels)), means, yerr=yerr, capsize=4, color='#4C72B0')
+    low = min(means) - max(yerr) if means else 0
+    ax.set(xticks=range(len(labels)), ylabel=ylabel, title=title,
+           ylim=(max(0.0, low - 0.02), min(1.0, max(means) + max(yerr) + 0.01) if means else 1))
+    ax.set_xticklabels(labels, rotation=30, ha='right', fontsize=8)
+    ax.grid(axis='y', alpha=0.25)
+    fig.savefig(path, dpi=160)
+    plt.close(fig)
+
+
+def plot_run_curves(reports: list[dict], labels: list[str], path: str | Path, title: str = '') -> None:
+    """Train (dashed) and validation (solid) loss/accuracy for several runs."""
+    import matplotlib
+    matplotlib.use('Agg')
+    import matplotlib.pyplot as plt
+
+    fig, axes = plt.subplots(1, 2, figsize=(12, 4.5), constrained_layout=True)
+    for index, (report, label) in enumerate(zip(reports, labels)):
+        history, color = report['history'], f'C{index}'
+        epochs = history.get('epochs') or list(range(1, history['epocas_corridas'] + 1))
+        val_epochs = history.get('validation_epochs') or epochs[:len(history['costo_validacion'])]
+        for ax, key, val_key in ((axes[0], 'costo', 'costo_validacion'),
+                                 (axes[1], 'accuracy', 'accuracy_validacion')):
+            ax.plot(epochs, history[key], linestyle='--', color=color, alpha=0.7)
+            ax.plot(val_epochs, history[val_key], color=color, label=label)
+            if report.get('chosen_epoch') is not None:
+                ax.axvline(report['chosen_epoch'], color=color, linestyle=':', alpha=0.6)
+    axes[0].set(xlabel='Época', ylabel='Cross-entropy (-- train, — validación)', yscale='log')
+    axes[1].set(xlabel='Época', ylabel='Accuracy (-- train, — validación)')
+    for ax in axes:
+        ax.grid(alpha=0.25)
+    axes[1].legend(fontsize=7)
+    fig.suptitle(title)
+    fig.savefig(path, dpi=160)
+    plt.close(fig)

@@ -640,3 +640,133 @@ la concurrencia y del equipo; no constituyen una medición aislada de la
 velocidad relativa de los optimizadores. La selección no usa esos tiempos.
 Ver el [análisis de desarrollo](development-report.md) para las respuestas
 a las preguntas del ejercicio y la interpretación de las comparaciones.
+
+
+## Paso 7b — Búsqueda v2: un factor a la vez
+
+La búsqueda del paso 7 (26 corridas en `results/runs/`, `results/selection.json`)
+se conserva como antecedente **v1**. La v2 rehace la selección con un protocolo de
+*coordinate descent* pre-registrado en
+[`configs/search_v2.json`](configs/search_v2.json): cada etapa cambia **un** factor
+y el resto queda en el mejor valor de la etapa anterior. Está implementada y probada
+con un smoke test; **la búsqueda completa todavía no se ejecutó**.
+
+Base fija: `[784,128,10]`, softmax + cross-entropy, lote 32, inicialización `auto`
+(He para ReLU, Xavier para tanh), partición estratificada 80/20 con `split_seed` 42,
+píxeles sin transformar. Todas las corridas tienen como máximo 100 épocas, parada
+temprana por cross-entropy de validación (`patience` 10, `min_delta` 0) y
+checkpoint de la mejor época. Una corrida que agota las 100 épocas se informa como
+"no convergió", no como mala, y compite con su mejor checkpoint. La semilla del
+modelo cambia pesos iniciales y orden de lotes; la partición no cambia.
+
+| Etapa | Factor | Candidatos (semilla 42 salvo indicación) |
+|---|---|---|
+| 0 | Activación | {tanh, relu} × SGD {0.01, 0.1}; cada activación toma su mejor tasa; diferencia < 0.3 pp → tanh |
+| 1 | Tasa por optimizador | SGD {1e-3, 1e-2, 5e-2, 1e-1}; momentum 0.9 {1e-4, 1e-3, 1e-2, 5e-2}; RMSProp y Adam {1e-4, 3e-4, 1e-3, 3e-3}; regla de borde |
+| 2 | Optimizador | Mejores de la etapa 1, reutilizados; el top-2 pasa a la etapa 6 |
+| 3 | Ancho | {32, 64, 128, 256, 512} |
+| 4 | Profundidad | `[h]`, `[h, h/2]`, `[h, h/2, h/4]` con el mejor ancho h |
+| 5 | Lote | {16, 32, 64, 128}, sin cambiar la tasa |
+| 6 | Cruce | top-2 optimizadores × (tasa ganadora, mejor vecina) × top-2 arquitecturas; semillas 42, 0, 1 |
+| 7 | Confirmación | top-3 de la etapa 6 + control (ganador de la etapa 0); semillas 42, 0, 1, 2, 3 |
+
+Reglas pre-registradas:
+
+- **Ranking** (semilla 42): accuracy de validación, luego cross-entropy, parámetros y
+  `config_id`. Las corridas con fallo numérico no compiten.
+- **Borde** (etapa 1): si la mejor tasa de un optimizador está en un extremo de la
+  grilla probada, se agrega el siguiente punto de la secuencia 1-3-10 en esa dirección
+  (p. ej. 0.1 → 0.3, 5e-2 → 0.1, 1e-4 → 3e-5) y se repite hasta que quede adentro.
+  Una tasa que diverge cuenta como probada y peor. Se registra cada extensión; el
+  tope de seguridad es de 4 extensiones por lado y alcanzarlo queda "sin resolver".
+- **Empate cercano** (etapas 2–5): si los dos mejores difieren menos de 0.3 pp, ambos
+  se repiten con las semillas 0 y 1 y se decide con la media de 3 semillas. La etapa 0
+  usa su propia regla de empate (tanh); la etapa 1 elige una tasa por optimizador con
+  semilla 42 y los empates de tasa se revisan en la etapa 6 (tasa vecina).
+- **Mejora**: con varias semillas, una configuración es mejor sólo si su ventaja media
+  supera 2σ, con σ = desvío muestral agrupado `sqrt((s_a² + s_b²)/2)` (ddof=1). Si no,
+  se conserva el valor vigente (SGD, ancho 128, una capa, lote 32) cuando está entre los
+  dos; si no, decide el ranking de 3 semillas. Las etapas 6 y 7 ordenan por accuracy
+  media, cross-entropy media, parámetros y `config_id`, y registran si la ventaja sobre
+  el segundo y sobre el control supera 2σ.
+
+RMSProp (`shared/optimizers.py`) usa `s = rho*s + (1-rho)*g²` y
+`p -= learning_rate*g/(sqrt(s)+optimizer_epsilon)`, con estado inicial cero y sin
+corrección de sesgo; defaults `learning_rate=0.001`, `rho=0.9`,
+`optimizer_epsilon=1e-8`. Su estado `second_moment` se guarda y restaura como los
+de momentum/Adam, por lo que la reanudación es exacta.
+
+### Comandos
+
+Desde la raíz del repositorio (la carpeta que contiene `tps_sia/`), una etapa por
+invocación y en orden; cada etapa lee las decisiones guardadas de las anteriores:
+
+```powershell
+$env:OPENBLAS_NUM_THREADS = "1"; $env:OMP_NUM_THREADS = "1"
+python -m tps_sia.tp3.ej2.src.staged_search --stage 0 --workers 4
+python -m tps_sia.tp3.ej2.src.staged_search --stage 1 --workers 4
+# ... etapas 2 a 7
+python -m tps_sia.tp3.ej2.src.search_analysis --protocol v2 --results-dir tps_sia/tp3/ej2/results/v2 --output-dir tps_sia/tp3/ej2/results/v2/analysis
+```
+
+En bash: `OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 python -m ...`. Por defecto se usan
+`--config tps_sia/tp3/ej2/configs/search_v2.json` y
+`--output-dir tps_sia/tp3/ej2/results/v2`. `--workers` corre corridas independientes en
+procesos paralelos (default 1). Repetir una etapa ya decidida no reentrena: imprime su
+decisión. Una corrida interrumpida se reanuda desde su checkpoint repitiendo el
+comando. Si `search_v2.json` cambia, las etapas guardadas se rechazan (su SHA-256 no
+coincide): un protocolo distinto requiere otro directorio.
+
+Salidas en `results/v2/`:
+
+| Archivo | Contenido |
+|---|---|
+| `runs/<config_id>-seed-<semilla>/` | Artefactos de cada corrida (como en el paso 6). Una configuración idéntica pedida por otra etapa se reutiliza |
+| `stage_<N>.json` | Corridas de la etapa (accuracy, cross-entropy, mejor época, motivo de parada, convergencia, parámetros y tiempo), decisión, empates cercanos, extensiones de borde y ganador |
+| `selection.json` | Etapa 7: configuración congelada, ranking de 5 semillas, comparaciones 2σ, modelo candidato (semilla 42) y épocas de reentrenamiento (mediana de las mejores épocas) |
+
+Portabilidad: en v2, `dataset`, `cache`, `run_directory` y el modelo candidato se guardan
+relativos a `tp3/`, y `config_id` excluye rutas dependientes de la máquina, por lo que
+la misma configuración tiene el mismo id en cualquier equipo. El SHA-256 del protocolo
+se calcula con fines de línea LF (Git con `core.autocrlf` escribe CRLF en Windows).
+El SHA-256 de `digits.csv` sí depende de sus bytes: un checkout con otros fines de
+línea produce otro hash y no reutiliza corridas. Los resultados v1 conservan sus
+rutas absolutas originales y no se migraron.
+
+El análisis v2 genera, por etapa, tabla (`stage_<N>.csv` y `comparison_v2.md`), barras
+de accuracy con desvío entre semillas cuando existen, curvas train/validación de las
+corridas relevantes (semilla 42), mejor época, motivo de parada, parámetros y tiempo;
+la etapa 1 agrega accuracy vs. tasa con las extensiones marcadas. Si existe
+`selection.json`, agrega precision/recall/F1 por dígito del ganador (5 resaltado; 8 no
+evaluable), curvas y confusión. No carga datasets ni entrena.
+
+### Verificación y costo estimado
+
+```bash
+python -m tps_sia.tp3.shared.tests.test_optimizers
+python -m tps_sia.tp3.ej2.tests.test_staged_search
+```
+
+`test_staged_search` verifica con resultados sintéticos la regla de borde (extiende,
+reevalúa, cierra con divergencia y respeta el tope), el empate cercano (agrega semillas
+0 y 1), la regla de empate de activación, la regla 2σ, el orden de desempate de la
+etapa 7, el rechazo de grupos incompletos y el flujo completo hasta `selection.json`.
+También verifica `config_id` idéntico con distintas rutas absolutas, el hash
+independiente del fin de línea y el rechazo de `digits_test.csv` (también por enlace;
+en Windows sin permisos para symlinks se emula su resolución). El smoke test entrena
+de verdad las etapas 0 y 1 con 2 épocas y 256 muestras de train de `digits.csv`, en un
+directorio temporal: es una comprobación técnica, no un experimento.
+
+Tiempo por época medido en Windows 11, Python 3.13, NumPy 2.5.3, un hilo de BLAS,
+9960 muestras de train y evaluación de validación en cada época:
+
+| Configuración | Sólo entrenamiento | Con checkpoints del runner |
+|---|---:|---:|
+| SGD `[784,128,10]`, lote 32 | 0.40 s | 0.52 s |
+| SGD `[784,512,10]`, lote 32 | 2.3 s | 2.65 s |
+| Adam `[784,128,10]`, lote 32 | 0.79 s | 1.00 s |
+
+Con unas 95 corridas nuevas y 30–60 épocas típicas por la parada temprana, la búsqueda
+completa se estima en 1.5–3.5 h en serie (la etapa 6, con 24 corridas, es la más
+cara); con `--workers 4` y un hilo por proceso, del orden de 0.5–1 h. Cada corrida
+ocupa 3–12 MB (checkpoint y mejor modelo, con estado del optimizador).

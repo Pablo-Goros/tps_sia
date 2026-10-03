@@ -203,8 +203,36 @@ class Adam(_Optimizer):
                 "optimizer_epsilon": _number(self.optimizer_epsilon, "optimizer_epsilon")}
 
 
+class RMSProp(_Optimizer):
+    """RMSProp sin corrección de sesgo, con estado inicial cero:
+    s_t = rho*s_(t-1) + (1-rho)*g_t**2; p -= learning_rate*g_t/(sqrt(s_t)+optimizer_epsilon).
+    """
+
+    _state_keys = ("second_moment",)
+
+    def __init__(self, learning_rate: float = 0.001, rho: float = 0.9,
+                 optimizer_epsilon: float = 1e-8) -> None:
+        super().__init__()
+        self.learning_rate = _number(learning_rate, "learning_rate")
+        self.rho = _number(rho, "rho", unit_interval=True)
+        self.optimizer_epsilon = _number(optimizer_epsilon, "optimizer_epsilon")
+
+    def _step(self, parameters, gradients):
+        previous = self._state["second_moment"] if self.updates else [np.zeros_like(p) for p in parameters]
+        second = [self.rho * s + (1 - self.rho) * np.square(g.astype(float))
+                  for s, g in zip(previous, gradients)]
+        values = [p - self.learning_rate * g / (np.sqrt(s) + self.optimizer_epsilon)
+                  for p, g, s in zip(parameters, gradients, second)]
+        return values, {"second_moment": second}
+
+    def configuracion(self) -> dict:
+        return {"name": "rmsprop", "learning_rate": _number(self.learning_rate, "learning_rate"),
+                "rho": _number(self.rho, "rho", unit_interval=True),
+                "optimizer_epsilon": _number(self.optimizer_epsilon, "optimizer_epsilon")}
+
+
 def construir_optimizador(configuracion: dict) -> Optimizador:
-    """Construye SGD (incluida su configuración previa), momentum o Adam."""
+    """Construye SGD (incluida su configuración previa), momentum, RMSProp o Adam."""
     if not isinstance(configuracion, dict):
         raise ValueError("La configuración del optimizador debe ser un mapping")
     if "nombre" in configuracion:
@@ -213,15 +241,17 @@ def construir_optimizador(configuracion: dict) -> Optimizador:
         return SGD(eta=configuracion["eta"])
     config = configuracion.copy()
     name = config.pop("name", None)
-    if not isinstance(name, str) or name not in ("sgd", "momentum", "adam"):
+    if not isinstance(name, str) or name not in ("sgd", "momentum", "rmsprop", "adam"):
         raise ValueError(f"Optimizador desconocido: {name!r}")
     allowed = {"learning_rate"}
     if name == "momentum":
         allowed.add("momentum")
+    elif name == "rmsprop":
+        allowed.update(("rho", "optimizer_epsilon"))
     elif name == "adam":
         allowed.update(("beta1", "beta2", "optimizer_epsilon"))
     if set(config) - allowed:
         raise ValueError("Campos desconocidos en la configuración del optimizador")
     if name == "sgd":
         return SGD(eta=config.get("learning_rate", 0.01))
-    return (Momentum if name == "momentum" else Adam)(**config)
+    return {"momentum": Momentum, "rmsprop": RMSProp, "adam": Adam}[name](**config)

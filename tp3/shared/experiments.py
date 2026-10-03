@@ -50,6 +50,33 @@ def fingerprint(value) -> str:
                                      separators=(',', ':')).encode()).hexdigest()
 
 
+def portable_path(path: str | Path, root: str | Path) -> str:
+    """POSIX path relative to root, so provenance does not depend on the machine."""
+    try:
+        return Path(path).resolve().relative_to(Path(root).resolve()).as_posix()
+    except ValueError as exc:
+        raise ValueError(f'{path} must be inside {root} for portable provenance.') from exc
+
+
+def recorded_config(config: dict, path_root: str | Path | None = None) -> dict:
+    """Config as stored; with path_root, dataset and cache become root-relative."""
+    if path_root is None:
+        return config
+    return {**config, 'dataset': portable_path(config['dataset'], path_root),
+            'cache': portable_path(config['cache'], path_root)}
+
+
+def config_identity(config: dict, initialization: dict | None = None,
+                    path_root: str | Path | None = None) -> str:
+    """Stable id shared by every seed; excludes the model seed and cache path.
+
+    Without path_root the historical id (absolute dataset path) is preserved.
+    """
+    group = {k: v for k, v in recorded_config(config, path_root).items()
+             if k not in ('model_seed', 'cache')}
+    return fingerprint({'config': group, 'initialization': initialization or {'mode': 'fresh'}})[:16]
+
+
 def write_json(path: Path, value: dict) -> None:
     """Replace only complete JSON files; reject NaN rather than emitting it."""
     data = json.dumps(value, indent=2, ensure_ascii=False, allow_nan=False) + '\n'
@@ -175,7 +202,10 @@ def preprocess(X: np.ndarray, settings: dict) -> np.ndarray:
 
 def run(config: dict, output_root: str | Path, *, resume: bool = False,
         initial_model: str | Path | None = None, pause_after: int | None = None,
-        verbose: int = 0, metadata: dict | None = None) -> dict:
+        verbose: int = 0, metadata: dict | None = None,
+        path_root: str | Path | None = None) -> dict:
+    """path_root stores dataset, cache and source paths relative to that root,
+    and computes config_id without machine-dependent paths."""
     c = validate_config(config)
     if metadata is not None and not isinstance(metadata, dict):
         raise ValueError('metadata must be a JSON object.')
@@ -186,14 +216,16 @@ def run(config: dict, output_root: str | Path, *, resume: bool = False,
     _integer(verbose, 'verbose', 0)
     initialization = {'mode': 'fresh'}
     if initial_model is not None:
-        initialization = {'mode': 'existing_weights', 'path': str(Path(initial_model).resolve()),
+        source_path = (str(Path(initial_model).resolve()) if path_root is None
+                       else portable_path(initial_model, path_root))
+        initialization = {'mode': 'existing_weights', 'path': source_path,
                           'sha256': sha256_file(initial_model)}
-    group_config = {k: v for k, v in c.items() if k not in ('model_seed', 'cache')}
-    config_id = fingerprint({'config': group_config, 'initialization': initialization})[:16]
+    recorded = recorded_config(c, path_root)
+    config_id = config_identity(c, initialization, path_root)
     run_id = f'{config_id}-seed-{c["model_seed"]}'
     directory = Path(output_root).resolve() / run_id
     dataset_hash = sha256_file(c['dataset'])
-    identity = {'config': c, 'initialization': initialization, 'dataset_sha256': dataset_hash,
+    identity = {'config': recorded, 'initialization': initialization, 'dataset_sha256': dataset_hash,
                 'metadata': metadata}
     if resume:
         manifest = json.loads((directory / 'manifest.json').read_text(encoding='utf-8'))
@@ -256,10 +288,16 @@ def run(config: dict, output_root: str | Path, *, resume: bool = False,
         selected_weights=c['weight_logging']['selected_weights'])
     duration = time.perf_counter() - started
     status = {'numerical_failure': 'failed', 'interrupted': 'interrupted'}.get(history.stop_reason, 'completed')
+    run_directory = str(directory)
+    if path_root is not None:
+        try:
+            run_directory = portable_path(directory, path_root)
+        except ValueError:
+            run_directory = run_id  # Outside the root: only the id is portable.
     report = {
-        'schema_version': 2, 'run_id': run_id, 'config_id': config_id, 'config': c,
+        'schema_version': 2, 'run_id': run_id, 'config_id': config_id, 'config': recorded,
         'initialization': initialization, 'metadata': metadata, 'status': status, 'stop_reason': history.stop_reason,
-        'run_directory': str(directory), 'history': history.to_dict(),
+        'run_directory': run_directory, 'history': history.to_dict(),
         'environment': {'python': platform.python_version(), 'numpy': np.__version__,
                         'platform': platform.platform(),
                         'threads': {k: os.environ.get(k) for k in ('OPENBLAS_NUM_THREADS', 'OMP_NUM_THREADS', 'MKL_NUM_THREADS')}},
@@ -268,7 +306,7 @@ def run(config: dict, output_root: str | Path, *, resume: bool = False,
         'chosen_epoch': model.early_stopping['best_epoch'],
         'selection_monitor': c['stopping']['monitor'], 'initialization_layers': model.initialization_layers,
         'preprocessing': model.preprocessing,
-        'dataset': {'source': c['dataset'], 'sha256': dataset_hash, 'split_sha256': split_hash,
+        'dataset': {'source': recorded['dataset'], 'sha256': dataset_hash, 'split_sha256': split_hash,
                     'split_indices': 'split.npz', 'split_seed': c['split_seed'],
                     'validation_fraction': c['validation_fraction'],
                     'train_samples': len(yt), 'validation_samples': len(yv),
@@ -284,6 +322,8 @@ def run(config: dict, output_root: str | Path, *, resume: bool = False,
         report['model_sha256'] = sha256_file(directory / 'best_model.npz')
     if c['weight_logging']['enabled']:
         report['artifacts']['weights'] = 'weights.jsonl'
+    if path_root is not None:
+        report['paths_relative_to'] = Path(path_root).resolve().name
     write_history(directory / 'history.csv', history.to_dict())
     write_json(directory / 'results.json', report)
     return report

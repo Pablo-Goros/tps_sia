@@ -1,0 +1,111 @@
+{
+  "schema_version": 2,
+  "protocol": "ej2-one-factor-at-a-time-v2",
+  "description": "Coordinate descent: each stage changes one factor; every other factor keeps the best value of the previous stage. Fixed before any v2 run.",
+  "paths_relative_to": "tp3",
+  "base": {
+    "dataset": "data/digits.csv",
+    "cache": "ej2/cache/digits.npz",
+    "architecture": [784, 128, 10],
+    "activation": "tanh",
+    "activation_parameters": {"beta": 1.0},
+    "output": "softmax",
+    "loss": "cross_entropy",
+    "optimizer": {"name": "sgd", "learning_rate": 0.01},
+    "strategy": "mini_batch",
+    "batch_size": 32,
+    "shuffle": true,
+    "initialization": "auto",
+    "split_seed": 42,
+    "validation_fraction": 0.2,
+    "epochs": 100,
+    "stopping": {"epsilon": 0.0, "patience": 10, "min_delta": 0.0, "monitor": "validation_loss"},
+    "preprocessing": {"name": "identity"},
+    "checkpoint_every": 1,
+    "weight_logging": {"enabled": false, "every_updates": 100, "selected_weights": []}
+  },
+  "budget_policy": "At most 100 epochs; early stopping on validation cross-entropy (patience 10, min_delta 0); the best epoch is checkpointed and evaluated. A run that reaches 100 epochs without stopping is reported as not converged, not as a bad configuration, and still ranks by its best checkpoint.",
+  "seed_policy": "The model seed changes initial weights and mini-batch order; the partition (split_seed 42) never changes.",
+  "primary_seed": 42,
+  "ranking": ["validation accuracy descending", "validation cross-entropy ascending", "parameter count ascending", "config_id ascending"],
+  "near_tie": {
+    "threshold_accuracy": 0.003,
+    "extra_seeds": [0, 1],
+    "stages": [2, 3, 4, 5],
+    "rule": "If the two best seed-42 configurations of a stage differ by less than 0.3 percentage points of validation accuracy, both are rerun with seeds 0 and 1 and decided by the mean of 3 seeds. Stage 0 uses its own activation tie rule instead; stage 1 chooses one learning rate per optimizer with seed 42 and the border rule, and its near ties are revisited in stage 6."
+  },
+  "improvement_rule": {
+    "sigma_multiplier": 2.0,
+    "sigma": "pooled sample standard deviation across seeds, sqrt((s_a^2 + s_b^2) / 2) with ddof=1",
+    "rule": "With seed data, a configuration is better only if its mean accuracy advantage exceeds 2 sigma. Otherwise the stage incumbent is kept when it is one of the two; if not, the 3-seed ranking decides. Stages 6 and 7 rank as specified and record whether the advantage over the runner-up and the control exceeds 2 sigma."
+  },
+  "stages": {
+    "0": {
+      "factor": "activation",
+      "activations": ["tanh", "relu"],
+      "optimizer": {"name": "sgd"},
+      "learning_rates": [0.01, 0.1],
+      "tie_threshold_accuracy": 0.003,
+      "tie_preference": "tanh",
+      "rule": "Each activation keeps its best learning rate; the activation with higher validation accuracy wins. If the difference is below 0.3 percentage points, tanh is chosen (simpler and aligned with the course)."
+    },
+    "1": {
+      "factor": "learning_rate",
+      "optimizers": {
+        "sgd": {"settings": {}, "learning_rates": [0.001, 0.01, 0.05, 0.1]},
+        "momentum": {"settings": {"momentum": 0.9}, "learning_rates": [0.0001, 0.001, 0.01, 0.05]},
+        "rmsprop": {"settings": {"rho": 0.9, "optimizer_epsilon": 1e-08}, "learning_rates": [0.0001, 0.0003, 0.001, 0.003]},
+        "adam": {"settings": {"beta1": 0.9, "beta2": 0.999, "optimizer_epsilon": 1e-08}, "learning_rates": [0.0001, 0.0003, 0.001, 0.003]}
+      },
+      "border_rule": {
+        "sequence_mantissas": [1, 3],
+        "max_extensions_per_side": 4,
+        "rule": "If the best learning rate of an optimizer lies at an end of its tried grid, add the next point of the 1-3-10 sequence in that direction and run it; repeat until the best is strictly inside. Failed runs count as tried and worst. Every extension is recorded; reaching the cap is recorded as unresolved."
+      }
+    },
+    "2": {
+      "factor": "optimizer",
+      "keep_top": 2,
+      "incumbent": "sgd",
+      "rule": "Compare the best configuration of each optimizer from stage 1 (reused, not retrained). The winner continues; the top 2 go to stage 6."
+    },
+    "3": {
+      "factor": "width",
+      "widths": [32, 64, 128, 256, 512],
+      "incumbent": 128
+    },
+    "4": {
+      "factor": "depth",
+      "depth_divisors": [[1], [1, 2], [1, 2, 4]],
+      "incumbent": [1],
+      "rule": "With the best width h: [h], [h, h/2], [h, h/2, h/4]."
+    },
+    "5": {
+      "factor": "batch_size",
+      "batch_sizes": [16, 32, 64, 128],
+      "incumbent": 32,
+      "learning_rate_policy": "keep the learning rate; learning rate and batch size interact (mean-reduced gradients: larger batches mean fewer, less noisy updates per epoch)"
+    },
+    "6": {
+      "factor": "cross",
+      "optimizers": 2,
+      "learning_rates": "stage-1 winner and its best neighbour in the tried grid",
+      "architectures": 2,
+      "architecture_rule": "stage-4 winner architecture, then the best other architecture of stages 3-4 (seed 42)",
+      "seeds": [42, 0, 1],
+      "rule": "top-2 optimizers x (winner learning rate, best grid neighbour) x top-2 architectures, with the stage-0 activation and stage-5 batch size; ranked by the stage-7 order using 3-seed means."
+    },
+    "7": {
+      "factor": "confirmation",
+      "finalists": 3,
+      "control": "stage-0 winning base configuration",
+      "seeds": [42, 0, 1, 2, 3],
+      "ranking": ["mean validation accuracy descending", "mean validation cross-entropy ascending", "parameter count ascending", "config_id ascending"]
+    }
+  },
+  "delivery": {
+    "candidate": "seed-42 best validation checkpoint of the stage-7 winner",
+    "retraining_epochs": "median best epoch of the stage-7 winner across its seeds",
+    "test_policy": "digits_test.csv is never read during the search"
+  }
+}

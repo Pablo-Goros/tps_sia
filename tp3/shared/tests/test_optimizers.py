@@ -8,7 +8,7 @@ import unittest
 import numpy as np
 
 from tps_sia.tp3.shared.mlp import MLP
-from tps_sia.tp3.shared.optimizers import Adam, Momentum, SGD, construir_optimizador
+from tps_sia.tp3.shared.optimizers import Adam, Momentum, RMSProp, SGD, construir_optimizador
 
 
 def assert_state_equal(test, actual, expected):
@@ -314,6 +314,130 @@ class OptimizerTests(unittest.TestCase):
                     history = model.entrenar(X, y, epocas=2000, epsilon=0.001)
                     np.testing.assert_array_equal(model.predecir_clases(X), y)
                     self.assertLess(history.costo[-1], 0.001)
+
+
+def rmsprop_reference(p, gradients, learning_rate, rho, epsilon=1e-8):
+    """Fórmula escalar escrita aparte, sin NumPy ni la implementación."""
+    import math
+    s, trace = 0.0, []
+    for g in gradients:
+        s = rho * s + (1 - rho) * g * g
+        p = p - learning_rate * g / (math.sqrt(s) + epsilon)
+        trace.append((s, p))
+    return trace
+
+
+class RMSPropTests(unittest.TestCase):
+    def test_manual_two_steps(self):
+        # A mano: s1=0.1*0.25=0.025, p1=1-0.01*0.5/sqrt(0.025)=0.96837722;
+        # s2=0.9*0.025+0.025=0.0475, p2=p1-0.005/sqrt(0.0475)=0.94543565.
+        reference = rmsprop_reference(1.0, [0.5, 0.5], 0.01, 0.9)
+        self.assertAlmostEqual(reference[0][0], 0.025, delta=1e-12)
+        self.assertAlmostEqual(reference[0][1], 0.96837722, delta=1e-7)
+        self.assertAlmostEqual(reference[1][0], 0.0475, delta=1e-12)
+        self.assertAlmostEqual(reference[1][1], 0.94543565, delta=1e-7)
+        optimizer = RMSProp(learning_rate=0.01, rho=0.9)
+        parameters = [np.array([1.0])]
+        for s, p in reference:
+            optimizer.paso(parameters, [np.array([0.5])])
+            self.assertAlmostEqual(parameters[0].item(), p, delta=1e-7)
+            self.assertAlmostEqual(optimizer.export_state()["second_moment"][0].item(), s, delta=1e-12)
+        self.assertEqual(optimizer.updates, 2)
+
+    def test_configuration_roundtrip_and_validation(self):
+        self.assertEqual(RMSProp().configuracion(), {
+            "name": "rmsprop", "learning_rate": 0.001, "rho": 0.9, "optimizer_epsilon": 1e-8})
+        config = RMSProp(0.003, rho=0.5, optimizer_epsilon=1e-6).configuracion()
+        restored = construir_optimizador(config)
+        self.assertIsInstance(restored, RMSProp)
+        self.assertEqual(restored.configuracion(), config)
+        self.assertIsInstance(construir_optimizador({"name": "rmsprop"}), RMSProp)
+        RMSProp(rho=0)  # rho en [0, 1)
+        for bad in ({"rho": 1}, {"rho": -0.1}, {"rho": True}, {"learning_rate": 0},
+                    {"optimizer_epsilon": np.nan}):
+            with self.subTest(bad=bad), self.assertRaises(ValueError):
+                RMSProp(**bad)
+        for bad in ({"name": "rmsprop", "beta1": 0.9}, {"name": "rmsprop", "rho": 1.0}):
+            with self.subTest(bad=bad), self.assertRaises(ValueError):
+                construir_optimizador(bad)
+        # Las configuraciones existentes siguen construyéndose igual.
+        self.assertIsInstance(construir_optimizador({"nombre": "sgd", "eta": 0.1}), SGD)
+        self.assertIsInstance(construir_optimizador(Adam().configuracion()), Adam)
+        self.assertIsInstance(construir_optimizador(Momentum().configuracion()), Momentum)
+
+    def test_all_mlp_weights_and_biases_updated(self):
+        X = np.array([[0.2, -0.3], [0.8, 0.7], [-0.4, 0.6]])
+        y = np.eye(2)[[0, 1, 1]]
+        optimizer = RMSProp(0.1, rho=0.9)
+        model = MLP([2, 3, 2, 2], optimizador=optimizer, semilla=3)
+        gradients = model.backprop(X, y)
+        before = [p.copy() for p in model.parametros]
+        optimizer.paso(model.parametros, gradients)
+        for p, original, g in zip(model.parametros, before, gradients):
+            s = 0.1 * g ** 2
+            np.testing.assert_allclose(p, original - 0.1 * g / (np.sqrt(s) + 1e-8), rtol=1e-13, atol=1e-15)
+            self.assertFalse(np.array_equal(p, original))
+        self.assertEqual([t.shape for t in optimizer.export_state()["second_moment"]],
+                         [p.shape for p in model.parametros])
+
+    def test_invalid_gradient_changes_nothing(self):
+        optimizer = RMSProp(0.1)
+        parameters = [np.array([[1., 2.]]), np.array([3.])]
+        optimizer.paso(parameters, [np.ones((1, 2)), np.ones(1)])
+        before = [p.copy() for p in parameters]
+        state = optimizer.export_state()
+        for gradients in ([np.ones((1, 2)), np.array([np.nan])], [np.ones((1, 2)), np.ones((1, 1))],
+                          [np.ones((1, 2))], [np.ones((1, 2)), np.array([np.inf])]):
+            with self.subTest(gradients=gradients), self.assertRaises(ValueError):
+                optimizer.paso(parameters, gradients)
+            for p, original in zip(parameters, before):
+                np.testing.assert_array_equal(p, original)
+            assert_state_equal(self, optimizer.export_state(), state)
+        broken = deepcopy(state)
+        broken["second_moment"][1][0] = -1.0
+        with self.assertRaises(ValueError):
+            optimizer.restore_state(broken, parameters)
+        assert_state_equal(self, optimizer.export_state(), state)
+
+    def test_exact_resume_through_state_and_checkpoint(self):
+        parameters = [np.array([[1., 2.]]), np.array([-1.])]
+        gradients = [np.array([[0.3, -0.2]]), np.array([0.4])]
+        optimizer = RMSProp(0.05, rho=0.8)
+        for _ in range(3):
+            optimizer.paso(parameters, gradients)
+        restored = construir_optimizador(optimizer.configuracion())
+        restored.restore_state(optimizer.export_state(), parameters)
+        copies = [p.copy() for p in parameters]
+        for _ in range(4):
+            optimizer.paso(parameters, gradients)
+            restored.paso(copies, gradients)
+        for a, b in zip(copies, parameters):
+            np.testing.assert_array_equal(a, b)
+        assert_state_equal(self, restored.export_state(), optimizer.export_state())
+        X = np.array([[-1., 1.], [1., -1.], [-1., -1.], [1., 1.]])
+        y = np.eye(2)[[1, 1, 0, 0]]
+        with TemporaryDirectory() as directory:
+            path = Path(directory) / "model.npz"
+            model = MLP([2, 3, 2], tamano_lote=3, semilla=17, optimizador=RMSProp(0.01))
+            uninterrupted = MLP([2, 3, 2], tamano_lote=3, semilla=17, optimizador=RMSProp(0.01))
+            model.entrenar(X, y, epocas=3)
+            model.guardar(path)
+            loaded = MLP.cargar(path)
+            self.assertIsInstance(loaded.optimizador, RMSProp)
+            loaded.entrenar(X, y, epocas=4)
+            uninterrupted.entrenar(X, y, epocas=7)
+            for a, b in zip(loaded.parametros, uninterrupted.parametros):
+                np.testing.assert_array_equal(a, b)
+            self.assertEqual(loaded.historia.costo, uninterrupted.historia.costo)
+
+    def test_mlp_trains_and_lowers_cost(self):
+        rng = np.random.default_rng(0)
+        X = rng.normal(size=(64, 4))
+        y = np.eye(3)[(X[:, 0] > 0).astype(int) + (X[:, 1] > 0.5).astype(int)]
+        model = MLP([4, 8, 3], activacion="tanh", tamano_lote=16, semilla=1,
+                    optimizador=RMSProp(learning_rate=0.01))
+        history = model.entrenar(X, y, epocas=40)
+        self.assertLess(history.costo[-1], 0.5 * history.costo[0])
 
 
 if __name__ == "__main__":

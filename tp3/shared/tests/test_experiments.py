@@ -1,7 +1,9 @@
 """End-to-end development artifacts and exact runner resumption on synthetic data."""
+from contextlib import contextmanager
 import copy
 import csv
 import json
+import os
 from pathlib import Path
 from tempfile import TemporaryDirectory
 import unittest
@@ -25,6 +27,32 @@ def synthetic_csv(path):
                 image = [0.0] * 784
                 image[digit] = 0.2 + sample * 0.01
                 writer.writerow([str(image), digit])
+
+
+@contextmanager
+def alias_to(alias, target):
+    """Real symlink when allowed; otherwise emulate its resolution.
+
+    Windows without Developer Mode cannot create symlinks; the runner check
+    under test only depends on Path.resolve(), which is emulated for alias.
+    """
+    try:
+        Path(alias).symlink_to(target)
+        real = True
+    except OSError:
+        real = False
+    if real:
+        yield
+        return
+    original = Path.resolve
+    key = os.path.normcase(os.path.abspath(alias))
+
+    def resolve(self, strict=False):
+        if os.path.normcase(os.path.abspath(self)) == key:
+            return original(Path(target), strict)
+        return original(self, strict)
+    with patch.object(Path, 'resolve', resolve):
+        yield
 
 
 class ExperimentTests(unittest.TestCase):
@@ -99,8 +127,7 @@ class ExperimentTests(unittest.TestCase):
         test = self.base / 'digits_test.csv'
         synthetic_csv(test)
         alias = self.base / 'alias.csv'
-        alias.symlink_to(test)
-        with self.assertRaises(ValueError):
+        with alias_to(alias, test), self.assertRaises(ValueError):
             experiments.run({**self.config, 'dataset': str(alias)}, self.base / 'runs')
 
     def test_invalid_configs(self):

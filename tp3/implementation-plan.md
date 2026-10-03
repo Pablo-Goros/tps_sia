@@ -199,6 +199,7 @@ Una vez completos los requisitos y su análisis, considerar el opcional de ruido
 - [x] Paso 5: control del entrenamiento y checkpoints completos.
 - [x] Paso 6: runner, métricas y análisis reutilizables.
 - [x] Paso 7: comparaciones y selección del ejercicio 2.
+- [x] Paso 7b: protocolo v2 de un factor a la vez para el ejercicio 2 — implementado y probado con smoke test; **búsqueda sin ejecutar**.
 - [ ] Paso 8: datos, experimentos y selección del ejercicio 3.
 - [ ] Paso 9: evaluación final e informes.
 - [ ] Extensiones opcionales, después de completar lo obligatorio.
@@ -295,3 +296,35 @@ Tablas, curvas, confusión y dispersión regeneradas. El
 [informe de desarrollo](ej2/development-report.md) responde (a) y (b),
 analiza convergencia lenta y sobreajuste, compara capacidad y costo y
 explicita soporte del 5 y ausencia del 8. Pasos 8 y 9 pendientes.
+
+Paso 7b (2026-10-03, implementado, sin ejecutar): la búsqueda del paso 7 queda
+como antecedente v1, sin modificar sus 26 corridas ni su `selection.json`. La v2
+rehace la selección del ejercicio 2 con un protocolo de un factor a la vez
+pre-registrado en `ej2/configs/search_v2.json` (SHA-256 en los metadatos de cada
+corrida, calculado con fines de línea LF): activación, tasa por optimizador con
+regla de borde 1-3-10, optimizador, ancho, profundidad, lote, cruce chico con tres
+semillas y confirmación con cinco semillas contra el control de la etapa 0. Todas
+las corridas tienen hasta 100 épocas con parada temprana por cross-entropy de
+validación (patience 10) y checkpoint de la mejor época; agotar el presupuesto se
+informa como "no convergió". Reglas de empate (activación → tanh; empate cercano
+< 0.3 pp → semillas 0 y 1) y de mejora (ventaja > 2σ agrupado entre semillas)
+fijadas antes de correr.
+
+`shared/optimizers.py` agrega RMSProp con estado atómico y persistente; los tests
+verifican dos pasos calculados a mano con una fórmula independiente, todos los pesos
+y biases, gradientes inválidos, ida y vuelta de configuración, reanudación exacta y
+entrenamiento de un MLP. `ej2/src/staged_search.py` ejecuta una etapa por invocación,
+lee las decisiones previas, reutiliza corridas idénticas y admite procesos paralelos.
+`shared/experiments.py` acepta `path_root`: en v2, dataset, caché y directorio de
+corrida se guardan relativos a `tp3/` y `config_id` no depende de rutas absolutas
+(sin `path_root` se conserva el id histórico). `search_analysis.py --protocol v2`
+genera tablas, barras con desvío entre semillas, curvas, extensiones de borde y
+métricas por clase del ganador desde artefactos guardados.
+
+`ej2/tests/test_staged_search.py` cubre las reglas con resultados sintéticos, el flujo
+completo hasta `selection.json`, la portabilidad del id, el rechazo de `digits_test.csv`
+(también por enlace) y un smoke test real de las etapas 0 y 1 (2 épocas, 256 muestras
+de train) en un directorio temporal. Tiempo medido por época con un hilo: 0.52 s para
+SGD `[784,128,10]` y 2.65 s para `[784,512,10]`, lote 32, incluyendo checkpoints;
+estimación de la búsqueda completa: 1.5–3.5 h en serie, 0.5–1 h con cuatro procesos.
+No se leyó `digits_test.csv`.
