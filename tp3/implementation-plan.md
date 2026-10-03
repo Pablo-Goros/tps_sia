@@ -184,7 +184,7 @@ El primer barrido contiene 11 combinaciones de tasa/optimizador; el baseline coi
 3. Hacer una corrida breve con datos sintéticos y otra de pocas épocas con datos de desarrollo; comprobar artefactos, recarga y regeneración de gráficos antes de gastar tiempo en barridos.
 4. Ejecutar paso 7, luego paso 8, congelar las selecciones y terminar con paso 9. Registrar tiempos para dimensionar los barridos; si OpenBLAS necesita un límite de hilos, registrar el ajuste usado.
 
-Entregar cada paso con código, comprobaciones pertinentes y documentación actualizada. Los pasos 3a, 4 y 5 están verificados; el siguiente bloque concreto es el paso 6. No volver a implementar los pasos 1–3 ni lanzar los barridos antes de que los checkpoints y el control de entrenamiento estén verificados.
+Entregar cada paso con código, comprobaciones pertinentes y documentación actualizada. Los pasos 3a, 4, 5 y 6 están verificados; el siguiente bloque concreto es el paso 7. No volver a implementar los pasos 1–3 ni lanzar los barridos antes de que los checkpoints y el control de entrenamiento estén verificados.
 
 ## 5. Extensiones posteriores
 
@@ -197,7 +197,7 @@ Una vez completos los requisitos y su análisis, considerar el opcional de ruido
 - [x] Paso 3a: crear `shared` y migrar el núcleo reutilizable preservando compatibilidad.
 - [x] Paso 4: momentum y Adam.
 - [x] Paso 5: control del entrenamiento y checkpoints completos.
-- [ ] Paso 6: runner, métricas y análisis reutilizables.
+- [x] Paso 6: runner, métricas y análisis reutilizables.
 - [ ] Paso 7: comparaciones y selección del ejercicio 2.
 - [ ] Paso 8: datos, experimentos y selección del ejercicio 3.
 - [ ] Paso 9: evaluación final e informes.
@@ -243,3 +243,37 @@ el baseline SGD versión 1 conserva loss/confusión y todos sus archivos de
 referencia mantienen SHA-256. No se ejecutaron barridos ni se abrió test.
 Los gráficos del smoke no se regeneraron porque Matplotlib no está instalado
 en este entorno; el análisis reutilizable sigue pendiente del paso 6.
+
+
+Verificación del paso 6 (2026-10-03): `shared/experiments.py`, `metrics.py`
+y `analysis.py` implementan configuración validada, corridas identificadas por
+configuración/semilla, separación entre reanudación e inicialización desde pesos,
+SHA-256 del CSV y partición, índices guardados, conteos, modelos/checkpoints,
+historia CSV, metadatos de entorno y selección por validación. El loader conserva
+exactamente su partición 80/20 y puede devolver índices y otra fracción explícita.
+El runner rechaza `digits_test.csv`, también por symlink, antes de cargarlo;
+registra fallos numéricos y excluye corridas fallidas/interrumpidas del ranking.
+Las métricas incluyen políticas explícitas de denominadores cero y promedios
+sobre clases con soporte, con `null` en JSON. El análisis genera curvas,
+confusión en conteos/por filas, evolución opcional de pesos y tablas con tiempo,
+parámetros y dispersión por semilla, sin cargar datos ni entrenar.
+
+Los comandos de ej2 delegan en shared y `configs/search.json` predefine los
+11 candidatos de tasa/optimizador y tres semillas; una invocación ejecuta sólo
+un candidato/semilla salvo `--all` explícito. Se conserva la búsqueda completa,
+su regla y su hash en los metadatos. El baseline reutiliza construcción del
+modelo, hash, exportación de historia, confusión y gráficos comunes, conservando
+su comando, configuración de referencia e importaciones anteriores.
+
+Las 18 pruebas de métricas/runner/comandos, más las 22 de checkpoints y
+optimizadores, pasan (40 en total), incluidas recarga y métricas exactas,
+reanudación para SGD/momentum/Adam, clases ausentes, fallos y las cinco figuras.
+También pasan gradientes/XOR, activaciones, loader sintético y compatibilidad.
+Una corrida de dos épocas sobre las 9960 muestras de train y 2489 de validación
+de `digits.csv`, pausada tras la primera y reanudada, verificó artefactos,
+recarga y análisis por API y comando. Duración de entrenamiento ≈ 3.65 s con
+OpenBLAS limitado a un hilo; accuracy de validación 87.91 %, usada sólo como
+smoke técnico, sin selección. Todos los archivos de referencia del baseline
+conservan SHA-256. Matplotlib se instaló en `/tmp/tp3-step6-deps` para comprobar
+figuras, sin cambiar dependencias globales. No se ejecutaron barridos ni se
+leyó `digits_test.csv`; pasos 7–9 permanecen pendientes.

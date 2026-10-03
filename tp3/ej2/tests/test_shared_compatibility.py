@@ -8,7 +8,7 @@ import numpy as np
 from tps_sia.tp3.ej1.src import activaciones as old_activations
 from tps_sia.tp3.ej1.src.perceptron import PerceptronSimple
 from tps_sia.tp3.ej2.src import baseline, datos_digitos, mlp, optimizadores
-from tps_sia.tp3.shared import activations, digit_dataset, optimizers
+from tps_sia.tp3.shared import activations, digit_dataset, metrics, optimizers
 from tps_sia.tp3.shared.mlp import Historia, MLP
 
 
@@ -25,6 +25,7 @@ def test_shared_identity():
     assert datos_digitos.particionar is baseline.particionar is digit_dataset.particionar
     assert datos_digitos._cargar is digit_dataset.cargar
     assert baseline.cargar is digit_dataset.cargar
+    assert baseline.confusion_matrix is metrics.confusion_matrix
     assert isinstance(PerceptronSimple(2).activacion, activations.Activacion)
 
 

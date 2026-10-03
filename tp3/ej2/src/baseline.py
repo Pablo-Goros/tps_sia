@@ -3,7 +3,6 @@ from __future__ import annotations
 
 import argparse
 import csv
-import hashlib
 import json
 from pathlib import Path
 import platform
@@ -14,23 +13,12 @@ from .datos_digitos import CACHE, DIGITS, EJERCICIO
 from tps_sia.tp3.shared.digit_dataset import N_CLASES, cargar, particionar
 from tps_sia.tp3.shared.mlp import MLP
 from tps_sia.tp3.shared.optimizers import SGD
+from tps_sia.tp3.shared.metrics import confusion_matrix
+from tps_sia.tp3.shared.experiments import DEFAULTS, build_model, sha256_file, write_history
 
 
 CONFIG = EJERCICIO / "baseline.json"
 RESULTS = EJERCICIO / "results" / "baseline"
-
-
-def confusion_matrix(actual: np.ndarray, predicted: np.ndarray) -> np.ndarray:
-    """Filas = dígito real; columnas = predicción; conserva las diez clases."""
-    actual, predicted = np.asarray(actual), np.asarray(predicted)
-    if (actual.ndim != 1 or actual.shape != predicted.shape or actual.size == 0
-            or actual.dtype.kind not in "iu" or predicted.dtype.kind not in "iu"
-            or np.any((actual < 0) | (actual >= N_CLASES))
-            or np.any((predicted < 0) | (predicted >= N_CLASES))):
-        raise ValueError("Se requieren etiquetas enteras entre 0 y 9 de igual longitud.")
-    matrix = np.zeros((N_CLASES, N_CLASES), dtype=np.int64)
-    np.add.at(matrix, (actual, predicted), 1)
-    return matrix
 
 
 def run(config_path: Path = CONFIG, output_dir: Path = RESULTS) -> dict:
@@ -46,12 +34,12 @@ def run(config_path: Path = CONFIG, output_dir: Path = RESULTS) -> dict:
         raise ValueError("sanity_accuracy debe estar entre 0 y 1.")
     X, y = cargar(DIGITS, CACHE)
     X_train, y_train, X_val, y_val = particionar(X, y, semilla=config["split_seed"])
-    model = MLP(
-        config["architecture"], activacion=config["activation"],
-        salida=config["output"], optimizador=SGD(config["learning_rate"]),
-        tamano_lote=config["batch_size"], inicializacion=config["initialization"],
-        semilla=config["model_seed"],
-    )
+    model = build_model({
+        **DEFAULTS, 'architecture': config['architecture'], 'activation': config['activation'],
+        'output': config['output'], 'optimizer': {'name': 'sgd', 'learning_rate': config['learning_rate']},
+        'batch_size': config['batch_size'], 'initialization': config['initialization'],
+        'model_seed': config['model_seed'],
+    })
     print(f"Baseline {config['architecture']} / SGD; train={len(y_train)}, val={len(y_val)}", flush=True)
     history = model.entrenar(
         X_train, y_train, epocas=config["epochs"],
@@ -59,15 +47,12 @@ def run(config_path: Path = CONFIG, output_dir: Path = RESULTS) -> dict:
     )
     matrix = confusion_matrix(y_val.argmax(axis=1), model.predecir_clases(X_val))
     val_accuracy = float(matrix.trace() / matrix.sum())
-    digest = hashlib.sha256()
-    with DIGITS.open("rb") as source:
-        for block in iter(lambda: source.read(1024 * 1024), b""):
-            digest.update(block)
+    dataset_digest = sha256_file(DIGITS)
     report = {
         "schema_version": 1,
         "config": config,
         "dataset": {
-            "source": "tp3/data/digits.csv", "sha256": digest.hexdigest(),
+            "source": "tp3/data/digits.csv", "sha256": dataset_digest,
             "preprocessing": "Original pixels, no rescaling",
             "split": "Stratified 80/20, rounded per class",
             "train_samples": len(y_train), "validation_samples": len(y_val),
@@ -90,11 +75,7 @@ def run(config_path: Path = CONFIG, output_dir: Path = RESULTS) -> dict:
     (output_dir / "results.json").write_text(
         json.dumps(report, indent=2, ensure_ascii=False, allow_nan=False) + "\n", encoding="utf-8",
     )
-    with (output_dir / "history.csv").open("w", encoding="utf-8", newline="") as file:
-        writer = csv.writer(file)
-        writer.writerow(["epoch", "train_loss", "validation_loss", "train_accuracy", "validation_accuracy"])
-        writer.writerows(zip(range(1, history.epocas_corridas + 1), history.costo,
-                              history.costo_validacion, history.accuracy, history.accuracy_validacion))
+    write_history(output_dir / "history.csv", history.to_dict())
     with (output_dir / "confusion_matrix.csv").open("w", encoding="utf-8", newline="") as file:
         writer = csv.writer(file)
         writer.writerow(["actual/predicted", *range(N_CLASES)])

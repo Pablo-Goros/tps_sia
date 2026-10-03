@@ -489,3 +489,103 @@ checkpoints periódicos, escritura atómica, registro e índices acumulados y
 migración de formatos anteriores. Los tests de gradientes, XOR y compatibilidad
 siguen verificando el núcleo compartido. No se ejecutaron barridos ni se usó
 `digits_test.csv` para estas comprobaciones.
+
+## Paso 6 — Experimentos y análisis reutilizables
+
+`shared/experiments.py` ejecuta corridas de desarrollo con configuración validada,
+`shared/metrics.py` calcula métricas y `shared/analysis.py` genera tablas y figuras
+leyendo resultados guardados. Los comandos de ej2 delegan en estos módulos;
+el baseline conserva su comando, configuración y resultados de referencia.
+Su importación histórica `baseline.confusion_matrix` sigue disponible.
+
+Desde la raíz, para ejecutar **una** configuración:
+
+```bash
+python -m tps_sia.tp3.ej2.src.experiments --config tps_sia/tp3/ej2/configs/search.json --candidate baseline --seed 42 --output-dir tps_sia/tp3/ej2/results/search
+python -m tps_sia.tp3.ej2.src.analysis --results-dir tps_sia/tp3/ej2/results/search --output-dir tps_sia/tp3/ej2/results/analysis
+```
+
+`search.json` predefine 11 candidatos de tasa/optimizador, incluyendo el baseline,
+y las semillas `[42, 0, 1]`. Cada invocación entrena sólo el candidato y la semilla
+indicados; `--all` ejecuta explícitamente los 33 pares. La comparación y selección
+completas pertenecen al paso 7 y aún están pendientes. La regla predefinida ordena
+por accuracy de validación, menor cross-entropy y menor número de parámetros;
+los finalistas se confirman con semillas comunes, sin elegir la mejor semilla.
+
+Las rutas `dataset` y `cache` del JSON se resuelven respecto de su directorio.
+El runner recibe rutas explícitas y rechaza `digits_test.csv`, incluidos enlaces
+simbólicos que lo referencian, antes de cargar datos. Nunca se usa test para
+seleccionar hiperparámetros o la mejor época.
+
+La configuración registra arquitectura, activación y `beta`, salida y loss,
+optimizador con sus parámetros y tasa constante, estrategia, tamaño de lote,
+shuffle, inicialización, semillas, fracción de validación, épocas, stopping,
+preprocesamiento y registro de pesos. Se validan sus combinaciones: online usa
+lote 1, batch usa `null`, mini-batch usa un entero ≥ 2; softmax corresponde a
+cross-entropy y logística al medio error cuadrático. `preprocessing.name`
+admite `identity` (píxeles originales del baseline) y `standardize` (media/desvío
+ajustados exclusivamente con train, con escala 1 en columnas constantes).
+La transformación queda guardada en ambos modelos y en los resultados.
+
+Cada corrida genera `<config_id>-seed-<seed>/`, sin sobrescribir directorios
+existentes. La huella de configuración excluye la semilla del modelo y la ruta
+del caché para agrupar repeticiones; incluye la procedencia de pesos iniciales.
+
+| Archivo | Contenido |
+|---|---|
+| `manifest.json` | Identidad necesaria para reanudar: configuración, SHA-256 del CSV, origen de pesos y metadatos de búsqueda |
+| `split.npz` | Índices de train/validación en el orden original del CSV |
+| `results.json` | Configuración efectiva, semillas, SHA-256 del CSV y partición, conteos por clase, entorno/hilos, tiempo, parámetros, época elegida, motivo de parada y métricas |
+| `history.csv` | Epoch global, costo/accuracy de train y validación, tasa, updates y norma de gradiente |
+| `checkpoint.npz` | Último estado de entrenamiento para reanudar, incluido optimizador y RNG |
+| `best_model.npz` | Mejor época según el monitor de validación configurado, para inferencia |
+| `weights.jsonl` | Registro opcional de pesos seleccionados y normas de pesos, gradientes y actualizaciones por capa |
+
+Las métricas en `results.json` corresponden a `best_model.npz`; la historia
+conserva todas las épocas ejecutadas y `checkpoint.npz` conserva la última.
+`epochs` es el presupuesto **total** de la corrida. Para pausar tras una época
+y reanudar con el mismo JSON, semilla y directorio de salida:
+
+```bash
+python -m tps_sia.tp3.ej2.src.experiments --config tps_sia/tp3/ej2/configs/search.json --candidate baseline --seed 42 --output-dir tps_sia/tp3/ej2/results/paused --pause-after 1
+python -m tps_sia.tp3.ej2.src.experiments --config tps_sia/tp3/ej2/configs/search.json --candidate baseline --seed 42 --output-dir tps_sia/tp3/ej2/results/paused --resume
+```
+
+Una corrida completada o con fallo numérico no se reanuda ni sobrescribe.
+`--initial-model ruta/modelo.npz` inicia otra corrida desde pesos compatibles,
+con historia, optimizador y RNG nuevos; requiere igual preprocesamiento. Para
+reanudar esa corrida se conservan `--initial-model` y se agrega `--resume`;
+el archivo inicial se verifica por su hash, sin volver a copiar sus pesos.
+
+Las métricas incluyen cross-entropy, accuracy, precision/recall/F1 por clase,
+soporte, balanced accuracy, macro-F1 y confusión 10×10. Precision sin predicciones
+y recall sin muestras reales se guardan como `null`. F1 se calcula como
+`2TP / (support + predictions)`: es cero si una clase observada no se predice,
+y `null` si no tiene muestras ni predicciones. Macro-F1 y balanced accuracy
+promedian sólo clases con soporte real y enumeran esas clases en el JSON.
+Por eso la validación de `digits.csv` no evalúa el reconocimiento del 8.
+
+El análisis escribe `comparison.csv`, `seed_summary.csv` / `.json` y
+`run_statuses.json`. Las tablas muestran costo computacional y cantidad de
+parámetros; el resumen agrupa por configuración, dataset y partición, con
+media y desvío poblacional entre semillas. Una sola semilla tiene desvío cero,
+lo que no demuestra estabilidad entre repeticiones. Corridas interrumpidas o
+fallidas quedan en el listado de estados y fuera de las comparaciones.
+Las figuras incluyen curvas de aprendizaje, época elegida, confusión en
+conteos y normalizada por fila (filas ausentes como N/E), y evolución de pesos
+cuando se habilitó su registro. Se pueden regenerar sin cargar ningún dataset.
+Dependencias: NumPy y Matplotlib; los comandos de entrenamiento no importan
+Matplotlib.
+
+### Validación del paso 6
+
+```bash
+python -m unittest tps_sia.tp3.shared.tests.test_metrics tps_sia.tp3.shared.tests.test_experiments tps_sia.tp3.ej2.tests.test_experiments
+```
+
+Las pruebas usan CSV sintéticos y verifican métricas manuales, clases ausentes,
+configuraciones inválidas, aislamiento de test, artefactos y recarga,
+preprocesamiento ajustado sólo con train, fallos numéricos, resúmenes por semilla,
+compatibilidad del split 80/20, inicialización desde pesos y reanudación exacta
+para los tres optimizadores. Con Matplotlib disponible verifican también las
+cinco figuras guardadas; esa prueba se omite si falta la dependencia.

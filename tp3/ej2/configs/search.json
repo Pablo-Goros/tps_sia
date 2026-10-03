@@ -1,0 +1,159 @@
+{
+  "schema_version": 1,
+  "selection_rule": "validation accuracy descending, validation cross-entropy ascending, parameter count ascending; confirm finalists on common seeds without selecting a seed",
+  "seeds": [
+    42,
+    0,
+    1
+  ],
+  "base": {
+    "architecture": [
+      784,
+      128,
+      10
+    ],
+    "activation": "relu",
+    "activation_parameters": {
+      "beta": 1.0
+    },
+    "output": "softmax",
+    "loss": "cross_entropy",
+    "optimizer": {
+      "name": "sgd",
+      "learning_rate": 0.01
+    },
+    "strategy": "mini_batch",
+    "batch_size": 32,
+    "shuffle": true,
+    "initialization": "auto",
+    "split_seed": 42,
+    "validation_fraction": 0.2,
+    "epochs": 30,
+    "stopping": {
+      "epsilon": 0.0,
+      "patience": null,
+      "min_delta": 0.0,
+      "monitor": "validation_loss"
+    },
+    "preprocessing": {
+      "name": "identity"
+    },
+    "checkpoint_every": 1,
+    "weight_logging": {
+      "enabled": false,
+      "every_updates": 100,
+      "selected_weights": []
+    },
+    "dataset": "../../data/digits.csv",
+    "cache": "../cache/digits.npz"
+  },
+  "candidates": [
+    {
+      "name": "baseline",
+      "overrides": {}
+    },
+    {
+      "name": "sgd-1e-05",
+      "overrides": {
+        "optimizer": {
+          "name": "sgd",
+          "learning_rate": 1e-05
+        }
+      }
+    },
+    {
+      "name": "sgd-0.0001",
+      "overrides": {
+        "optimizer": {
+          "name": "sgd",
+          "learning_rate": 0.0001
+        }
+      }
+    },
+    {
+      "name": "sgd-0.001",
+      "overrides": {
+        "optimizer": {
+          "name": "sgd",
+          "learning_rate": 0.001
+        }
+      }
+    },
+    {
+      "name": "momentum-1e-05",
+      "overrides": {
+        "optimizer": {
+          "name": "momentum",
+          "learning_rate": 1e-05,
+          "momentum": 0.9
+        }
+      }
+    },
+    {
+      "name": "momentum-0.0001",
+      "overrides": {
+        "optimizer": {
+          "name": "momentum",
+          "learning_rate": 0.0001,
+          "momentum": 0.9
+        }
+      }
+    },
+    {
+      "name": "momentum-0.001",
+      "overrides": {
+        "optimizer": {
+          "name": "momentum",
+          "learning_rate": 0.001,
+          "momentum": 0.9
+        }
+      }
+    },
+    {
+      "name": "momentum-0.01",
+      "overrides": {
+        "optimizer": {
+          "name": "momentum",
+          "learning_rate": 0.01,
+          "momentum": 0.9
+        }
+      }
+    },
+    {
+      "name": "adam-1e-05",
+      "overrides": {
+        "optimizer": {
+          "name": "adam",
+          "learning_rate": 1e-05,
+          "beta1": 0.9,
+          "beta2": 0.999,
+          "optimizer_epsilon": 1e-08
+        }
+      }
+    },
+    {
+      "name": "adam-0.0001",
+      "overrides": {
+        "optimizer": {
+          "name": "adam",
+          "learning_rate": 0.0001,
+          "beta1": 0.9,
+          "beta2": 0.999,
+          "optimizer_epsilon": 1e-08
+        }
+      }
+    },
+    {
+      "name": "adam-0.001",
+      "overrides": {
+        "optimizer": {
+          "name": "adam",
+          "learning_rate": 0.001,
+          "beta1": 0.9,
+          "beta2": 0.999,
+          "optimizer_epsilon": 1e-08
+        }
+      }
+    }
+  ]
+}

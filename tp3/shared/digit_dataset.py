@@ -70,17 +70,22 @@ def particionar(
     X: np.ndarray,
     y: np.ndarray,
     semilla: int = SEMILLA,
-) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    *, return_indices: bool = False, validation_fraction: float = 0.2,
+) -> tuple:
     """Devuelve (X_train, y_train, X_val, y_val), estratificados por dígito.
 
-    Se reserva el 20 % de cada clase para validación, redondeando al entero
+    Por defecto se reserva el 20 % de cada clase para validación, redondeando al entero
     más próximo y dejando al menos una muestra de cada clase en cada parte.
-    La proporción puede diferir levemente de 80/20 por el redondeo.
+    La proporción puede diferir levemente por el redondeo. return_indices=True
+    agrega los índices de train/validación referidos al orden original del CSV;
+    validation_fraction permite otra proporción sin cambiar los defaults.
     """
     if X.ndim != 2 or X.shape[1] != N_ENTRADAS or y.shape != (len(X), N_CLASES):
         raise ValueError("Se esperan X con forma (N, 784) e y con forma (N, 10).")
     if len(X) == 0 or not np.all((y == 0) | (y == 1)) or not np.all(y.sum(axis=1) == 1):
         raise ValueError("y debe contener muestras con etiquetas one-hot válidas.")
+    if not np.isfinite(validation_fraction) or not 0 < validation_fraction < 1:
+        raise ValueError("validation_fraction debe estar entre 0 y 1.")
     rng = np.random.default_rng(semilla)
     etiquetas = y.argmax(axis=1)
     entrenamiento = []
@@ -89,9 +94,10 @@ def particionar(
         indices = rng.permutation(np.flatnonzero(etiquetas == digito))
         if len(indices) < 2:
             raise ValueError(f"El dígito {digito} necesita al menos dos muestras para estratificar.")
-        n_val = min(len(indices) - 1, max(1, int(len(indices) * 0.2 + 0.5)))
+        n_val = min(len(indices) - 1, max(1, int(len(indices) * validation_fraction + 0.5)))
         validacion.append(indices[:n_val])
         entrenamiento.append(indices[n_val:])
     idx_train = rng.permutation(np.concatenate(entrenamiento))
     idx_val = rng.permutation(np.concatenate(validacion))
-    return X[idx_train], y[idx_train], X[idx_val], y[idx_val]
+    parts = (X[idx_train], y[idx_train], X[idx_val], y[idx_val])
+    return (*parts, idx_train, idx_val) if return_indices else parts

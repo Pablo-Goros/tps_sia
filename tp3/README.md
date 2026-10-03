@@ -10,6 +10,7 @@ python -m tps_sia.tp3.ej2.tests.test_validacion
 python -m tps_sia.tp3.ej2.tests.test_datos_digitos
 python -m tps_sia.tp3.ej2.tests.test_shared_compatibility
 python3 -m unittest tps_sia.tp3.shared.tests.test_training_state tps_sia.tp3.shared.tests.test_optimizers
+python3 -m unittest tps_sia.tp3.shared.tests.test_metrics tps_sia.tp3.shared.tests.test_experiments tps_sia.tp3.ej2.tests.test_experiments
 ```
 
 Ejercicios de validación del enunciado: AND con perceptrón escalón, XOR (no resoluble con un
@@ -27,6 +28,9 @@ Dependencias para TP3: NumPy, Pandas y Matplotlib.
 | `shared/mlp.py` | MLP matricial, backprop, entrenamiento e historia, guardar/cargar |
 | `shared/optimizers.py` | SGD, momentum clásico y Adam; validación y exportación/restauración de estado |
 | `shared/digit_dataset.py` | Loader cacheado con rutas explícitas y partición estratificada de dígitos |
+| `shared/metrics.py` | Métricas por clase y confusión 10×10 con política de valores indefinidos |
+| `shared/experiments.py` | Runner validado, trazabilidad, artefactos y reanudación |
+| `shared/analysis.py` | Tablas, dispersión entre semillas y figuras desde resultados guardados |
 | `shared/tests/` | Chequeos reutilizables con datos sintéticos |
 | `ej1/src/perceptron.py` | Perceptrón simple, online / mini-batch / batch, guardar/cargar |
 | `ej1/src/datos.py` | Fraude: carga, exploración, z-score, soluciones analíticas, estratos y k-fold |
@@ -196,7 +200,9 @@ y modelos guardados. [Momentum y Adam](ej2/README.md#paso-4--momentum-y-adam)
 están implementados y verificados, incluida la reanudación de su estado.
 [El paso 5](ej2/README.md#paso-5--control-del-entrenamiento-y-checkpoints)
 incorpora historia acumulativa, parada temprana, checkpoints completos y registro
-opcional de pesos. Los barridos comparativos están pendientes.
+opcional de pesos. [El paso 6](ej2/README.md#paso-6--experimentos-y-análisis-reutilizables)
+incorpora el runner común, métricas por clase, trazabilidad de datasets/particiones,
+reanudación y análisis de resultados. Los barridos comparativos del paso 7 están pendientes.
 
 ---
 
