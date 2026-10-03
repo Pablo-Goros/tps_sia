@@ -24,7 +24,7 @@ Dependencias para TP3: NumPy, Pandas y Matplotlib.
 |---|---|
 | `shared/activations.py` | θ y θ′: escalón, lineal, logística, tanh, ReLU |
 | `shared/mlp.py` | MLP matricial, backprop, entrenamiento e historia, guardar/cargar |
-| `shared/optimizers.py` | SGD e interfaz de optimizadores |
+| `shared/optimizers.py` | SGD, momentum clásico y Adam; validación y exportación/restauración de estado |
 | `shared/digit_dataset.py` | Loader cacheado con rutas explícitas y partición estratificada de dígitos |
 | `shared/tests/` | Chequeos reutilizables con datos sintéticos |
 | `ej1/src/perceptron.py` | Perceptrón simple, online / mini-batch / batch, guardar/cargar |
@@ -191,7 +191,9 @@ por diferencias centradas y XOR en ambas arquitecturas del enunciado.
 El [baseline](ej2/README.md#paso-3--baseline) `[784,128,10]`, ReLU y SGD
 está ejecutado: 95.97 % de accuracy de entrenamiento y 94.38 % de validación.
 El núcleo común ya está extraído a `shared`, conservando las APIs, comandos
-y modelos guardados. Los barridos comparativos y momentum/Adam están pendientes.
+y modelos guardados. [Momentum y Adam](ej2/README.md#paso-4--momentum-y-adam)
+están implementados y verificados, incluida la reanudación de su estado.
+Los barridos comparativos están pendientes.
 
 ---
 

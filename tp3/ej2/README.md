@@ -114,15 +114,15 @@ modelo = MLP([784, 128, 10], activacion="relu", eta=0.01,
 - `epsilon` detiene por costo de entrenamiento. La validación no modifica
   pesos. Cada llamada a `entrenar` continúa los parámetros y genera una
   nueva historia, accesible también como `modelo.historia`.
-- Guardar/cargar conserva parámetros, configuración, SGD, última historia
+- Guardar/cargar conserva parámetros, configuración, optimizador, última historia
   y estado aleatorio para reanudar con el mismo orden de mini-batches.
   El archivo `.npz` se carga con `allow_pickle=False`.
 
 `shared/optimizers.py` separa SGD del MLP; `src/optimizadores.py` conserva
 la importación anterior. La interfaz `Optimizador` expone
 `paso(parametros, gradientes)` (actualización in-place) y `configuracion()`.
-Se puede inyectar `optimizador=SGD(eta=...)`; momentum y Adam quedan para
-el paso siguiente.
+Se puede inyectar `optimizador=SGD(eta=...)`, `Momentum(...)` o `Adam(...)`;
+ver la configuración y convenciones del paso 4 más abajo.
 
 ## Validación del paso 2
 
@@ -222,7 +222,9 @@ Las implementaciones reutilizables residen en `tps_sia/tp3/shared/`:
 El paquete no importa módulos de los ejercicios. Ej1 consume las activaciones;
 ej2 consume el MLP, SGD y loader. Los módulos anteriores de activaciones,
 MLP y optimizadores sólo reexportan las mismas clases y funciones; se conservan
-sus APIs en español y el formato de modelo y caché versión 1.
+sus APIs en español y la lectura de modelos y cachés versión 1.
+Desde el paso 4 se guardan modelos versión 2 con estado del optimizador;
+el formato del caché no cambia.
 
 El loader común requiere ambas rutas explícitas. Por ejemplo, desde la raíz:
 
@@ -266,3 +268,102 @@ reentrenarlo: las salidas de las 2489 muestras de validación coinciden
 exactamente con las previas al cambio, al igual que las particiones.
 Se reprodujeron la loss y la matriz de confusión guardadas; la configuración
 y los archivos de referencia conservaron sus SHA-256.
+
+## Paso 4 — Momentum y Adam
+
+`shared/optimizers.py` ofrece `SGD`, `Momentum` y `Adam`, también
+reexportados desde `ej2/src/optimizadores.py`. Todos reciben los gradientes
+calculados por `MLP.backprop` y actualizan cada tensor in-place, en el orden
+de `MLP.parametros`: todos los pesos y luego todos los biases. El optimizador
+no vuelve a sumar ni promediar los gradientes; el MLP ya los promedia por
+la cantidad efectiva de muestras del lote.
+
+Convenciones de esta implementación, con `g_t = ∂cost/∂parameter`:
+
+- SGD: `parameter -= eta * g_t`.
+- Momentum clásico, con velocidad inicial cero:
+  `v_t = momentum * v_(t-1) + g_t`,
+  `parameter -= learning_rate * v_t`. La velocidad acumula gradientes;
+  el signo negativo y la tasa se aplican al actualizar el parámetro.
+- Adam, con momentos iniciales cero:
+  `m_t = beta1*m_(t-1) + (1-beta1)*g_t`,
+  `v_t = beta2*v_(t-1) + (1-beta2)*g_t**2`;
+  `m_hat = m_t/(1-beta1**t)`, `v_hat = v_t/(1-beta2**t)`;
+  `parameter -= learning_rate*m_hat/(sqrt(v_hat)+optimizer_epsilon)`.
+  `t` cuenta actualizaciones completas de lotes, una vez por llamada a
+  `paso`, independientemente de cuántos pesos y biases tenga la red.
+
+Momentum usa por defecto `learning_rate=0.01`, `momentum=0.9`.
+Adam usa `learning_rate=0.001`, `beta1=0.9`, `beta2=0.999` y
+`optimizer_epsilon=1e-8`. Este último estabiliza la división, fuera de
+la raíz; es distinto de `epsilon` de `MLP.entrenar`, que detiene por costo
+de entrenamiento. Las tasas y epsilon del optimizador deben ser positivos
+y finitos; momentum, beta1 y beta2 deben pertenecer a `[0,1)`.
+Estos valores son defaults de implementación, no una selección experimental.
+
+Desde la raíz:
+
+```python
+from tps_sia.tp3.shared.mlp import MLP
+from tps_sia.tp3.shared.optimizers import Adam, Momentum, construir_optimizador
+
+optimizer = construir_optimizador({
+    "name": "adam", "learning_rate": 0.001,
+    "beta1": 0.9, "beta2": 0.999, "optimizer_epsilon": 1e-8,
+})
+# Equivalente: Adam(learning_rate=0.001).
+# Alternativa: Momentum(learning_rate=0.01, momentum=0.9).
+modelo = MLP([784, 128, 10], activacion="relu",
+             optimizador=optimizer, tamano_lote=32, semilla=42)
+```
+
+La fábrica acepta claves nuevas en inglés (`name`, `learning_rate`, etc.)
+y la configuración histórica de SGD `{"nombre": "sgd", "eta": 0.01}`.
+Rechaza nombres, campos e hiperparámetros inválidos. Se validan todas las
+formas, tipos y valores finitos de parámetros, gradientes y estado antes de
+aplicar un paso; también se comprueban los resultados numéricos preparados.
+Una entrada inválida o un overflow deja intactos los parámetros, momentos
+y contador del optimizador.
+
+`export_state()` devuelve un mapping con `version`, `config`, `updates`
+y copias de los tensores: `velocity` para momentum, `first_moment` y
+`second_moment` para Adam, sin tensores para SGD. Antes del primer paso,
+las listas están vacías. Para restaurar sobre parámetros ya recuperados:
+
+```python
+state = optimizer.export_state()
+restored = construir_optimizador(state["config"])
+restored.restore_state(state, modelo.parametros)
+```
+
+El estado no incluye los pesos: se debe conservar junto a los parámetros
+del mismo instante, con su orden y formas. La restauración valida versión,
+configuración, contador y todos los tensores antes de cambiar el optimizador.
+Los momentos de segundo orden deben ser no negativos. Las copias evitan
+que modificar el estado exportado o recibido altere el optimizador.
+
+`MLP.guardar` integra este estado en el modelo NPZ versión 2, sin pickle:
+metadata JSON y arrays separados para velocidades/momentos. `MLP.cargar`
+restaura parámetros, optimizador, RNG y última historia. Continúa leyendo
+modelos SGD versión 1; como éstos no registraban un contador de updates,
+ese contador empieza en cero al cargarlos. Guardar/cargar entre dos bloques
+de entrenamiento produce exactamente los mismos parámetros que una corrida
+continua con la misma semilla y configuración para los tres optimizadores.
+La historia acumulativa, parada temprana y controles completos de entrenamiento
+corresponden al paso 5; cada llamada todavía genera su propia historia.
+
+Chequeos del paso 4, desde la raíz:
+
+```bash
+python -m tps_sia.tp3.shared.tests.test_optimizers
+python -m tps_sia.tp3.ej2.tests.test_validacion
+python -m tps_sia.tp3.ej2.tests.test_shared_compatibility
+```
+
+Las 13 pruebas nuevas cubren los primeros pasos calculados a mano, todos los
+pesos y biases de un MLP, configuración/fábrica, float32, gradientes cero,
+rechazo atómico de entradas y estados inválidos, overflow, copias de estado,
+reanudación exacta, formato SGD anterior, checkpoints corruptos y XOR con
+momentum/Adam en `[2,2,1]` y `[2,3,2,1]`. Los chequeos existentes de gradientes
+y XOR con SGD siguen pasando. El baseline continúa usando SGD; este paso
+no ejecuta barridos ni selecciona hiperparámetros.

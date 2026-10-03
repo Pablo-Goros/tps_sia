@@ -16,6 +16,8 @@ def test_shared_identity():
     assert mlp.MLP is baseline.MLP is MLP
     assert mlp.Historia is Historia
     assert optimizadores.SGD is baseline.SGD is optimizers.SGD
+    assert optimizadores.Momentum is optimizers.Momentum
+    assert optimizadores.Adam is optimizers.Adam
     assert optimizadores.Optimizador is optimizers.Optimizador
     assert optimizadores.construir_optimizador is optimizers.construir_optimizador
     assert old_activations.Activacion is activations.Activacion

@@ -1,4 +1,4 @@
-"""MLP matricial con mini-batches, SGD y persistencia sin pickle.
+"""MLP matricial con mini-batches, optimizadores y persistencia sin pickle.
 
 Filas = muestras. W[l] tiene forma (entrada, salida), b[l] forma (salida,).
 Softmax usa cross-entropy media por muestra. Logística usa medio error
@@ -216,7 +216,7 @@ class MLP:
 
     def guardar(self, ruta: str | Path) -> None:
         config = {
-            "version": 1, "arquitectura": self.arquitectura,
+            "version": 2, "arquitectura": self.arquitectura,
             "activacion": self.activacion.nombre, "salida": self.salida,
             "beta": self.beta, "tamano_lote": self.tamano_lote,
             "inicializacion": self.inicializacion,
@@ -225,19 +225,40 @@ class MLP:
         }
         arrays = {f"w_{i}": w for i, w in enumerate(self.pesos)}
         arrays.update({f"b_{i}": b for i, b in enumerate(self.biases)})
+        state = self.optimizador.export_state()
+        # Los momentos se guardan como arrays NPZ, sin pickle ni listas JSON
+        # de millones de números; la metadata conserva su orden explícito.
+        for key, values in list(state.items()):
+            if isinstance(values, list):
+                names = [f"optimizer_{key}_{i}" for i in range(len(values))]
+                arrays.update(zip(names, values))
+                state[key] = names
+        config["optimizer_state"] = state
         # Respetar la ruta exacta, sin agregar automáticamente la extensión .npz.
         with open(ruta, "wb") as archivo:
-            np.savez_compressed(archivo, configuracion=json.dumps(config), **arrays)
+            np.savez_compressed(archivo, configuracion=json.dumps(config, allow_nan=False), **arrays)
 
     @classmethod
     def cargar(cls, ruta: str | Path) -> MLP:
         with np.load(ruta, allow_pickle=False) as datos:
             config = json.loads(str(datos["configuracion"]))
-            if config.pop("version") != 1:
+            version = config.pop("version")
+            if version not in (1, 2):
                 raise ValueError("Versión de modelo no compatible")
+            if version == 2:
+                state = config.pop("optimizer_state", None)
+                if not isinstance(state, dict):
+                    raise ValueError("El modelo versión 2 requiere estado del optimizador")
+                for key, names in list(state.items()):
+                    if isinstance(names, list):
+                        if not all(isinstance(name, str) and name in datos.files for name in names):
+                            raise ValueError("Tensor del optimizador ausente o inválido")
+                        state[key] = [datos[name] for name in names]
             rng = config.pop("rng")
             historia = config.pop("historia")
             config["optimizador"] = construir_optimizador(config["optimizador"])
+            if version == 1 and not isinstance(config["optimizador"], SGD):
+                raise ValueError("El formato versión 1 sólo conserva el estado de SGD")
             modelo = cls(**config)
             for i, (w, b) in enumerate(zip(modelo.pesos, modelo.biases)):
                 for clave, destino in ((f"w_{i}", w), (f"b_{i}", b)):
@@ -245,6 +266,8 @@ class MLP:
                     if valor.shape != destino.shape or not np.all(np.isfinite(valor)):
                         raise ValueError(f"Parámetro inválido en el modelo: {clave}")
                     destino[:] = valor
+            if version == 2:
+                modelo.optimizador.restore_state(state, modelo.parametros)
         modelo.rng.bit_generator.state = rng
         modelo.historia = Historia(**historia)
         return modelo

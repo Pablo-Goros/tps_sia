@@ -184,7 +184,7 @@ El primer barrido contiene 11 combinaciones de tasa/optimizador; el baseline coi
 3. Hacer una corrida breve con datos sintéticos y otra de pocas épocas con datos de desarrollo; comprobar artefactos, recarga y regeneración de gráficos antes de gastar tiempo en barridos.
 4. Ejecutar paso 7, luego paso 8, congelar las selecciones y terminar con paso 9. Registrar tiempos para dimensionar los barridos; si OpenBLAS necesita un límite de hilos, registrar el ajuste usado.
 
-Entregar cada paso con código, comprobaciones pertinentes y documentación actualizada. El siguiente bloque concreto de implementación es el paso 3a, seguido del paso 4; no volver a implementar los pasos 1–3 ni lanzar los barridos antes de que la extracción, optimizadores y checkpoints estén verificados.
+Entregar cada paso con código, comprobaciones pertinentes y documentación actualizada. Los pasos 3a y 4 están verificados; el siguiente bloque concreto es el paso 5. No volver a implementar los pasos 1–3 ni lanzar los barridos antes de que los checkpoints y el control de entrenamiento estén verificados.
 
 ## 5. Extensiones posteriores
 
@@ -195,7 +195,7 @@ Una vez completos los requisitos y su análisis, considerar el opcional de ruido
 - [x] Inspeccionar implementación y resultados existentes de ej2.
 - [x] Identificar requisitos, estado de ej3 y restricciones de evaluación.
 - [x] Paso 3a: crear `shared` y migrar el núcleo reutilizable preservando compatibilidad.
-- [ ] Paso 4: momentum y Adam.
+- [x] Paso 4: momentum y Adam.
 - [ ] Paso 5: control del entrenamiento y checkpoints completos.
 - [ ] Paso 6: runner, métricas y análisis reutilizables.
 - [ ] Paso 7: comparaciones y selección del ejercicio 2.
@@ -212,3 +212,15 @@ configuración permanecen iguales. Una ejecución de una época, con
 configuración y salidas temporales, verificó el comando de entrenamiento,
 los artefactos, su recarga y la regeneración de gráficos; no reemplaza
 la ejecución de referencia ni constituye un nuevo experimento de selección.
+
+Verificación del paso 4 (2026-10-03): momentum clásico y Adam implementados
+en `shared/optimizers.py`, con fábrica y exportación/restauración de estado.
+Las 13 pruebas de `shared/tests/test_optimizers.py` verifican cálculos manuales,
+todos los pesos/biases, validación atómica, momentos y contador, reanudación
+exacta, compatibilidad y XOR. Los chequeos anteriores de gradientes, XOR y
+compatibilidad siguen pasando. `MLP` guarda formato versión 2 para preservar
+el estado de los tres optimizadores y conserva la lectura de SGD versión 1;
+la última historia sigue siendo por llamada, a completar en el paso 5.
+El modelo SGD de referencia conserva su loss y confusión de validación y los
+archivos del baseline permanecen intactos; no se reentrenó ni se hicieron
+barridos o selección usando test.
