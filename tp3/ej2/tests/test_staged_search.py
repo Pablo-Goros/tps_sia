@@ -11,8 +11,8 @@ import unittest
 from unittest.mock import patch
 
 from tps_sia.tp3.ej2.src.staged_search import (
-    CONFIG, TP3, StagedSearch, best_neighbor, border_extension, choose_activation, group_summary,
-    near_tie_pair, protocol_sha256, rank, resolve_near_tie, sequence_neighbor)
+    CONFIG, TP3, StagedSearch, _winner_text, best_neighbor, border_extension, choose_activation,
+    group_summary, near_tie_pair, protocol_sha256, rank, resolve_near_tie, sequence_neighbor)
 from tps_sia.tp3.shared import experiments
 from tps_sia.tp3.shared.experiments import config_identity, recorded_config, validate_config
 from tps_sia.tp3.shared.tests.test_experiments import alias_to, synthetic_csv
@@ -204,6 +204,13 @@ class StageFlowTests(unittest.TestCase):
             self.assertEqual(selection['retraining_epochs'], 7)
             self.assertTrue(selection['candidate_model'].startswith('runs/'))
             self.assertEqual(selection['search_sha256'], search.sha)
+            # The command summary works for every stage, including stage 1 (one best rate per optimizer).
+            for stage in range(8):
+                text = _winner_text(json.loads((self.output / f'stage_{stage}.json').read_text()))
+                self.assertNotEqual(text, 'none', f'stage {stage}')
+            stage_1_text = _winner_text(json.loads((self.output / 'stage_1.json').read_text()))
+            self.assertIn('sgd 0.3', stage_1_text)
+            self.assertIn('momentum 0.05', stage_1_text)
             # A changed protocol cannot reuse previous decisions.
             changed = Path(self.temp.name) / 'search_v2.json'
             protocol = json.loads(CONFIG.read_text(encoding='utf-8'))

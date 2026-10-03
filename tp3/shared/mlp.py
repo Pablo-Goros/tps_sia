@@ -17,6 +17,7 @@ import time
 import numpy as np
 
 from .activations import construir_activacion
+from .atomic_files import replace
 from .optimizers import Optimizador, SGD, construir_optimizador
 
 
@@ -463,7 +464,7 @@ class MLP:
                 np.savez_compressed(archivo, configuracion=json.dumps(config, allow_nan=False), **arrays)
                 archivo.flush()
                 os.fsync(archivo.fileno())
-            os.replace(temporary, ruta)
+            replace(temporary, ruta)
         finally:
             if temporary is not None and temporary.exists():
                 temporary.unlink()

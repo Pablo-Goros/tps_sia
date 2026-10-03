@@ -17,6 +17,7 @@ import time
 
 import numpy as np
 
+from .atomic_files import replace
 from .digit_dataset import cargar, particionar
 from .metrics import evaluate_model
 from .mlp import MLP
@@ -85,7 +86,7 @@ def write_json(path: Path, value: dict) -> None:
         temporary = Path(file.name)
         file.write(data)
     try:
-        os.replace(temporary, path)
+        replace(temporary, path)
     finally:
         temporary.unlink(missing_ok=True)
 

@@ -534,7 +534,10 @@ def _winner_text(stage):
     if 'winner' in stage:
         w = stage['winner']
         return f'{w["label"]} ({w["config_id"]}, accuracy {w["accuracy"]:.4f})'
-    ranking = [s for s in stage['ranking'] if s['status'] == 'completed']
+    if 'best' in stage:  # Stage 1: best learning rate per optimizer.
+        return ', '.join(f'{name} {row["learning_rate"]:g} (accuracy {row["accuracy"]:.4f})'
+                         for name, row in stage['best'].items())
+    ranking =[s for s in stage['ranking'] if s['status'] == 'completed']
     if ranking:
         return f'{ranking[0]["label"]} ({ranking[0]["config_id"]}, mean accuracy {ranking[0]["accuracy_mean"]:.4f})'
     return 'none'
