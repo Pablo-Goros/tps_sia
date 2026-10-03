@@ -1,0 +1,230 @@
+{
+  "schema_version": 1,
+  "selection_rule": "mean validation accuracy descending, mean validation cross-entropy ascending, parameter count ascending, config_id ascending",
+  "config": {
+    "architecture": [
+      784,
+      256,
+      10
+    ],
+    "activation": "relu",
+    "activation_parameters": {
+      "beta": 1.0
+    },
+    "output": "softmax",
+    "loss": "cross_entropy",
+    "optimizer": {
+      "name": "momentum",
+      "learning_rate": 0.01,
+      "momentum": 0.9
+    },
+    "strategy": "mini_batch",
+    "batch_size": 32,
+    "shuffle": true,
+    "initialization": "auto",
+    "model_seed": 42,
+    "split_seed": 42,
+    "validation_fraction": 0.2,
+    "epochs": 30,
+    "stopping": {
+      "epsilon": 0.0,
+      "patience": null,
+      "min_delta": 0.0,
+      "monitor": "validation_loss"
+    },
+    "preprocessing": {
+      "name": "identity"
+    },
+    "checkpoint_every": 1,
+    "weight_logging": {
+      "enabled": false,
+      "every_updates": 100,
+      "selected_weights": []
+    },
+    "dataset": "/mnt/c/Users/Pablo/Documents/Projects/facultad/sistemas-de-inteligencia-artificial/tps_sia/tp3/data/digits.csv",
+    "cache": "/mnt/c/Users/Pablo/Documents/Projects/facultad/sistemas-de-inteligencia-artificial/tps_sia/tp3/ej2/cache/digits.npz"
+  },
+  "seeds": [
+    42,
+    0,
+    1
+  ],
+  "delivery_seed": 42,
+  "config_id": "0231e346d45648ae",
+  "protocol_sha256": "26401fe0685ed7a854a552cac46bcbe67312eebbb75a6997af0594a968094520",
+  "dataset": {
+    "source": "/mnt/c/Users/Pablo/Documents/Projects/facultad/sistemas-de-inteligencia-artificial/tps_sia/tp3/data/digits.csv",
+    "sha256": "11271dbc12a3a8db967f6c2708e55ae1918d69186e81d91c53c24e305fc5d3f4",
+    "split_sha256": "7c9e97bc7e6e41e7a2cb3b4c8dca5b0297ef76ae036537411216530abb9e617c",
+    "split_indices": "split.npz",
+    "split_seed": 42,
+    "validation_fraction": 0.2,
+    "train_samples": 9960,
+    "validation_samples": 2489,
+    "class_counts": [
+      1480,
+      1685,
+      1489,
+      1532,
+      1460,
+      271,
+      1479,
+      1566,
+      0,
+      1487
+    ],
+    "train_class_counts": [
+      1184,
+      1348,
+      1191,
+      1226,
+      1168,
+      217,
+      1183,
+      1253,
+      0,
+      1190
+    ],
+    "validation_class_counts": [
+      296,
+      337,
+      298,
+      306,
+      292,
+      54,
+      296,
+      313,
+      0,
+      297
+    ]
+  },
+  "candidate_model": "runs/0231e346d45648ae-seed-42/best_model.npz",
+  "model_sha256": "e7ddedf61d1a0be5ed1067d098f100fbb208f10831bb97383577a5f8d4380351",
+  "delivery_policy": "best development checkpoint; no full-data retraining in step 7",
+  "candidate_epoch": 16,
+  "retraining_epochs": 17,
+  "retraining_epoch_rule": "median best validation-loss epoch across common seeds",
+  "evidence": {
+    "rate_stage": "rates.json",
+    "architecture_stage": "architectures.json",
+    "confirmation_stage": "confirmation.json",
+    "ranking": [
+      {
+        "config_id": "0231e346d45648ae",
+        "seeds": [
+          42,
+          0,
+          1
+        ],
+        "run_ids": [
+          "0231e346d45648ae-seed-42",
+          "0231e346d45648ae-seed-0",
+          "0231e346d45648ae-seed-1"
+        ],
+        "parameters": 203530,
+        "chosen_epochs": [
+          16,
+          17,
+          22
+        ],
+        "accuracy_mean": 0.9681264229275479,
+        "accuracy_std": 0.002373114389536544,
+        "loss_mean": 0.121875435526746,
+        "loss_std": 0.006795705039614309,
+        "macro_f1_mean": 0.9623843525714127,
+        "macro_f1_std": 0.0020975199380254823,
+        "balanced_accuracy_mean": 0.9612477128560312,
+        "balanced_accuracy_std": 0.0029648976465086823,
+        "duration_seconds_mean": 353.7547451453335
+      },
+      {
+        "config_id": "2a8d201c07a27a90",
+        "seeds": [
+          42,
+          0,
+          1
+        ],
+        "run_ids": [
+          "2a8d201c07a27a90-seed-42",
+          "2a8d201c07a27a90-seed-0",
+          "2a8d201c07a27a90-seed-1"
+        ],
+        "parameters": 101770,
+        "chosen_epochs": [
+          21,
+          20,
+          17
+        ],
+        "accuracy_mean": 0.9667871970001339,
+        "accuracy_std": 0.001054507549753821,
+        "loss_mean": 0.1258508022517438,
+        "loss_std": 0.0004053438816334364,
+        "macro_f1_mean": 0.959473034193507,
+        "macro_f1_std": 0.0019364236350462203,
+        "balanced_accuracy_mean": 0.9588727085318435,
+        "balanced_accuracy_std": 0.0038766091835452632,
+        "duration_seconds_mean": 156.87820142600017
+      },
+      {
+        "config_id": "86ac54fa4167c608",
+        "seeds": [
+          42,
+          0,
+          1
+        ],
+        "run_ids": [
+          "86ac54fa4167c608-seed-42",
+          "86ac54fa4167c608-seed-0",
+          "86ac54fa4167c608-seed-1"
+        ],
+        "parameters": 109386,
+        "chosen_epochs": [
+          4,
+          5,
+          7
+        ],
+        "accuracy_mean": 0.9654479710727198,
+        "accuracy_std": 0.0013121680689878773,
+        "loss_mean": 0.12875484651382618,
+        "loss_std": 0.0029456261361581466,
+        "macro_f1_mean": 0.9587955234139788,
+        "macro_f1_std": 0.0014554965115331033,
+        "balanced_accuracy_mean": 0.9554115065849668,
+        "balanced_accuracy_std": 0.0019609469444542577,
+        "duration_seconds_mean": 301.79480377966655
+      },
+      {
+        "config_id": "7f3bad549f9c35b2",
+        "seeds": [
+          42,
+          0,
+          1
+        ],
+        "run_ids": [
+          "7f3bad549f9c35b2-seed-42",
+          "7f3bad549f9c35b2-seed-0",
+          "7f3bad549f9c35b2-seed-1"
+        ],
+        "parameters": 101770,
+        "chosen_epochs": [
+          30,
+          30,
+          30
+        ],
+        "accuracy_mean": 0.9445560466050623,
+        "accuracy_std": 0.0008679175972154505,
+        "loss_mean": 0.1921355010596347,
+        "loss_std": 0.002329284264545619,
+        "macro_f1_mean": 0.93468007091457,
+        "macro_f1_std": 0.0008773602731548607,
+        "balanced_accuracy_mean": 0.9341080089751368,
+        "balanced_accuracy_std": 0.0021856848142793707,
+        "duration_seconds_mean": 109.94538831833354
+      }
+    ]
+  },
+  "limitations": [
+    "Validation has no digit 8; its recall is not evaluable.",
+    "Repeated validation selection can be optimistic; final test remains reserved."
+  ]
+}

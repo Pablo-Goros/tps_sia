@@ -202,7 +202,15 @@ están implementados y verificados, incluida la reanudación de su estado.
 incorpora historia acumulativa, parada temprana, checkpoints completos y registro
 opcional de pesos. [El paso 6](ej2/README.md#paso-6--experimentos-y-análisis-reutilizables)
 incorpora el runner común, métricas por clase, trazabilidad de datasets/particiones,
-reanudación y análisis de resultados. Los barridos comparativos del paso 7 están pendientes.
+reanudación y análisis de resultados. El [paso 7](ej2/README.md#paso-7--comparación-y-selección-de-desarrollo)
+está ejecutado: 11 variantes de tasa/optimizador, cuatro arquitecturas con
+dos optimizadores y confirmación de tres finalistas más el baseline con
+tres semillas comunes. Se seleccionó `[784,256,10]`, ReLU y momentum 0.9
+con tasa 0.01: accuracy media de validación **96.81 % ± 0.24 puntos porcentuales**.
+Ver el [informe de desarrollo](ej2/development-report.md) y
+[la selección congelada](ej2/results/selection.json). El candidato de semilla
+42 usa la época 16; se registraron 17 épocas como presupuesto de un eventual
+reentrenamiento. La evaluación final permanece para el paso 9.
 
 ---
 

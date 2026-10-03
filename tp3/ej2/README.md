@@ -589,3 +589,54 @@ preprocesamiento ajustado sólo con train, fallos numéricos, resúmenes por sem
 compatibilidad del split 80/20, inicialización desde pesos y reanudación exacta
 para los tres optimizadores. Con Matplotlib disponible verifican también las
 cinco figuras guardadas; esa prueba se omite si falta la dependencia.
+
+## Paso 7 — Comparación y selección de desarrollo
+
+La búsqueda completa tiene un comando propio; `experiments --all` conserva
+su significado anterior y ejecuta todas las tasas con todas las semillas.
+El comando por etapas evita ese barrido redundante:
+
+```bash
+OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 python3 -m tps_sia.tp3.ej2.src.search --config tps_sia/tp3/ej2/configs/search.json --output-dir tps_sia/tp3/ej2/results --workers 4
+python3 -m tps_sia.tp3.ej2.src.search_analysis --results-dir tps_sia/tp3/ej2/results --output-dir tps_sia/tp3/ej2/results/analysis
+python3 -m unittest tps_sia.tp3.ej2.tests.test_search
+```
+
+En PowerShell, establecer `$env:OPENBLAS_NUM_THREADS="1"` y
+`$env:OMP_NUM_THREADS="1"` antes de ejecutar el comando sin esos prefijos.
+`--workers` controla corridas simultáneas; su valor por defecto es 1.
+NumPy basta para entrenar; el análisis requiere además Matplotlib.
+
+El protocolo se guarda antes de entrenar y se conserva al repetir el comando.
+Una corrida de dos épocas estima el costo. Luego se comparan las 11 variantes
+de tasa/optimizador con semilla 42 y presupuesto común de 30 épocas. Se
+eligen los dos optimizadores mejor ubicados, cada uno con su mejor tasa,
+para comparar `[784,64,10]`, `[784,128,10]`, `[784,256,10]` y
+`[784,128,64,10]`. La arquitectura de 128 neuronas reutiliza la corrida
+anterior. Las tres mejores configuraciones del conjunto explorado y el
+baseline se confirman con las semillas comunes 42, 0 y 1; cada corrida ya
+terminada se reutiliza. Las decisiones quedan en `rates.json`,
+`architectures.json`, `finalists.json` y `confirmation.json`.
+
+Cada checkpoint se elige por la menor cross-entropy de validación. El ranking
+de configuraciones usa accuracy media de las tres semillas, cross-entropy
+media, cantidad de parámetros y, como desempate determinista, identificador
+de configuración. No se selecciona una semilla favorable: el candidato usa
+la semilla predefinida 42 y su mejor checkpoint de desarrollo. Se guarda
+`results/selection.json` con configuración, semillas, huellas, evidencia,
+modelo candidato y mediana de las mejores épocas como presupuesto para un
+eventual reentrenamiento del paso 9. Este paso no reentrena con toda la data.
+
+Repetir el mismo comando reutiliza corridas completas y reanuda las
+interrumpidas desde su checkpoint; no reemplaza resultados terminados.
+Un protocolo distinto requiere otro directorio. Usar un solo proceso
+coordinador de `search` por directorio. Con varios workers, una interrupción
+del coordinador puede esperar a que terminen las corridas activas.
+
+El análisis usa sólo archivos guardados y genera tablas por etapa,
+curvas comparadas, dispersión y costo de confirmación, métricas por clase,
+confusiones y curvas individuales. Los tiempos son de pared y dependen de
+la concurrencia y del equipo; no constituyen una medición aislada de la
+velocidad relativa de los optimizadores. La selección no usa esos tiempos.
+Ver el [análisis de desarrollo](development-report.md) para las respuestas
+a las preguntas del ejercicio y la interpretación de las comparaciones.

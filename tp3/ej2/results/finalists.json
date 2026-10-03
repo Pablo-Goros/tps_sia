@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "run_ids": [
+    "2a8d201c07a27a90-seed-42",
+    "86ac54fa4167c608-seed-42",
+    "0231e346d45648ae-seed-42",
+    "7f3bad549f9c35b2-seed-42"
+  ],
+  "seeds": [
+    42,
+    0,
+    1
+  ],
+  "rule": "validation accuracy descending, validation cross-entropy ascending, parameter count ascending; confirm finalists on common seeds without selecting a seed"
+}

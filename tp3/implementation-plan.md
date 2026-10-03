@@ -184,7 +184,7 @@ El primer barrido contiene 11 combinaciones de tasa/optimizador; el baseline coi
 3. Hacer una corrida breve con datos sintéticos y otra de pocas épocas con datos de desarrollo; comprobar artefactos, recarga y regeneración de gráficos antes de gastar tiempo en barridos.
 4. Ejecutar paso 7, luego paso 8, congelar las selecciones y terminar con paso 9. Registrar tiempos para dimensionar los barridos; si OpenBLAS necesita un límite de hilos, registrar el ajuste usado.
 
-Entregar cada paso con código, comprobaciones pertinentes y documentación actualizada. Los pasos 3a, 4, 5 y 6 están verificados; el siguiente bloque concreto es el paso 7. No volver a implementar los pasos 1–3 ni lanzar los barridos antes de que los checkpoints y el control de entrenamiento estén verificados.
+Entregar cada paso con código, comprobaciones pertinentes y documentación actualizada. Los pasos 3a, 4, 5, 6 y 7 están verificados; el siguiente bloque concreto es el paso 8. No volver a implementar los pasos 1–3 ni lanzar los barridos antes de que los checkpoints y el control de entrenamiento estén verificados.
 
 ## 5. Extensiones posteriores
 
@@ -198,7 +198,7 @@ Una vez completos los requisitos y su análisis, considerar el opcional de ruido
 - [x] Paso 4: momentum y Adam.
 - [x] Paso 5: control del entrenamiento y checkpoints completos.
 - [x] Paso 6: runner, métricas y análisis reutilizables.
-- [ ] Paso 7: comparaciones y selección del ejercicio 2.
+- [x] Paso 7: comparaciones y selección del ejercicio 2.
 - [ ] Paso 8: datos, experimentos y selección del ejercicio 3.
 - [ ] Paso 9: evaluación final e informes.
 - [ ] Extensiones opcionales, después de completar lo obligatorio.
@@ -277,3 +277,21 @@ smoke técnico, sin selección. Todos los archivos de referencia del baseline
 conservan SHA-256. Matplotlib se instaló en `/tmp/tp3-step6-deps` para comprobar
 figuras, sin cambiar dependencias globales. No se ejecutaron barridos ni se
 leyó `digits_test.csv`; pasos 7–9 permanecen pendientes.
+
+Verificación del paso 7 (2026-10-03): `ej2/src/search.py` ejecuta el protocolo
+por etapas y `search_analysis.py` regenera las comparaciones desde artefactos.
+Se completaron 26 corridas: piloto de dos épocas, 11 combinaciones de
+tasa/optimizador, seis arquitecturas adicionales y ocho confirmaciones.
+Se mantuvieron los mismos índices y huellas de `digits.csv`, sin leer test.
+Se seleccionó `[784,256,10]`, ReLU y momentum 0.9 con tasa 0.01, con
+accuracy de validación media 96.81 % y desvío poblacional 0.24 puntos
+porcentuales entre semillas 42, 0 y 1. `ej2/results/selection.json` congela
+configuración, evidencias y hashes; el candidato de semilla 42 usa el mejor
+checkpoint de la época 16, y la mediana `[16,17,22]` fija 17 épocas para
+un eventual reentrenamiento del paso 9. Recarga y métricas de train y
+validación reproducidas exactamente. Las siete pruebas del flujo de búsqueda
+pasan, además de las 18 comprobaciones pertinentes de métricas/experimentos.
+Tablas, curvas, confusión y dispersión regeneradas. El
+[informe de desarrollo](ej2/development-report.md) responde (a) y (b),
+analiza convergencia lenta y sobreajuste, compara capacidad y costo y
+explicita soporte del 5 y ausencia del 8. Pasos 8 y 9 pendientes.
