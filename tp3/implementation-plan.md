@@ -200,7 +200,7 @@ Una vez completos los requisitos y su análisis, considerar el opcional de ruido
 - [x] Paso 6: runner, métricas y análisis reutilizables.
 - [x] Paso 7: comparaciones y selección del ejercicio 2.
 - [x] Paso 7b: protocolo v2 de un factor a la vez para el ejercicio 2 — implementado y probado con smoke test; **búsqueda sin ejecutar**.
-- [ ] Paso 8: datos, experimentos y selección del ejercicio 3.
+- [ ] Paso 8: datos, experimentos y selección del ejercicio 3 — **parcial**: datos y partición (puntos 1–3) hechos; reentrenamientos, búsqueda y selección (puntos 4–9) sin hacer.
 - [ ] Paso 9: evaluación final e informes.
 - [ ] Extensiones opcionales, después de completar lo obligatorio.
 
@@ -328,3 +328,17 @@ de train) en un directorio temporal. Tiempo medido por época con un hilo: 0.52 
 SGD `[784,128,10]` y 2.65 s para `[784,512,10]`, lote 32, incluyendo checkpoints;
 estimación de la búsqueda completa: 1.5–3.5 h en serie, 0.5–1 h con cuatro procesos.
 No se leyó `digits_test.csv`.
+
+Paso 8, parte de datos (2026-10-03, puntos 1–3; sin entrenar ni buscar):
+`ej3/src/data_exploration.py` genera `ej3/results/data_report.{json,md}`,
+`split_indices.npz` y `split_manifest.json` usando el loader compartido con caché
+en `ej3/cache/` (excluido de Git). `more_digits.csv` tiene 15 741 muestras, las
+diez clases (585 del 8 y 542 del 5), píxeles en [0, 1] sin valores no finitos, sin
+duplicados internos ni conflictos de etiqueta. 3689 filas son idénticas a imágenes
+de `digits.csv`, todas con la misma etiqueta; 12 052 son nuevas y `digits.csv` no
+es subconjunto. La partición agrupa imágenes idénticas, es estratificada 80/20 con
+semilla 42 (train 12 594, validación 3147, sin exclusiones) y, al no haber
+duplicados, coincide con `shared.digit_dataset.particionar`, que usa el runner.
+La comprobación de integridad cuenta 0 imágenes de `digits_test.csv` en
+`more_digits.csv` y 0 en `digits.csv`; sólo se registran conteos.
+`ej3/tests/test_dataset.py` cubre la partición y las salidas con datos sintéticos.
