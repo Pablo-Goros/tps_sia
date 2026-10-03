@@ -184,7 +184,7 @@ El primer barrido contiene 11 combinaciones de tasa/optimizador; el baseline coi
 3. Hacer una corrida breve con datos sintéticos y otra de pocas épocas con datos de desarrollo; comprobar artefactos, recarga y regeneración de gráficos antes de gastar tiempo en barridos.
 4. Ejecutar paso 7, luego paso 8, congelar las selecciones y terminar con paso 9. Registrar tiempos para dimensionar los barridos; si OpenBLAS necesita un límite de hilos, registrar el ajuste usado.
 
-Entregar cada paso con código, comprobaciones pertinentes y documentación actualizada. Los pasos 3a y 4 están verificados; el siguiente bloque concreto es el paso 5. No volver a implementar los pasos 1–3 ni lanzar los barridos antes de que los checkpoints y el control de entrenamiento estén verificados.
+Entregar cada paso con código, comprobaciones pertinentes y documentación actualizada. Los pasos 3a, 4 y 5 están verificados; el siguiente bloque concreto es el paso 6. No volver a implementar los pasos 1–3 ni lanzar los barridos antes de que los checkpoints y el control de entrenamiento estén verificados.
 
 ## 5. Extensiones posteriores
 
@@ -196,7 +196,7 @@ Una vez completos los requisitos y su análisis, considerar el opcional de ruido
 - [x] Identificar requisitos, estado de ej3 y restricciones de evaluación.
 - [x] Paso 3a: crear `shared` y migrar el núcleo reutilizable preservando compatibilidad.
 - [x] Paso 4: momentum y Adam.
-- [ ] Paso 5: control del entrenamiento y checkpoints completos.
+- [x] Paso 5: control del entrenamiento y checkpoints completos.
 - [ ] Paso 6: runner, métricas y análisis reutilizables.
 - [ ] Paso 7: comparaciones y selección del ejercicio 2.
 - [ ] Paso 8: datos, experimentos y selección del ejercicio 3.
@@ -224,3 +224,22 @@ la última historia sigue siendo por llamada, a completar en el paso 5.
 El modelo SGD de referencia conserva su loss y confusión de validación y los
 archivos del baseline permanecen intactos; no se reentrenó ni se hicieron
 barridos o selección usando test.
+
+
+Verificación del paso 5 (2026-10-03): `shared/mlp.py` incorpora historia y
+contadores acumulados, tasa constante registrada por época, motivos de parada,
+selección/parada por validación, checkpoint del último estado y exportación de
+la mejor época con su propio optimizador/RNG. El formato NPZ versión 3 guarda
+configuración, preprocesamiento, estado y registro opcional de pesos en JSONL;
+conserva lectura y migración de versiones 1/2. Guardado temporal y reemplazo
+atómico, checkpoints periódicos, pausa por época y rollback de épocas incompletas
+verificados. Las 9 pruebas de `test_training_state.py` y las 13 de optimizadores
+pasan, junto a gradientes/XOR del MLP y compatibilidad de ej2. La equivalencia
+N frente a K + guardado/carga + N−K es exacta para parámetros, momentos, RNG,
+selección e historia numérica de SGD, momentum y Adam, excluyendo tiempos.
+Una corrida de tres épocas con 256 muestras de train y 96 de validación de
+`digits.csv` verificó artefactos, recarga y lectura de la historia guardada;
+el baseline SGD versión 1 conserva loss/confusión y todos sus archivos de
+referencia mantienen SHA-256. No se ejecutaron barridos ni se abrió test.
+Los gráficos del smoke no se regeneraron porque Matplotlib no está instalado
+en este entorno; el análisis reutilizable sigue pendiente del paso 6.

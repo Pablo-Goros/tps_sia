@@ -260,7 +260,7 @@ class OptimizerTests(unittest.TestCase):
                 path = Path(directory) / "model.npz"
                 model.guardar(path)
                 with np.load(path, allow_pickle=False) as data:
-                    self.assertEqual(json.loads(str(data["configuracion"]))["version"], 2)
+                    self.assertEqual(json.loads(str(data["configuracion"]))["version"], 3)
                 restored = MLP.cargar(path)
                 np.testing.assert_array_equal(restored.predecir(X), model.predecir(X))
                 assert_state_equal(self, restored.optimizador.export_state(), optimizer.export_state())
@@ -269,7 +269,7 @@ class OptimizerTests(unittest.TestCase):
                 for a, b in zip(restored.parametros, uninterrupted.parametros):
                     np.testing.assert_array_equal(a, b)
                 self.assertEqual(restored.optimizador.updates, 14)
-                self.assertEqual(restored.historia.costo, uninterrupted.historia.costo[3:])
+                self.assertEqual(restored.historia.costo, uninterrupted.historia.costo)
                 # También se puede guardar/cargar antes del primer paso.
                 fresh = MLP([2, 2], optimizador=construir_optimizador(optimizer.configuracion()))
                 fresh.guardar(path)

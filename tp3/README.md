@@ -9,6 +9,7 @@ python -m tps_sia.tp3.ej1.tests.test_validacion
 python -m tps_sia.tp3.ej2.tests.test_validacion
 python -m tps_sia.tp3.ej2.tests.test_datos_digitos
 python -m tps_sia.tp3.ej2.tests.test_shared_compatibility
+python3 -m unittest tps_sia.tp3.shared.tests.test_training_state tps_sia.tp3.shared.tests.test_optimizers
 ```
 
 Ejercicios de validación del enunciado: AND con perceptrón escalón, XOR (no resoluble con un
@@ -193,7 +194,9 @@ está ejecutado: 95.97 % de accuracy de entrenamiento y 94.38 % de validación.
 El núcleo común ya está extraído a `shared`, conservando las APIs, comandos
 y modelos guardados. [Momentum y Adam](ej2/README.md#paso-4--momentum-y-adam)
 están implementados y verificados, incluida la reanudación de su estado.
-Los barridos comparativos están pendientes.
+[El paso 5](ej2/README.md#paso-5--control-del-entrenamiento-y-checkpoints)
+incorpora historia acumulativa, parada temprana, checkpoints completos y registro
+opcional de pesos. Los barridos comparativos están pendientes.
 
 ---
 

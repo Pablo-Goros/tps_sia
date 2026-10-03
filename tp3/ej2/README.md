@@ -349,8 +349,8 @@ modelos SGD versión 1; como éstos no registraban un contador de updates,
 ese contador empieza en cero al cargarlos. Guardar/cargar entre dos bloques
 de entrenamiento produce exactamente los mismos parámetros que una corrida
 continua con la misma semilla y configuración para los tres optimizadores.
-La historia acumulativa, parada temprana y controles completos de entrenamiento
-corresponden al paso 5; cada llamada todavía genera su propia historia.
+El paso 5 amplía este formato a versión 3 con historia acumulativa y control
+completo del entrenamiento, como se describe a continuación.
 
 Chequeos del paso 4, desde la raíz:
 
@@ -367,3 +367,125 @@ reanudación exacta, formato SGD anterior, checkpoints corruptos y XOR con
 momentum/Adam en `[2,2,1]` y `[2,3,2,1]`. Los chequeos existentes de gradientes
 y XOR con SGD siguen pasando. El baseline continúa usando SGD; este paso
 no ejecuta barridos ni selecciona hiperparámetros.
+
+
+## Paso 5 — Control del entrenamiento y checkpoints
+
+`MLP.entrenar` continúa desde el último estado y devuelve la **historia acumulada**.
+`epocas` indica cuántas épocas adicionales ejecutar. `epochs_completed` y
+`updates_completed` cuentan épocas terminadas y actualizaciones de lotes.
+`Historia` registra índices globales (`epochs`, `updates`), learning rate,
+costo, MSE, accuracy y norma media del gradiente. `validation_epochs` permite
+ubicar los puntos de validación si se cambia su disponibilidad entre llamadas.
+La tasa sigue siendo constante; no se añadió un schedule sin evidencia experimental.
+
+La parada informa `max_epochs`, `training_epsilon`, `early_stopping`,
+`interrupted` o `numerical_failure`. `epsilon > 0` detiene cuando el costo de
+train es estrictamente menor a epsilon; cero desactiva esa condición.
+La parada por validación es opcional (`patience=None` por defecto):
+`monitor="validation_loss"` minimiza el costo de validación, que es cross-entropy
+con softmax; `validation_accuracy` maximiza accuracy. `patience` cuenta épocas
+sin una mejora estrictamente mayor a `min_delta` respecto de la última mejora
+significativa. La selección conserva siempre la mejor métrica observada,
+aunque su mejora sea menor a `min_delta`; los empates conservan la primera época.
+Ni evaluar validación ni seleccionar la mejor época modifica pesos o RNG del
+modelo que está entrenándose.
+
+Ejemplo con arrays de train/validación preparados desde datos de desarrollo:
+
+```python
+from pathlib import Path
+from tps_sia.tp3.shared.mlp import MLP
+from tps_sia.tp3.shared.optimizers import Adam
+
+run_dir = Path("tps_sia/tp3/ej2/results/example")
+model = MLP([784, 128, 10], activacion="relu", optimizador=Adam(0.001),
+            tamano_lote=32, semilla=42)
+model.preprocessing = {"name": "identity", "pixel_range": [0.0, 1.0]}
+model.entrenar(
+    X_train, y_train, epocas=30, X_val=X_val, y_val=y_val,
+    patience=5, min_delta=1e-4,
+    checkpoint_path=run_dir / "checkpoint.npz", checkpoint_every=2,
+    best_model_path=run_dir / "best_model.npz", pause_after=10,
+    weight_log_path=run_dir / "weights.jsonl", log_every_updates=20,
+    selected_weights=[(0, 0, 0), (1, 0, 0)],
+)
+
+continued = MLP.cargar(run_dir / "checkpoint.npz")
+continued.entrenar(
+    X_train, y_train, epocas=20, X_val=X_val, y_val=y_val,
+    checkpoint_path=run_dir / "checkpoint.npz",
+    best_model_path=run_dir / "best_model.npz",
+)
+best = MLP.cargar(run_dir / "best_model.npz")
+probabilities = best.predecir(X_val)
+```
+
+`checkpoint.npz` guarda el **último estado** para continuar; `best_model.npz`
+guarda la **época elegida por validación**, para inferencia/evaluación.
+El modelo en memoria permanece en la última época. `guardar_best(path)`
+permite exportar posteriormente la selección conservada en un checkpoint.
+El archivo de la mejor época también incluye su optimizador, RNG e historia
+correspondientes, por lo que puede continuar desde ese instante sin combinar
+sus pesos con momentos de otra época. Los dos artefactos deben usar rutas diferentes.
+
+El formato NPZ versión 3 conserva arquitectura, activaciones/beta, loss y
+reducción del gradiente, estrategia/lote, shuffle, epsilon, criterio de parada,
+semilla y método/escala de inicialización por capa, pesos/biases, estado del
+optimizador, RNG, historia/tiempos, selección/paciencia, preprocesamiento y
+configuración del registro. `training_calls` registra presupuestos adicionales,
+época inicial, pausa y frecuencia/rutas de guardado. Al continuar, las opciones
+omitidas de epsilon, shuffle, monitor, patience, min_delta y frecuencia de
+registro conservan sus valores anteriores. Es necesario volver a proporcionar
+los arrays de validación para mantener la misma selección. Cambiar la política
+de entrenamiento reinicia el seguimiento de la mejor época y la paciencia,
+conservando parámetros, optimizador y métricas acumuladas.
+
+`preprocessing` describe la transformación aplicada **antes** de entregar los
+arrays al MLP: guardarla no transforma automáticamente los datos. Cualquier
+estadística adicional debe ajustarse sólo sobre train. El baseline conserva
+sus píxeles originales en `[0,1]`, sin reescalado.
+
+El guardado escribe un temporal en el mismo directorio, hace flush/fsync y
+reemplaza atómicamente el destino; un fallo de escritura conserva el checkpoint
+anterior. Los checkpoints periódicos se guardan al finalizar una época, y se
+hace un guardado final con historia/tiempo y motivo de parada. `pause_after`
+pausa tras ese número de épocas adicionales. Una interrupción de teclado o
+fallo numérico durante una época revierte sus pesos, optimizador y RNG al
+inicio de esa época; continuar la repetirá. Una terminación abrupta del proceso
+requiere cargar el último checkpoint terminado y repetir las épocas posteriores.
+Los fallos de archivo se propagan como errores de I/O.
+
+`weights.jsonl` es independiente del NPZ: registra epoch/update globales,
+configuración, pesos seleccionados `(layer, row, column)`, valores y cambios,
+y normas de pesos, biases, gradientes y actualizaciones por capa. El registro
+está desactivado hasta indicar una ruta; la frecuencia controla su volumen.
+Se escribe sólo después de terminar la época. Si se vuelve a un checkpoint
+anterior a registros ya escritos después de una terminación abrupta, el análisis
+debe descartar registros posteriores al checkpoint o deduplicar por update antes
+de concatenar la continuación. La generación de gráficos reutilizables corresponde
+al paso 6.
+
+Se mantiene lectura de modelos SGD versión 1 y modelos versión 2. Estos formatos
+conservaban sólo la historia de la última llamada y no la semilla inicial:
+al migrarlos, la semilla y tasas históricas desconocidas se marcan `null`, y los
+contadores históricos no reconstruibles también. Las épocas se numeran desde la
+historia disponible. SGD versión 1 inicia el contador de updates en cero; versión 2
+conserva el contador del optimizador. Las predicciones permanecen iguales.
+
+Comprobaciones desde la raíz:
+
+```bash
+python3 -m unittest tps_sia.tp3.shared.tests.test_training_state tps_sia.tp3.shared.tests.test_optimizers
+python3 -m tps_sia.tp3.shared.tests.test_mlp
+python3 -m tps_sia.tp3.ej2.tests.test_shared_compatibility
+```
+
+Las pruebas de estado comparan parámetros, momentos, RNG, selección e historia
+numérica de entrenar N épocas frente a pausar/guardar/cargar tras K y continuar
+N−K, para SGD, momentum y Adam; excluyen tiempos. Cubren selección y reanudación
+desde la mejor época, criterios de parada, rollback de épocas incompletas,
+checkpoints periódicos, escritura atómica, registro e índices acumulados y
+migración de formatos anteriores. Los tests de gradientes, XOR y compatibilidad
+siguen verificando el núcleo compartido. No se ejecutaron barridos ni se usó
+`digits_test.csv` para estas comprobaciones.

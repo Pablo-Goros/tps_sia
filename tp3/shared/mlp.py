@@ -8,6 +8,9 @@ from __future__ import annotations
 
 from dataclasses import asdict, dataclass, field
 import json
+import copy
+import os
+import tempfile
 from pathlib import Path
 import time
 
@@ -15,6 +18,9 @@ import numpy as np
 
 from .activations import construir_activacion
 from .optimizers import Optimizador, SGD, construir_optimizador
+
+
+_UNSET = object()
 
 
 @dataclass
@@ -26,6 +32,11 @@ class Historia:
     mse_validacion: list[float] = field(default_factory=list)
     accuracy_validacion: list[float] = field(default_factory=list)
     norma_gradiente: list[float] = field(default_factory=list)
+    validation_epochs: list[int] = field(default_factory=list)
+    epochs: list[int] = field(default_factory=list)
+    updates: list[int] = field(default_factory=list)
+    learning_rate: list[float] = field(default_factory=list)
+    stop_reason: str | None = None
     epocas_corridas: int = 0
     tiempo_segundos: float = 0.0
 
@@ -62,6 +73,14 @@ class MLP:
         self.tamano_lote = None if tamano_lote is None else int(tamano_lote)
         self.inicializacion = inicializacion
         self.optimizador = optimizador if optimizador is not None else SGD(eta)
+        self.seed = int(semilla)
+        self.initialization_layers = []
+        self.preprocessing = {"name": "identity"}
+        self.training_config = {}
+        self.training_calls = []
+        self.early_stopping = {"best_value": None, "best_epoch": None, "reference_value": None, "bad_epochs": 0}
+        self.best_state = None
+        self.weight_logging = {"path": None, "every_updates": 1, "selected_weights": []}
         self.rng = np.random.default_rng(semilla)
         self.pesos: list[np.ndarray] = []
         self.biases: list[np.ndarray] = []
@@ -70,6 +89,7 @@ class MLP:
             if metodo == "auto":
                 metodo = "he" if activacion == "relu" and i < len(arquitectura) - 2 else "xavier"
             escala = np.sqrt(2.0 / n_in) if metodo == "he" else np.sqrt(2.0 / (n_in + n_out))
+            self.initialization_layers.append({"method": metodo, "scale": float(escala)})
             self.pesos.append(self.rng.normal(0, escala, size=(n_in, n_out)))
             self.biases.append(np.zeros(n_out))
         self.historia = Historia()
@@ -163,66 +183,258 @@ class MLP:
             return float(np.mean((o[:, 0] >= 0.5) == (y[:, 0] >= 0.5)))
         return float(np.mean(o.argmax(axis=1) == y.argmax(axis=1)))
 
-    def entrenar(self, X: np.ndarray, y: np.ndarray, epocas: int = 200,
-                 epsilon: float = 0.0, mezclar: bool = True, verbose: int = 0,
-                 X_val: np.ndarray | None = None, y_val: np.ndarray | None = None) -> Historia:
-        """Continúa el modelo; devuelve y almacena la historia de esta llamada.
+    @property
+    def epochs_completed(self) -> int:
+        return self.historia.epocas_corridas
 
-        epsilon detiene por costo de entrenamiento. Validación sólo se evalúa.
-        norma_gradiente registra el promedio de las normas de los mini-batches.
+    @property
+    def updates_completed(self) -> int:
+        return self.optimizador.export_state()["updates"]
+
+    def _snapshot(self) -> dict:
+        return copy.deepcopy({
+            "parameters": self.parametros, "optimizer": self.optimizador.export_state(),
+            "rng": self.rng.bit_generator.state, "history": self.historia.to_dict(),
+            "early_stopping": self.early_stopping,
+        })
+
+    def _restore(self, state: dict) -> None:
+        parameters = state["parameters"]
+        if len(parameters) != len(self.parametros) or any(
+                p.shape != value.shape or not np.all(np.isfinite(value))
+                for p, value in zip(self.parametros, parameters)):
+            raise ValueError("Parámetros inválidos en el estado de entrenamiento")
+        optimizer = construir_optimizador(self.optimizador.configuracion())
+        optimizer.restore_state(state["optimizer"], parameters)
+        for p, value in zip(self.parametros, parameters):
+            p[:] = value
+        self.optimizador = optimizer
+        self.rng.bit_generator.state = copy.deepcopy(state["rng"])
+        self.historia = Historia(**copy.deepcopy(state["history"]))
+        self.early_stopping = copy.deepcopy(state["early_stopping"])
+
+    def guardar_best(self, ruta: str | Path) -> None:
+        """Guarda la mejor época con su optimizador/RNG, sin cambiar el último estado."""
+        if self.best_state is None:
+            raise ValueError("No hay una mejor época de validación")
+        model = copy.deepcopy(self)
+        model._restore(self.best_state)
+        model.best_state = copy.deepcopy(self.best_state)
+        model.guardar(ruta)
+
+    def entrenar(self, X: np.ndarray, y: np.ndarray, epocas: int = 200,
+                 epsilon: float = _UNSET, mezclar: bool = _UNSET, verbose: int = 0,
+                 X_val: np.ndarray | None = None, y_val: np.ndarray | None = None,
+                 *, patience: int | None = _UNSET, min_delta: float = _UNSET,
+                 monitor: str = _UNSET, checkpoint_path: str | Path | None = None,
+                 checkpoint_every: int = 1, best_model_path: str | Path | None = None,
+                 pause_after: int | None = None, weight_log_path: str | Path | None = None,
+                 log_every_updates: int = _UNSET,
+                 selected_weights: list[tuple[int, int, int]] | None = None) -> Historia:
+        """Continúa desde la última época y devuelve la historia acumulada.
+
+        epocas es el presupuesto adicional. La tasa es constante; epsilon mide
+        costo de train. Early stopping minimiza loss o maximiza accuracy de
+        validación. Nunca restaura automáticamente la mejor época sobre el último
+        estado: guardar_best la exporta por separado. Pausa/rollback en límite de
+        época; una interrupción a mitad de época la repite al continuar.
         """
+        epsilon = self.training_config.get("epsilon", 0.0) if epsilon is _UNSET else epsilon
+        mezclar = self.training_config.get("shuffle", True) if mezclar is _UNSET else mezclar
+        patience = self.training_config.get("patience") if patience is _UNSET else patience
+        min_delta = self.training_config.get("min_delta", 0.0) if min_delta is _UNSET else min_delta
+        monitor = self.training_config.get("monitor", "validation_loss") if monitor is _UNSET else monitor
+        log_every_updates = self.weight_logging["every_updates"] if log_every_updates is _UNSET else log_every_updates
+        if (checkpoint_path is not None and best_model_path is not None
+                and Path(checkpoint_path).resolve() == Path(best_model_path).resolve()):
+            raise ValueError("El checkpoint y el mejor modelo requieren rutas diferentes")
+        effective_log_path = weight_log_path if weight_log_path is not None else self.weight_logging["path"]
+        for path in (checkpoint_path, best_model_path):
+            if path is not None and effective_log_path is not None and Path(path).resolve() == Path(effective_log_path).resolve():
+                raise ValueError("El registro de pesos requiere un archivo aparte")
         X = self._entradas(X)
         y = self._objetivos(y, len(X))
-        if isinstance(epocas, bool) or not isinstance(epocas, (int, np.integer)) or epocas <= 0:
-            raise ValueError("epocas debe ser un entero positivo")
-        if not np.isfinite(epsilon) or epsilon < 0:
-            raise ValueError("epsilon debe ser no negativo y finito")
+        def positive_integer(value, name):
+            if isinstance(value, (bool, np.bool_)) or not isinstance(value, (int, np.integer)) or value <= 0:
+                raise ValueError(f"{name} debe ser un entero positivo")
+        for value, name in ((epocas, "epocas"), (checkpoint_every, "checkpoint_every"),
+                            (log_every_updates, "log_every_updates")):
+            positive_integer(value, name)
+        for value, name in ((patience, "patience"), (pause_after, "pause_after")):
+            if value is not None:
+                positive_integer(value, name)
+        if not np.isfinite(epsilon) or epsilon < 0 or not np.isfinite(min_delta) or min_delta < 0:
+            raise ValueError("epsilon y min_delta deben ser no negativos y finitos")
         if isinstance(verbose, bool) or not isinstance(verbose, (int, np.integer)) or verbose < 0:
             raise ValueError("verbose debe ser un entero no negativo")
+        if not isinstance(mezclar, (bool, np.bool_)):
+            raise ValueError("mezclar debe ser booleano")
         if (X_val is None) != (y_val is None):
             raise ValueError("La validación requiere X_val e y_val juntos")
+        if monitor not in ("validation_loss", "validation_accuracy"):
+            raise ValueError("monitor debe ser validation_loss o validation_accuracy")
+        if X_val is None and (patience is not None or best_model_path is not None):
+            raise ValueError("La selección y parada temprana requieren validación")
         if X_val is not None:
             X_val = self._entradas(X_val)
             y_val = self._objetivos(y_val, len(X_val))
-        hist = Historia()
+        selected = selected_weights if selected_weights is not None else self.weight_logging["selected_weights"]
+        for indices in selected:
+            if (len(indices) != 3 or any(isinstance(i, bool) or not isinstance(i, (int, np.integer)) for i in indices)):
+                raise ValueError("Cada peso seleccionado requiere (layer, row, column)")
+            layer, row, column = indices
+            if not (0 <= layer < len(self.pesos) and 0 <= row < self.pesos[layer].shape[0]
+                    and 0 <= column < self.pesos[layer].shape[1]):
+                raise ValueError("Índice de peso fuera de rango")
+        patience = int(patience) if patience is not None else None
+        log_every_updates = int(log_every_updates)
+        selected = [tuple(int(i) for i in index) for index in selected]
+        config = {"shuffle": bool(mezclar), "epsilon": float(epsilon), "epsilon_quantity": "training_loss",
+                  "patience": patience, "min_delta": float(min_delta), "monitor": monitor,
+                  "loss": "cross_entropy" if self.salida == "softmax" else "half_squared_error",
+                  "gradient_reduction": "mean_per_sample", "learning_rate_schedule": "constant",
+                  "strategy": "batch" if self.tamano_lote is None else "online" if self.tamano_lote == 1 else "mini_batch",
+                  "batch_size": self.tamano_lote, "validation": X_val is not None}
+        if self.training_config and config != self.training_config:
+            # Un cambio de política empieza un nuevo seguimiento de selección.
+            self.early_stopping = {"best_value": None, "best_epoch": None, "reference_value": None, "bad_epochs": 0}
+            self.best_state = None
+        self.training_config = config
+        self.training_calls.append({"start_epoch": self.epochs_completed, "max_epochs": int(epocas),
+                                    "checkpoint_every": int(checkpoint_every),
+                                    "checkpoint_path": str(checkpoint_path) if checkpoint_path is not None else None,
+                                    "best_model_path": str(best_model_path) if best_model_path is not None else None,
+                                    "pause_after": int(pause_after) if pause_after is not None else None})
+        self.weight_logging = {"path": str(weight_log_path) if weight_log_path is not None else self.weight_logging["path"],
+                               "every_updates": log_every_updates, "selected_weights": [list(i) for i in selected]}
         inicio = time.perf_counter()
+        previous_time = self.historia.tiempo_segundos
         lote = len(X) if self.tamano_lote is None else self.tamano_lote
-        for epoca in range(epocas):
-            orden = self.rng.permutation(len(X)) if mezclar else np.arange(len(X))
-            normas = []
-            for j in range(0, len(X), lote):
-                idx = orden[j:j + lote]
-                gradientes = self._gradientes(X[idx], y[idx])
-                normas.append(float(np.sqrt(sum(np.sum(g ** 2) for g in gradientes))))
-                self.optimizador.paso(self.parametros, gradientes)
-            a, h = self._forward(X)
-            hist.costo.append(self._costo(y, a[-1], h[-1]))
-            hist.mse.append(float(np.mean((a[-1] - y) ** 2)))
-            hist.accuracy.append(self._accuracy(y, a[-1]))
-            hist.norma_gradiente.append(float(np.mean(normas)))
-            if X_val is not None:
-                av, hv = self._forward(X_val)
-                hist.costo_validacion.append(self._costo(y_val, av[-1], hv[-1]))
-                hist.mse_validacion.append(float(np.mean((av[-1] - y_val) ** 2)))
-                hist.accuracy_validacion.append(self._accuracy(y_val, av[-1]))
-            hist.epocas_corridas = epoca + 1
-            if verbose and (epoca % verbose == 0 or epoca == epocas - 1):
-                print(f"época {epoca + 1}/{epocas} costo={hist.costo[-1]:.6f} accuracy={hist.accuracy[-1]:.4f}")
-            if epsilon > 0 and hist.costo[-1] < epsilon:
+        self.historia.stop_reason = None
+        for local_epoch in range(epocas):
+            rollback = self._snapshot()
+            records = []
+            try:
+                with np.errstate(over="raise", invalid="raise", divide="raise"):
+                    orden = self.rng.permutation(len(X)) if mezclar else np.arange(len(X))
+                    normas = []
+                    lr_config = self.optimizador.configuracion()
+                    rate = lr_config.get("learning_rate", lr_config.get("eta"))
+                    for j in range(0, len(X), lote):
+                        idx = orden[j:j + lote]
+                        gradients = self._gradientes(X[idx], y[idx])
+                        if not all(np.all(np.isfinite(g)) for g in gradients):
+                            raise FloatingPointError("Gradiente no finito")
+                        normas.append(float(np.sqrt(sum(np.sum(g ** 2) for g in gradients))))
+                        before = [p.copy() for p in self.parametros] if self.weight_logging["path"] else None
+                        try:
+                            self.optimizador.paso(self.parametros, gradients)
+                        except ValueError as exc:
+                            raise FloatingPointError(str(exc)) from exc
+                        if before is not None and self.updates_completed % log_every_updates == 0:
+                            layers = len(self.pesos)
+                            records.append({"epoch": self.epochs_completed + 1, "update": self.updates_completed,
+                                "learning_rate": rate, "layers": [
+                                    {"weight_norm": float(np.linalg.norm(w)), "bias_norm": float(np.linalg.norm(self.biases[i])),
+                                     "gradient_norm": float(np.sqrt(np.sum(gradients[i] ** 2) + np.sum(gradients[layers+i] ** 2))),
+                                     "update_norm": float(np.sqrt(np.sum((w-before[i]) ** 2) + np.sum((self.biases[i]-before[layers+i]) ** 2)))}
+                                    for i, w in enumerate(self.pesos)],
+                                "selected_weights": [{"index": list(index), "value": float(self.pesos[index[0]][index[1], index[2]]),
+                                    "update": float(self.pesos[index[0]][index[1], index[2]] - before[index[0]][index[1], index[2]])} for index in selected]})
+                    a, h = self._forward(X)
+                    metrics = [self._costo(y, a[-1], h[-1]), float(np.mean((a[-1]-y)**2)), self._accuracy(y, a[-1])]
+                    val_metrics = []
+                    if X_val is not None:
+                        av, hv = self._forward(X_val)
+                        val_metrics = [self._costo(y_val, av[-1], hv[-1]), float(np.mean((av[-1]-y_val)**2)), self._accuracy(y_val, av[-1])]
+                    if not np.all(np.isfinite(metrics + val_metrics)):
+                        raise FloatingPointError("Métricas no finitas")
+            except (KeyboardInterrupt, FloatingPointError) as exc:
+                self._restore(rollback)
+                self.historia.stop_reason = "interrupted" if isinstance(exc, KeyboardInterrupt) else "numerical_failure"
                 break
-        hist.tiempo_segundos = time.perf_counter() - inicio
-        self.historia = hist
-        return hist
+            hist = self.historia
+            for name, value in zip(("costo", "mse", "accuracy"), metrics):
+                getattr(hist, name).append(value)
+            for name, value in zip(("costo_validacion", "mse_validacion", "accuracy_validacion"), val_metrics):
+                getattr(hist, name).append(value)
+            if val_metrics:
+                hist.validation_epochs.append(hist.epocas_corridas + 1)
+            hist.norma_gradiente.append(float(np.mean(normas)))
+            hist.epocas_corridas += 1
+            hist.epochs.append(hist.epocas_corridas)
+            hist.updates.append(self.updates_completed)
+            hist.learning_rate.append(rate)
+            if val_metrics:
+                value = val_metrics[0] if monitor == "validation_loss" else val_metrics[2]
+                old = self.early_stopping["best_value"]
+                reference = self.early_stopping["reference_value"]
+                gain = lambda previous: previous-value if monitor == "validation_loss" else value-previous
+                significant = reference is None or gain(reference) > min_delta
+                if significant:
+                    self.early_stopping["reference_value"] = value
+                    self.early_stopping["bad_epochs"] = 0
+                else:
+                    self.early_stopping["bad_epochs"] += 1
+                # min_delta controla paciencia, sin descartar la mejor métrica observada.
+                if old is None or gain(old) > 0:
+                    self.early_stopping["best_value"] = value
+                    self.early_stopping["best_epoch"] = hist.epocas_corridas
+                    hist.tiempo_segundos = previous_time + time.perf_counter() - inicio
+                    self.best_state = self._snapshot()
+                    if best_model_path is not None:
+                        self.guardar_best(best_model_path)
+            if self.weight_logging["path"]:
+                path = Path(self.weight_logging["path"])
+                path.parent.mkdir(parents=True, exist_ok=True)
+                with path.open("a", encoding="utf-8") as file:
+                    for record in records:
+                        file.write(json.dumps({**record, "training_config": config,
+                            "model_config": {"architecture": self.arquitectura, "activation": self.activacion.nombre,
+                                             "beta": self.beta, "output": self.salida, "seed": self.seed,
+                                             "initialization_layers": self.initialization_layers,
+                                             "optimizer": self.optimizador.configuracion(), "preprocessing": self.preprocessing}}, allow_nan=False) + "\n")
+            if epsilon > 0 and metrics[0] < epsilon:
+                hist.stop_reason = "training_epsilon"
+            elif patience is not None and self.early_stopping["bad_epochs"] >= patience:
+                hist.stop_reason = "early_stopping"
+            elif pause_after is not None and local_epoch + 1 >= pause_after:
+                hist.stop_reason = "interrupted"
+            elif local_epoch + 1 == epocas:
+                hist.stop_reason = "max_epochs"
+            if verbose and (hist.epocas_corridas % verbose == 0 or hist.stop_reason):
+                print(f"época {hist.epocas_corridas} costo={metrics[0]:.6f} accuracy={metrics[2]:.4f}")
+            hist.tiempo_segundos = previous_time + time.perf_counter() - inicio
+            if checkpoint_path is not None and hist.stop_reason is None and hist.epocas_corridas % checkpoint_every == 0:
+                self.guardar(checkpoint_path)
+            if hist.stop_reason:
+                break
+        self.historia.tiempo_segundos = previous_time + time.perf_counter() - inicio
+        if checkpoint_path is not None:
+            self.guardar(checkpoint_path)
+        if best_model_path is not None and self.best_state is not None:
+            self.guardar_best(best_model_path)
+        return self.historia
 
     def guardar(self, ruta: str | Path) -> None:
         config = {
-            "version": 2, "arquitectura": self.arquitectura,
+            "version": 3, "arquitectura": self.arquitectura,
             "activacion": self.activacion.nombre, "salida": self.salida,
             "beta": self.beta, "tamano_lote": self.tamano_lote,
             "inicializacion": self.inicializacion,
             "optimizador": self.optimizador.configuracion(),
             "rng": self.rng.bit_generator.state, "historia": self.historia.to_dict(),
         }
+        def pack(value):
+            if isinstance(value, np.ndarray):
+                name = f"training_tensor_{len(arrays)}"
+                arrays[name] = value
+                return {"array": name}
+            if isinstance(value, dict):
+                return {key: pack(item) for key, item in value.items()}
+            if isinstance(value, list):
+                return [pack(item) for item in value]
+            return value
         arrays = {f"w_{i}": w for i, w in enumerate(self.pesos)}
         arrays.update({f"b_{i}": b for i, b in enumerate(self.biases)})
         state = self.optimizador.export_state()
@@ -234,18 +446,36 @@ class MLP:
                 arrays.update(zip(names, values))
                 state[key] = names
         config["optimizer_state"] = state
+        config["training_state"] = pack({
+            "seed": self.seed, "initialization_layers": self.initialization_layers,
+            "preprocessing": self.preprocessing, "training_config": self.training_config,
+            "training_calls": self.training_calls,
+            "early_stopping": self.early_stopping, "best_state": self.best_state,
+            "weight_logging": self.weight_logging,
+        })
         # Respetar la ruta exacta, sin agregar automáticamente la extensión .npz.
-        with open(ruta, "wb") as archivo:
-            np.savez_compressed(archivo, configuracion=json.dumps(config, allow_nan=False), **arrays)
+        ruta = Path(ruta)
+        ruta.parent.mkdir(parents=True, exist_ok=True)
+        temporary = None
+        try:
+            with tempfile.NamedTemporaryFile(dir=ruta.parent, prefix=ruta.name + ".", suffix=".tmp", delete=False) as archivo:
+                temporary = Path(archivo.name)
+                np.savez_compressed(archivo, configuracion=json.dumps(config, allow_nan=False), **arrays)
+                archivo.flush()
+                os.fsync(archivo.fileno())
+            os.replace(temporary, ruta)
+        finally:
+            if temporary is not None and temporary.exists():
+                temporary.unlink()
 
     @classmethod
     def cargar(cls, ruta: str | Path) -> MLP:
         with np.load(ruta, allow_pickle=False) as datos:
             config = json.loads(str(datos["configuracion"]))
             version = config.pop("version")
-            if version not in (1, 2):
+            if version not in (1, 2, 3):
                 raise ValueError("Versión de modelo no compatible")
-            if version == 2:
+            if version >= 2:
                 state = config.pop("optimizer_state", None)
                 if not isinstance(state, dict):
                     raise ValueError("El modelo versión 2 requiere estado del optimizador")
@@ -254,6 +484,17 @@ class MLP:
                         if not all(isinstance(name, str) and name in datos.files for name in names):
                             raise ValueError("Tensor del optimizador ausente o inválido")
                         state[key] = [datos[name] for name in names]
+            def unpack(value):
+                if isinstance(value, dict):
+                    if set(value) == {"array"}:
+                        return datos[value["array"]].copy()
+                    return {key: unpack(item) for key, item in value.items()}
+                if isinstance(value, list):
+                    return [unpack(item) for item in value]
+                return value
+            if version == 3 and not isinstance(config.get("training_state"), dict):
+                raise ValueError("El formato versión 3 requiere estado de entrenamiento")
+            training_state = unpack(config.pop("training_state", {}))
             rng = config.pop("rng")
             historia = config.pop("historia")
             config["optimizador"] = construir_optimizador(config["optimizador"])
@@ -266,8 +507,33 @@ class MLP:
                     if valor.shape != destino.shape or not np.all(np.isfinite(valor)):
                         raise ValueError(f"Parámetro inválido en el modelo: {clave}")
                     destino[:] = valor
-            if version == 2:
+            if version >= 2:
                 modelo.optimizador.restore_state(state, modelo.parametros)
         modelo.rng.bit_generator.state = rng
         modelo.historia = Historia(**historia)
+        for key, value in training_state.items():
+            if key not in {"seed", "initialization_layers", "preprocessing", "training_config", "training_calls", "early_stopping", "best_state", "weight_logging"}:
+                raise ValueError("Campo desconocido en el estado de entrenamiento")
+            setattr(modelo, key, value)
+        if version == 3:
+            hist = modelo.historia
+            if (hist.epocas_corridas != len(hist.costo)
+                    or hist.epochs != list(range(1, hist.epocas_corridas + 1))
+                    or any(len(values) != hist.epocas_corridas for values in
+                           (hist.mse, hist.accuracy, hist.norma_gradiente, hist.learning_rate, hist.updates))
+                    or not (len(hist.validation_epochs) == len(hist.costo_validacion)
+                            == len(hist.mse_validacion) == len(hist.accuracy_validacion))
+                    or (hist.updates and hist.updates[-1] != modelo.updates_completed)):
+                raise ValueError("Historia y contadores incompatibles")
+            if modelo.best_state is not None:
+                probe = copy.deepcopy(modelo)
+                probe._restore(modelo.best_state)
+        if version < 3:
+            modelo.seed = None  # Los formatos anteriores no guardaban la semilla inicial.
+            modelo.historia.updates = [None] * modelo.epochs_completed
+            if modelo.historia.updates:
+                modelo.historia.updates[-1] = modelo.updates_completed
+            modelo.historia.learning_rate = [None] * modelo.epochs_completed
+            modelo.historia.validation_epochs = list(range(1, len(modelo.historia.costo_validacion) + 1))
+            modelo.historia.epochs = list(range(1, modelo.epochs_completed + 1))
         return modelo
