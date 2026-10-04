@@ -63,8 +63,13 @@ def recorded_config(config: dict, path_root: str | Path | None = None) -> dict:
     """Config as stored; with path_root, dataset and cache become root-relative."""
     if path_root is None:
         return config
-    return {**config, 'dataset': portable_path(config['dataset'], path_root),
-            'cache': portable_path(config['cache'], path_root)}
+    recorded = {**config, 'dataset': portable_path(config['dataset'], path_root),
+                'cache': portable_path(config['cache'], path_root)}
+    if 'data' in config:
+        recorded['data'] = {**config['data']}
+        for key in ('validation_dataset', 'validation_cache'):
+            recorded['data'][key] = portable_path(config['data'][key], path_root)
+    return recorded
 
 
 def config_identity(config: dict, initialization: dict | None = None,
@@ -114,7 +119,7 @@ def _integer(value, name, minimum=1):
 
 def validate_config(config: dict) -> dict:
     """Canonicalize defaults and reject unsupported options before reading data."""
-    if not isinstance(config, dict) or set(config) - (set(DEFAULTS) | {'dataset', 'cache'}):
+    if not isinstance(config, dict) or set(config) - (set(DEFAULTS) | {'dataset', 'cache', 'data'}):
         raise ValueError('Unknown experiment configuration fields.')
     c = copy.deepcopy(DEFAULTS)
     for key, value in config.items():
@@ -134,6 +139,8 @@ def validate_config(config: dict) -> dict:
         raise ValueError('digits_test.csv is reserved for final evaluation.')
     if c['cache'] == c['dataset'] or Path(c['cache']).suffix != '.npz':
         raise ValueError('Cache must be a separate .npz file.')
+    if 'data' in c:
+        c['data'] = validate_data(c['data'], c['dataset'], c['cache'])
     for key in ('epochs', 'checkpoint_every', 'model_seed', 'split_seed'):
         _integer(c[key], key, 0 if key.endswith('seed') else 1)
     if not isinstance(c['shuffle'], bool):
@@ -201,6 +208,73 @@ def preprocess(X: np.ndarray, settings: dict) -> np.ndarray:
     return (X - np.asarray(settings['mean'])) / np.asarray(settings['scale'])
 
 
+def validate_data(spec: dict, dataset: str, cache: str) -> dict:
+    """Explicit indices and independently sourced validation, without reading CSVs."""
+    allowed = {'train_indices', 'validation_indices', 'validation_dataset',
+               'validation_cache', 'dataset_sha256', 'validation_sha256'}
+    if not isinstance(spec, dict) or set(spec) != allowed:
+        raise ValueError(f'Explicit data requires exactly {sorted(allowed)}.')
+    result = copy.deepcopy(spec)
+    for key in ('train_indices', 'validation_indices'):
+        indices = result[key]
+        if (not isinstance(indices, list) or not indices
+                or any(isinstance(i, bool) or not isinstance(i, int) or i < 0 for i in indices)
+                or len(set(indices)) != len(indices)):
+            raise ValueError(f'{key} must contain unique nonnegative integer indices.')
+    for key in ('dataset_sha256', 'validation_sha256'):
+        value = result[key]
+        if not isinstance(value, str) or len(value) != 64 or any(c not in '0123456789abcdef' for c in value):
+            raise ValueError(f'{key} must be a SHA-256 digest.')
+    for key in ('validation_dataset', 'validation_cache'):
+        result[key] = str(Path(result[key]).resolve())
+    if (Path(spec['validation_dataset']).name.casefold() == 'digits_test.csv'
+            or Path(result['validation_dataset']).name.casefold() == 'digits_test.csv'):
+        raise ValueError('digits_test.csv is reserved for final evaluation.')
+    if (result['validation_cache'] in (dataset, result['validation_dataset'])
+            or cache == result['validation_dataset']
+            or Path(result['validation_cache']).suffix != '.npz'):
+        raise ValueError('Validation cache must be a separate .npz file.')
+    if result['validation_dataset'] == dataset:
+        if set(result['train_indices']) & set(result['validation_indices']):
+            raise ValueError('Train and validation indices overlap.')
+        if result['dataset_sha256'] != result['validation_sha256']:
+            raise ValueError('One source must have one digest.')
+    elif result['validation_cache'] == cache:
+        raise ValueError('Different datasets require different caches.')
+    return result
+
+
+def data_hashes(config: dict) -> dict:
+    """Verify pinned sources before reuse, resume or training."""
+    hashes = {'dataset_sha256': sha256_file(config['dataset'])}
+    if 'data' in config:
+        spec = config['data']
+        hashes['validation_sha256'] = sha256_file(spec['validation_dataset'])
+        if any(hashes[k] != spec[k] for k in hashes):
+            raise ValueError('Dataset changed; regenerate data indices and use a new output directory.')
+    return hashes
+
+
+def explicit_partitions(config: dict, X: np.ndarray, y: np.ndarray):
+    spec = config['data']
+    if spec['validation_dataset'] == config['dataset']:
+        V, v = X, y
+    else:
+        V, v = cargar(spec['validation_dataset'], spec['validation_cache'])
+    train = np.asarray(spec['train_indices'], dtype=np.int64)
+    validation = np.asarray(spec['validation_indices'], dtype=np.int64)
+    if train.max() >= len(X) or validation.max() >= len(V):
+        raise ValueError('Explicit indices are outside the source dataset.')
+    # Exact image leakage is forbidden even when row indices or sources differ.
+    def hashes(rows):
+        return {hashlib.sha256(row.tobytes()).digest() for row in
+                np.ascontiguousarray(rows, dtype=np.float32) + np.float32(0.0)}
+    if hashes(X[train]) & hashes(V[validation]):
+        raise ValueError('Identical images appear in both train and validation.')
+    data_hashes(config)
+    return X[train], y[train], V[validation], v[validation], train, validation
+
+
 def run(config: dict, output_root: str | Path, *, resume: bool = False,
         initial_model: str | Path | None = None, pause_after: int | None = None,
         verbose: int = 0, metadata: dict | None = None,
@@ -225,9 +299,12 @@ def run(config: dict, output_root: str | Path, *, resume: bool = False,
     config_id = config_identity(c, initialization, path_root)
     run_id = f'{config_id}-seed-{c["model_seed"]}'
     directory = Path(output_root).resolve() / run_id
-    dataset_hash = sha256_file(c['dataset'])
+    source_hashes = data_hashes(c)
+    dataset_hash = source_hashes['dataset_sha256']
     identity = {'config': recorded, 'initialization': initialization, 'dataset_sha256': dataset_hash,
                 'metadata': metadata}
+    if 'data' in c:
+        identity['data_sources'] = source_hashes
     if resume:
         manifest = json.loads((directory / 'manifest.json').read_text(encoding='utf-8'))
         if manifest['identity'] != identity:
@@ -254,8 +331,11 @@ def run(config: dict, output_root: str | Path, *, resume: bool = False,
     # Detect source changes during loading, before training.
     if sha256_file(c['dataset']) != dataset_hash:
         raise ValueError('Dataset changed during loading.')
-    Xt, yt, Xv, yv, train_indices, validation_indices = particionar(
-        X, y, semilla=c['split_seed'], validation_fraction=c['validation_fraction'], return_indices=True)
+    if 'data' in c:
+        Xt, yt, Xv, yv, train_indices, validation_indices = explicit_partitions(c, X, y)
+    else:
+        Xt, yt, Xv, yv, train_indices, validation_indices = particionar(
+            X, y, semilla=c['split_seed'], validation_fraction=c['validation_fraction'], return_indices=True)
     split_hash = fingerprint({'train': train_indices.tolist(), 'validation': validation_indices.tolist()})
     if resume:
         with np.load(directory / 'split.npz', allow_pickle=False) as saved:
@@ -323,6 +403,10 @@ def run(config: dict, output_root: str | Path, *, resume: bool = False,
         report['model_sha256'] = sha256_file(directory / 'best_model.npz')
     if c['weight_logging']['enabled']:
         report['artifacts']['weights'] = 'weights.jsonl'
+    if 'data' in c:
+        report['dataset'].update(validation_source=recorded['data']['validation_dataset'],
+                                 validation_sha256=source_hashes['validation_sha256'],
+                                 partition_method='explicit_indices')
     if path_root is not None:
         report['paths_relative_to'] = Path(path_root).resolve().name
     write_history(directory / 'history.csv', history.to_dict())
