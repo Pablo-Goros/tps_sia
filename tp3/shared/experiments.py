@@ -232,6 +232,7 @@ def validate_data(spec: dict, dataset: str, cache: str) -> dict:
         raise ValueError('digits_test.csv is reserved for final evaluation.')
     if (result['validation_cache'] in (dataset, result['validation_dataset'])
             or cache == result['validation_dataset']
+            or (result['validation_dataset'] == dataset and result['validation_cache'] != cache)
             or Path(result['validation_cache']).suffix != '.npz'):
         raise ValueError('Validation cache must be a separate .npz file.')
     if result['validation_dataset'] == dataset:
@@ -354,6 +355,8 @@ def run(config: dict, output_root: str | Path, *, resume: bool = False,
         write_json(directory / 'manifest.json', {'schema_version': 1, 'identity': identity})
         np.savez_compressed(directory / 'split.npz', train=train_indices, validation=validation_indices)
     Xt, Xv = preprocess(Xt, model.preprocessing), preprocess(Xv, model.preprocessing)
+    if 'data' in c:
+        data_hashes(c)
     remaining = c['epochs'] - model.epochs_completed
     if remaining <= 0:
         raise ValueError('No epochs remain in the total budget.')

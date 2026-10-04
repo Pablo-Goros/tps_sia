@@ -174,6 +174,7 @@ class Development:
         for architecture in p['stages']['architectures']['architectures']:
             self.config(self.reference, architecture=architecture)
         self.identity = {'schema_version': 1, 'protocol': p['protocol'],
+                         'primary_seed': p['primary_seed'],
                          'search_sha256': protocol_sha256(self.path),
                          'reference_selection': portable_path(reference, self.root),
                          'reference_sha256': sha256_file(reference),

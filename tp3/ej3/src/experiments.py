@@ -70,8 +70,14 @@ class Search:
                 variants.append(base['architecture'])
             return [(d.config(base, architecture=value), 'architecture-' + '-'.join(map(str, value)))
                     for value in variants]
-        sizes = sorted(set(spec['batch_sizes'] + [base['batch_size']]))
-        return [(d.config(base, strategy='mini_batch', batch_size=size), f'batch-{size}') for size in sizes]
+        sizes = list(spec['batch_sizes'])
+        if base['strategy'] == 'mini_batch':
+            sizes.append(base['batch_size'])
+        jobs = [(d.config(base, strategy='mini_batch', batch_size=size), f'batch-{size}')
+                for size in sorted(set(sizes))]
+        if base['strategy'] != 'mini_batch':
+            jobs.append((d.config(base), 'incumbent-training-strategy'))
+        return jobs
 
     def run_stage(self, stage, dry_run=False):
         if stage not in STAGES:
@@ -128,6 +134,8 @@ class Search:
         overrides = read_json(path)
         if not isinstance(overrides, dict):
             raise ValueError('Experiment must be a JSON configuration object.')
+        if set(overrides) & {'dataset', 'cache', 'data', 'model_seed'}:
+            raise ValueError('Custom jobs use the fixed ej3 partition; choose the model seed with --seed.')
         base = copy.deepcopy(self.development.reference)
         for key, value in overrides.items():
             if key in ('optimizer', 'stopping', 'preprocessing', 'activation_parameters', 'weight_logging'):
