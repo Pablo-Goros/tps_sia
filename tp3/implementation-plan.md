@@ -2,6 +2,23 @@
 
 Fecha: 2026-10-03. Alcance: continuar la implementación existente y producir experimentos, evaluación y análisis reproducibles para ambos ejercicios.
 
+## Alcance vigente del ejercicio 3
+
+El usuario acotó esta implementación a dejar disponibles los comandos y las
+configuraciones para correr e iterar después. El código de controles, búsqueda por
+etapas, corridas puntuales, estudio de factores y análisis está implementado; las
+corridas académicas de ej3 no se ejecutaron.
+
+Quedan fuera de este alcance la evaluación final en test, el reentrenamiento para
+entrega, las conclusiones del informe y las extensiones opcionales, incluidas L2,
+augmentation, ruido e interpretabilidad. Las propuestas históricas de los pasos 8
+y 9 que aparecen más abajo deben leerse con esta restricción.
+
+El flujo vigente se documenta en [ej3/README.md](ej3/README.md). La selección v2 de
+ej2 debe recuperarse o elegirse otra referencia explícitamente; no se sustituye por
+v1 en forma automática. Los chequeos nuevos usan datos y mediciones sintéticos,
+con entrenamiento bloqueado, y no son evidencia de rendimiento académico.
+
 ## 1. Requisitos y punto de partida
 
 La autoridad de los requisitos es el [enunciado oficial, OFF-010](../../sources/extracted/OFF-010.md), pp. 4–5, junto con su [versión local](Enunciado%20TP3.md). El ejercicio 2 requiere clasificar los diez dígitos y analizar variantes de tasa de aprendizaje, arquitectura y optimización. El ejercicio 3 requiere buscar una accuracy ≥ 98 % con los nuevos datos y explicar tanto las mejoras técnicas como los factores propios del conjunto de datos. `digits_test.csv` se reserva para generalización en ambos ejercicios.
@@ -201,8 +218,8 @@ Una vez completos los requisitos y su análisis, considerar el opcional de ruido
 - [x] Paso 7: comparaciones y selección del ejercicio 2.
 - [x] Paso 7b: protocolo v2 de un factor a la vez para el ejercicio 2 — implementado y ejecutado (58 corridas; selección en `ej2/results/v2/selection.json`).
 - [x] Paso 7c: apéndice de la búsqueda v2 (ReLU en la configuración final; etapas 3–5 con tres semillas) y evaluación final del ejercicio 2 sobre `digits_test.csv`.
-- [ ] Paso 8: datos, experimentos y selección del ejercicio 3 — **parcial**: datos y partición (puntos 1–3) hechos; reentrenamientos, búsqueda y selección (puntos 4–9) sin hacer.
-- [ ] Paso 9: evaluación final e informes.
+- [x] Código obligatorio del paso 8: datos, controles, búsqueda, selección de desarrollo y estudio de factores implementados. Corridas académicas pendientes de ejecución por el usuario; extensiones opcionales excluidas.
+- [ ] Paso 9: evaluación final e informes — fuera del alcance vigente de esta implementación.
 - [ ] Extensiones opcionales, después de completar lo obligatorio.
 
 Verificación del paso 3a (2026-10-03): chequeos de MLP/XOR, derivadas,
@@ -353,3 +370,15 @@ evaluó una sola vez el checkpoint candidato (SHA-256 verificado) sobre `digits_
 informando juntas la accuracy global y la accuracy sin el 8; se niega a repetir la
 evaluación sin `--overwrite`. Ningún archivo de la búsqueda v2 se modificó. El paso 9
 (informes y entrega de ambos ejercicios) sigue abierto.
+
+Implementación del flujo obligatorio de ej3 (2026-10-03):
+`shared/staged_search.py` reúne reglas, materialización y ejecución de corridas,
+con reexports que preservan el comando de ej2. El runner admite índices explícitos
+y validación de otro archivo, verifica solapamiento de imágenes y registra fuentes.
+`ej3/configs/search.json`, `src/protocol.py` y `src/experiments.py` preparan controles,
+tasas, arquitecturas, lotes, confirmación y corridas puntuales. `src/factor_study.py`
+prepara comparaciones de dataset, cobertura del 8, tamaño y configuración sobre
+una validación común. `src/analysis.py` produce tablas y figuras desde JSON guardados,
+sin cargar datasets ni modelos. Se verificaron reglas y compatibilidad de ej2,
+y el flujo de ej3 con artefactos sintéticos y entrenamiento bloqueado. No se
+entrenó ningún modelo real ni se leyó test en esta implementación.

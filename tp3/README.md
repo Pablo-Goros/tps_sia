@@ -216,4 +216,8 @@ reentrenamiento. La evaluación final permanece para el paso 9.
 
 ## Ejercicio 3 — Dígitos con `more_digits.csv`
 
-Pendiente.
+Implementados los datos y el [flujo de desarrollo](ej3/README.md): controles,
+búsqueda por tasas/arquitecturas/lotes, confirmación con semillas comunes,
+corridas puntuales, reanudación, estudio de factores y análisis desde resultados
+guardados. Los experimentos todavía no se ejecutaron. No incluye evaluación
+final en test, reentrenamiento para entrega ni técnicas opcionales.

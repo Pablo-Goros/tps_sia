@@ -4,3 +4,7 @@ tp3/*/cache/
 tp3/ej2/results/v2/
 tp3/ej2/results/v2_appendix/
 __pycache__/
+
+tp3/ej3/results/search/
+tp3/ej3/results/factors/
+tp3/ej3/results/analysis/
