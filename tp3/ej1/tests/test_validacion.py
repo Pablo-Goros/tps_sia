@@ -79,6 +79,20 @@ def test_perceptron_tanh_ajusta_tanh():
     assert abs(m.w[0]) < 1e-2 and abs(m.w[1] - 1.0) < 1e-2
 
 
+def test_perceptron_relu_ajusta_relu():
+    """Opcional del enunciado: 50 muestras de y = max(0, 2x + 1) con activación ReLU."""
+    rng = np.random.default_rng(4)
+    X = rng.uniform(-3, 3, size=(50, 1))
+    y = np.maximum(0.0, 2.0 * X[:, 0] + 1.0)
+    m = PerceptronSimple(1, "relu", eta=0.01, tamano_lote=1, semilla=0)
+    m.w = np.array([0.5, 0.5])  # arranca activa: con h < 0 en todas, la ReLU no recibe gradiente
+    h = m.entrenar(X, y, epocas=500, mezclar=True)
+    print(f"  ok  relu sobre y=max(0, 2x+1): MSE={h.mse[-1]:.2e}, "
+          f"w=[{m.w[0]:.4f}, {m.w[1]:.4f}] (esperado [1, 2])")
+    assert h.mse[-1] < 1e-6
+    assert abs(m.w[0] - 1.0) < 1e-2 and abs(m.w[1] - 2.0) < 1e-2
+
+
 def test_salida_logistica_dentro_de_0_1():
     rng = np.random.default_rng(2)
     X = rng.normal(0, 50, size=(500, 4))  # entradas grandes a propósito
@@ -104,6 +118,7 @@ if __name__ == "__main__":
     for fn in (test_derivadas_numericas, test_escalon_aprende_and, test_escalon_no_puede_con_xor,
                test_perceptron_lineal_ajusta_una_recta,
                test_perceptron_logistico_recupera_su_propia_sigmoide, test_perceptron_tanh_ajusta_tanh,
+               test_perceptron_relu_ajusta_relu,
                test_salida_logistica_dentro_de_0_1, test_guardar_y_cargar):
         print(f"\n== {fn.__name__}")
         fn()

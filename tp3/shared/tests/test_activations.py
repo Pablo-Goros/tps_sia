@@ -18,8 +18,27 @@ def test_derivadas_numericas():
             print(f"  ok  theta'({nombre}, beta={beta})  error max = {err:.2e}")
 
 
+def test_derivada_relu():
+    """ReLU: theta'(h) vs. diferencia centrada fuera de h = 0, donde no es derivable.
+
+    En h = 0 la implementación usa la convención theta'(0) = 0 (la muestra no corrige pesos).
+    """
+    act = construir_activacion("relu")
+    h = np.linspace(-3, 3, 61)
+    h = h[np.abs(h) > 1e-3]
+    eps = 1e-6
+    analitica = act.dtheta(h, act.theta(h))
+    numerica = (act.theta(h + eps) - act.theta(h - eps)) / (2 * eps)
+    err = np.max(np.abs(analitica - numerica))
+    assert err < 1e-6, f"relu: error {err}"
+    cero = np.array([0.0])
+    assert act.theta(cero)[0] == 0.0 and act.dtheta(cero, act.theta(cero))[0] == 0.0
+    print(f"  ok  theta'(relu)  error max = {err:.2e}  (theta'(0) = 0 por convención)")
+
+
 def main() -> None:
     test_derivadas_numericas()
+    test_derivada_relu()
     print("Todas las validaciones de activaciones pasaron.")
 
 

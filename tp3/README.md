@@ -14,8 +14,8 @@ python3 -m unittest tps_sia.tp3.shared.tests.test_metrics tps_sia.tp3.shared.tes
 ```
 
 Ejercicios de validación del enunciado: AND con perceptrón escalón, XOR (no resoluble con un
-perceptrón simple), recta con el lineal, `y = tanh(x)` y sigmoide con el no lineal, y
-chequeo numérico de las derivadas.
+perceptrón simple), recta con el lineal, `y = tanh(x)` y sigmoide con el no lineal,
+`y = max(0, 2x + 1)` con ReLU (opcional), y chequeo numérico de las derivadas.
 
 ## Organización del código
 
@@ -65,9 +65,13 @@ python -m tps_sia.tp3.ej1.src.analisis_repeticiones          # análisis de las 
 # Generalización (k-fold)
 python -m tps_sia.tp3.ej1.src.experimentos_generalizacion    # ≈ 8 min
 python -m tps_sia.tp3.ej1.src.graficos_generalizacion        # figuras y tabla
+
+# Opcional: ReLU
+python -m tps_sia.tp3.ej1.src.experimentos_relu              # ≈ 5 min
+python -m tps_sia.tp3.ej1.src.graficos_relu                  # figuras y tabla
 ```
 
-Salidas en `ej1/salidas/aprendizaje/` y `ej1/salidas/generalizacion/`,
+Salidas en `ej1/salidas/aprendizaje/`, `ej1/salidas/generalizacion/` y `ej1/salidas/relu/`,
 resueltas desde cada módulo sin depender del directorio de trabajo.
 
 ### Datos
@@ -182,6 +186,27 @@ lineal, con el mismo recall, sólo alcanza una precision de 0.62.
 
 El modelo final se entrena con las 7500 muestras y se guarda en
 `ej1/salidas/generalizacion/modelo_final.json`, con pesos, normalización y umbral.
+
+### Opcional: activación ReLU
+
+θ(h) = max(0, h), con θ′(h) = 1 si h > 0 y 0 si no. Se repitieron los estudios de
+aprendizaje y generalización con los mismos protocolos.
+
+| Modelo | MSE | R² | Fuera de [0,1] | Recall | Precision | F1 | Diapositiva 30 |
+|---|---|---|---|---|---|---|---|
+| Lineal | 0.0261 | 0.715 | 6.0 % | 0.952 | 0.615 | 0.747 | Underfitting |
+| **Logística** | **0.0109** | **0.881** | **0 %** | 0.951 | **0.779** | **0.856** | Buen modelo |
+| ReLU | 0.0258 | 0.718 | 4.6 % | 0.950 | 0.607 | 0.740 | Underfitting |
+
+#### ¿Qué efecto tiene en las conclusiones anteriores?
+
+Ninguna conclusión cambia: la ReLU se comporta casi igual que el perceptrón lineal. Con un
+η adecuado, sólo el 2 % de las muestras queda con h ≤ 0, así que en el resto es la
+identidad. Corta las salidas negativas en 0, pero sigue pasándose de 1 en el 4.6 % de los
+casos. Mantiene el underfitting del lineal (R² = 0.718) y satura su capacidad igual de
+rápido, en 5 épocas. Su saturación propia es otra: con η grande la ReLU "muere", con 94 % de
+muestras sin gradiente. En generalización empata con el lineal, así que la logística sigue
+siendo la elegida.
 
 ---
 
