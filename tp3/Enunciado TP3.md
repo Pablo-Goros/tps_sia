@@ -3,8 +3,6 @@
 **Sistemas de Inteligencia Artificial — ITBA**  
 **2026**
 
-Fuente: [Enunciado TP3 (1).pdf](Enunciado%20TP3%20(1).pdf), páginas 1–5. Se conservaron los requisitos y preguntas; el texto se reorganizó para facilitar la lectura.
-
 ## Ejercicios de validación
 
 Estos ejercicios sirven para validar las herramientas implementadas:
