@@ -97,13 +97,36 @@ def _diapositiva_30_modelos(R):
 
 
 # --------------------------------------------------------------------------- #
+def g_kfold5(R):
+    """Fig. 11a: recall, precision y F1 por fold con k = 5 estratificado (vista inicial)."""
+    G = R["g1_estrategia"]["configuraciones"]
+    g = next(x for x in G if x["k"] == 5 and x["estrategia"] == "estratificada")
+    fig, ax = plt.subplots(figsize=(7.8, 4.4))
+    rng = np.random.default_rng(0)
+    for i, ((met, nombre), color) in enumerate(zip(METRICAS, (C_ESTRAT, C_PRECISION, C_LOGIS))):
+        v = np.array([f[met] for f in g["folds"]])
+        ax.scatter(i + rng.uniform(-0.15, 0.15, len(v)), v, s=34, color=color, alpha=0.75,
+                   lw=0, zorder=3)
+        ax.hlines(v.mean(), i - 0.3, i + 0.3, color=TINTA, lw=2.2, zorder=4)
+        ax.text(i + 0.34, v.mean(), f"{v.mean():.3f}\n± {np.std(v, ddof=1):.3f}",
+                va="center", fontsize=9.5, color=TINTA)
+    ax.set_xticks(range(3), [n for _, n in METRICAS])
+    ax.set_xlim(-0.5, 2.85)
+    ax.set_ylabel("Valor en el fold de validación")
+    ax.grid(axis="x", visible=False)
+    ax.set_title(f"k-fold con k = 5 estratificado: {len(g['folds'])} folds "
+                 f"(5 × {len(g['folds']) // 5} repeticiones)", loc="left", fontsize=11.5)
+    _guardar(fig, "11a_kfold5_metricas.png")
+
+
 def g_estrategia(R):
-    """Fig. 11: recall y precision de cada fold, según k y forma de partir."""
+    """Fig. 11: recall, precision y F1 de cada fold, según k y forma de partir."""
     G = R["g1_estrategia"]["configuraciones"]
     ks = sorted({g["k"] for g in G})
-    fig, axes = plt.subplots(1, 2, figsize=(12, 4.4))
+    fig, axes = plt.subplots(1, 3, figsize=(16, 4.4))
+    fig.subplots_adjust(wspace=0.25)
     rng = np.random.default_rng(0)
-    for ax, (met, nombre) in zip(axes, METRICAS[:2]):
+    for ax, (met, nombre) in zip(axes, METRICAS):
         for i, k in enumerate(ks):
             for j, (estrategia, color) in enumerate((("aleatoria", C_REF), ("estratificada", C_ESTRAT))):
                 g = next(x for x in G if x["k"] == k and x["estrategia"] == estrategia)
@@ -121,7 +144,9 @@ def g_estrategia(R):
         ax.margins(y=0.12)
     axes[0].set_title("Recall de cada fold (el umbral apunta a ≥ 95 %)", loc="left", fontsize=11)
     axes[1].set_title("Precision de cada fold", loc="left", fontsize=11)
-    axes[0].legend(fontsize=9, loc="lower left")
+    axes[2].set_title("F1 de cada fold", loc="left", fontsize=11)
+    fig.legend(*axes[0].get_legend_handles_labels(), fontsize=9.5, loc="upper right",
+               ncol=2, bbox_to_anchor=(0.99, 1.07))
     fig.suptitle("¿Qué k y cómo partir? Cada punto es un fold (3 repeticiones); "
                  "la línea es la media que reporta la validación cruzada",
                  x=0.012, ha="left", fontsize=12.5, color=TINTA, y=1.04)
@@ -463,7 +488,7 @@ def main():
     with open(os.path.join(DIR, "resultados.json")) as fh:
         R = json.load(fh)
     print("Generando figuras...")
-    g_estrategia(R); g_tamano(R); g_grilla(R); g_curvas(R); g_umbral(R); g_evaluacion(R)
+    g_kfold5(R); g_estrategia(R); g_tamano(R); g_grilla(R); g_curvas(R); g_umbral(R); g_evaluacion(R)
     g_entrenamiento_vs_prueba(R)
     tabla(R)
 
