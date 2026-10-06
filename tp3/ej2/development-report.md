@@ -1,237 +1,238 @@
-# Ejercicio 2 — Comparación y selección durante el desarrollo
+# Ejercicio 2 — Desarrollo, selección y generalización
 
-Este análisis corresponde al paso 7 del [plan](../implementation-plan.md).
-Responde las preguntas (a) y (b) del [enunciado](../Enunciado%20TP3.md)
-con evidencia de desarrollo. La evaluación sobre `digits_test.csv`
-corresponde al paso 9 y sigue reservada.
+Responde las preguntas (a) y (b) del [enunciado](../Enunciado%20TP3.md) con la búsqueda
+por etapas definida en [`configs/search_v2.json`](configs/search_v2.json) y resume la
+evaluación final sobre `digits_test.csv`. Los artefactos están en `results/v2/` y
+`results/v2_appendix/`: se versionan las decisiones de cada etapa, las métricas e
+historias de cada corrida, las figuras, `selection.json`, la evaluación final y el modelo
+candidato. Los checkpoints y los modelos del resto de las corridas (unos 550 MB) están en
+el Drive del equipo. Los comandos para reproducirlos están en el
+[README del ejercicio](README.md#paso-7--búsqueda-por-etapas-un-factor-a-la-vez).
 
 ## (a) ¿Cómo se evalúa el desempeño del sistema?
 
-Se mantiene una partición estratificada 80/20 con semilla de partición 42:
-9960 imágenes para ajustar pesos y biases, y 2489 para comparar
-hiperparámetros. Todas las comparaciones usan exactamente las mismas filas;
-los índices, SHA-256 del CSV y huella de la partición quedan junto a cada
-corrida. Cambiar la semilla del modelo cambia la inicialización y el orden
-aleatorio de los lotes, conservando la partición.
+**Datos.** `digits.csv` se divide una única vez en una partición estratificada 80/20 con
+semilla 42: 9960 imágenes para ajustar pesos y biases y 2489 para comparar
+hiperparámetros. Todas las comparaciones usan exactamente las mismas filas; cada corrida
+guarda sus índices, el SHA-256 del CSV y la huella de la partición. La semilla del modelo
+cambia sólo la inicialización y el orden de los lotes. `digits_test.csv` no participa del
+desarrollo: se usa una única vez al final, como el "mundo real" del enunciado.
 
-La accuracy mide la proporción de etiquetas correctas mediante argmax sobre
-las diez probabilidades de salida. La cross-entropy mide también la
-probabilidad asignada a la etiqueta correcta y es el costo optimizado:
+**Costo optimizado.** La salida es softmax sobre diez neuronas y el costo es la
+cross-entropy media por muestra:
 
 \[
 L=-\frac{1}{N}\sum_{i=1}^{N}\sum_{k=0}^{9}y_{ik}\log p_{ik},
 \qquad p_{ik}=\frac{e^{z_{ik}}}{\sum_j e^{z_{ij}}}.
 \]
 
-La implementación usa log-softmax estable y el delta de salida es
-`(p-y)/N`, donde N es el tamaño real del lote. Cada gradiente es una media;
-SGD actualiza `W ← W − eta * grad(W)` y análogamente los biases.
-Los deltas ocultos propagan la sensibilidad de las capas posteriores y
-multiplican por la derivada local de ReLU. El último lote incompleto usa
-su propio tamaño, evitando alterar el significado de la tasa.
+Con esta combinación el delta de salida es `(p − y)/N`, con N el tamaño real del lote.
+En cada capa oculta, el delta es la sensibilidad del costo respecto de la preactivación:
+la suma de los deltas de la capa siguiente ponderada por sus pesos, multiplicada por la
+derivada local de la activación (`1 − tanh²(h)` para tanh con β = 1). La actualización
+resta el gradiente escalado por la tasa; con momentum clásico,
+`v ← μ·v + g` y `W ← W − η·v` (μ = 0.9).
 
-Se registran precision, recall y F1 por dígito, macro-F1 y balanced accuracy.
-Estas dos últimas promedian únicamente las clases con soporte real y
-permiten observar el dígito 5 pese a su baja frecuencia. La matriz de
-confusión tiene etiquetas reales en filas y predicciones en columnas;
-su versión normalizada divide cada fila por su soporte. La validación
-contiene 54 ejemplos del 5 y ninguno del 8. Recall del 8 es no evaluable,
-no cero: ninguna de estas métricas demuestra que la red reconozca el 8.
-Una precision sin predicciones se registra como `null`.
+**Métricas de evaluación.** La accuracy (argmax de las diez probabilidades) es el
+criterio principal, porque es la métrica que pide el enunciado. La cross-entropy de
+validación desempata y además elige el checkpoint de cada corrida. Se registran
+precision, recall y F1 por dígito, macro-F1, balanced accuracy y la matriz de confusión
+(filas: dígito real). La validación tiene 54 ejemplos del 5 y **ningún 8**: el recall del
+8 no es evaluable en desarrollo, y ninguna métrica de validación demuestra que la red
+reconozca ese dígito.
 
-Se comparan curvas de costo y accuracy de train y validación, época del
-checkpoint elegido, número de parámetros y duración. Cada corrida tiene
-un máximo de 30 épocas, epsilon 0 y ninguna parada por paciencia. El
-checkpoint de desarrollo se elige por la menor cross-entropy de validación,
-que puede ocurrir antes de la época 30. La confirmación informa media y
-desvío poblacional sobre las semillas 42, 0 y 1; tres repeticiones no
-constituyen un intervalo de confianza ni eliminan el sesgo de seleccionar
-hiperparámetros repetidamente sobre una misma validación.
+**Entrenamiento y parada.** Mini-batch con mezcla por época; hasta 100 épocas con parada
+temprana por cross-entropy de validación (paciencia 10, `min_delta` 0) y checkpoint de la
+mejor época. Agotar las 100 épocas se informa como "no convergió", no como una mala
+configuración.
+
+**Comparación entre configuraciones.** Con una semilla se ordena por accuracy de
+validación, luego cross-entropy, cantidad de parámetros e identificador. Con varias
+semillas se usan medias, y una configuración se considera mejor sólo si su ventaja media
+supera 2σ, con σ el desvío muestral agrupado `sqrt((s_a² + s_b²)/2)`. Todas las reglas se
+fijaron en `search_v2.json` antes de correr.
+
+**Generalización.** El modelo seleccionado se evalúa una sola vez sobre `digits_test.csv`,
+informando juntas la accuracy global y la accuracy sin el 8 (sección final).
 
 ## (b) ¿Qué variantes se prueban para encontrar la solución?
 
-El protocolo queda guardado antes de entrenar en
-[protocol.json](results/protocol.json). Una corrida corta de dos épocas
-estima el costo; sus métricas no participan en la selección. No se amplió
-la grilla ni el presupuesto usando resultados del test.
+Se varía **un factor por etapa**; el resto queda en el mejor valor de la etapa anterior.
+Base: `[784,128,10]`, lote 32, inicialización automática (Xavier para tanh y la salida,
+He para capas ocultas ReLU), píxeles sin transformar. Las etapas 0 a 5 usan la semilla
+42; la 6 y la 7, varias semillas. En total se entrenaron 58 corridas.
 
-1. Tasas y optimizadores: SGD y momentum con `1e-5`, `1e-4`, `1e-3`,
-   `1e-2`; Adam con `1e-5`, `1e-4`, `1e-3`. Se mantienen arquitectura
-   `[784,128,10]`, ReLU, lote 32 y semilla 42. El baseline es SGD `1e-2`.
-2. Arquitecturas: `[784,64,10]`, `[784,128,10]`, `[784,256,10]` y
-   `[784,128,64,10]`, con las mejores tasas de los dos optimizadores
-   mejor ubicados. Se reutilizan las corridas equivalentes de 128 neuronas.
-3. Confirmación: las tres mejores configuraciones del conjunto explorado,
-   más el baseline como control, con las mismas tres semillas. Se reutiliza
-   la primera semilla. La selección ordena por accuracy media descendente,
-   cross-entropy media ascendente y número de parámetros ascendente;
-   un identificador resuelve empates exactos de forma determinista.
+### Etapa 0 — Activación (SGD)
 
-Momentum usa `v ← 0.9*v − eta*g` y `W ← W+v`: acumula dirección de los
-pasos anteriores. Adam usa medias exponenciales de gradientes y cuadrados,
-corrección del sesgo inicial y normalización por la raíz del segundo
-momento, con beta1 0.9, beta2 0.999 y epsilon del optimizador `1e-8`.
-Las tasas se comparan dentro de cada mecanismo: la misma tasa numérica
-no representa el mismo tamaño de paso efectivo. El presupuesto común
-permite observar las diferencias dentro de 30 épocas; no garantiza que
-cada configuración alcance su mejor solución posible ni que use el mismo
-tiempo de cómputo.
-
-ReLU permite una derivada no saturada para preactivaciones positivas;
-para las negativas su derivada es cero. La salida softmax produce una
-distribución compatible con objetivos one-hot y cross-entropy. La
-inicialización `auto` usa He normal en las ocultas ReLU y Xavier normal
-en la salida, con biases cero: las escalas dependen del tamaño de las
-capas y los pesos aleatorios rompen la simetría entre neuronas. Los
-píxeles originales están en `[0,1]`, por lo que se conserva el
-preprocesamiento identidad. Los mini-batches de 32 promedian gradientes
-y se mezclan reproduciblemente cada época; permiten más actualizaciones
-que batch sin la variabilidad de actualizar tras cada imagen. Estas son
-condiciones controladas del estudio, no conclusiones de comparaciones
-que hayan variado activación, inicialización o tamaño de lote.
-
-## Evidencia y selección
-
-Las tablas completas y las figuras se regeneran desde archivos guardados
-con el comando `search_analysis` documentado en el [README](README.md).
-[comparison.md](results/analysis/comparison.md) reúne las tres etapas,
-las métricas por clase del candidato y las curvas de entrenamiento.
-Los resultados de cada corrida incluyen configuración, entorno, duración,
-historia, pesos recargables y hashes.
-
-Los tiempos de pared incluyen entrenamiento y checkpoints; se registraron
-`OPENBLAS_NUM_THREADS=1` y `OMP_NUM_THREADS=1`. Algunas corridas se ejecutaron
-simultáneamente, por lo que la contención del equipo impide interpretar
-sus duraciones como una comparación aislada de eficiencia. Los tiempos
-no intervienen en la regla de selección.
-
-### Tasas pequeñas y evolución del aprendizaje
-
-Con SGD, las tasas `1e-5`, `1e-4`, `1e-3` y `1e-2` alcanzan respectivamente
-21,98 %, 74,53 %, 89,59 % y 94,38 % de accuracy en sus checkpoints de
-validación. En las cuatro corridas el menor costo se obtiene en la época 30.
-Las curvas de las tasas pequeñas todavía descienden: el resultado indica
-convergencia lenta bajo este presupuesto, no incapacidad de esa tasa para
-aprender con más actualizaciones. No se extendió su presupuesto porque el
-objetivo de esta etapa es comparar soluciones dentro de un costo acotado.
-Momentum `1e-5` obtiene 74,53 %, cercano a SGD `1e-4`: acumular pasos con
-coeficiente 0.9 cambia la escala efectiva de actualización.
-
-Adam `1e-3`, con la arquitectura de referencia, elige la época 9:
-accuracy de train 99,73 %, de validación 96,63 %, costo de train 0,0203
-frente a 0,1239 de validación. A la época 30 alcanza 100 % en train y
-97,11 % en validación, pero su costo de validación sube a 0,1688. Hay
-sobreajuste en cross-entropy: pese a clasificar más ejemplos correctamente,
-el deterioro de las probabilidades de algunos errores aumenta el costo.
-Por eso se distingue seleccionar por costo de elegir la máxima accuracy
-observada en una época. El baseline termina con 95,97 % en train y
-94,38 % en validación, y costo 0,1539 frente a 0,1950: sigue mejorando con
-una brecha menor, aunque su desempeño dentro del presupuesto es inferior.
-No basta esa brecha para afirmar que su arquitectura carezca de capacidad;
-el estudio posterior separa arquitectura y velocidad de optimización.
-
-Las fórmulas y convenciones descritas corresponden a la implementación de
-[MLP](../shared/mlp.py), [optimizadores](../shared/optimizers.py) y
-[métricas](../shared/metrics.py). Las configuraciones efectivas, incluyendo
-inicialización por capa y reducción de los gradientes, se conservan en
-los resultados; las curvas no se reconstruyen a partir de explicaciones.
-
-### Arquitecturas bajo condiciones controladas
-
-| Ocultas | Parámetros | Momentum `1e-2`: accuracy / CE | Adam `1e-3`: accuracy / CE |
-|---|---:|---:|---:|
-| 64 | 50 890 | 96,30 % / 0,1452 | 96,54 % / 0,1432 |
-| 128 | 101 770 | 96,83 % / 0,1258 | 96,63 % / 0,1239 |
-| 256 | 203 530 | 96,67 % / 0,1265 | 96,54 % / 0,1213 |
-| 128, 64 | 109 386 | 96,54 % / 0,1281 | 96,71 % / 0,1261 |
-
-La tabla usa exclusivamente semilla 42 y el checkpoint elegido por costo.
-Duplicar el ancho de 128 a 256 aproximadamente duplica los parámetros y
-no mejora la accuracy de ese checkpoint en ninguno de los dos optimizadores.
-Con Adam, sí mejora su cross-entropy: arquitectura y criterio de desempeño
-no se reducen a una única noción de «mejor». La profundidad `[128,64]`
-aumenta los parámetros sólo un 7,5 % respecto de `[128]` y mejora la
-accuracy con Adam, pero empeora con momentum. No hay evidencia de que
-más capas o neuronas mejoren universalmente el resultado.
-
-Las diferencias entre las tres mejores variantes son pequeñas: se
-confirman momentum `[128]`, Adam `[128,64]` y momentum `[256]` con las
-mismas semillas antes de decidir. El baseline SGD `[128]` se confirma
-como control. La búsqueda no demuestra un óptimo global: las tasas de
-arquitectura fueron elegidas primero en la red de referencia y podrían
-cambiar al explorar otros presupuestos o arquitecturas.
-
-Se eligió cross-entropy para optimizar la probabilidad de la clase correcta.
-El costo cuadrático disponible en el núcleo también permite entrenar, pero
-mide diferencias de probabilidades y tiene otra derivada. La combinación
-softmax/cross-entropy usada aquí produce directamente el delta `(p-y)/N`;
-no se aplica la derivada de una logística independiente a cada salida.
-El backprop se calcula con operaciones matriciales explícitas, sin
-frameworks de entrenamiento ni diferenciación automática.
-
-### Confirmación y configuración congelada
-
-| Configuración | Accuracy media ± desvío (pp) | CE media | Macro-F1 | Balanced accuracy | Épocas elegidas |
+| Activación | Tasa | Acc. val. (%) | CE val. | Mejor época | Parada |
 |---|---:|---:|---:|---:|---|
-| momentum-0.01-hidden-256 | 96.81 % ± 0.24 | 0.1219 | 0.9624 | 0.9612 | [16, 17, 22] |
-| momentum-0.01 | 96.68 % ± 0.11 | 0.1259 | 0.9595 | 0.9589 | [21, 20, 17] |
-| adam-0.001-hidden-128-64 | 96.54 % ± 0.13 | 0.1288 | 0.9588 | 0.9554 | [4, 5, 7] |
-| baseline | 94.46 % ± 0.09 | 0.1921 | 0.9347 | 0.9341 | [30, 30, 30] |
+| tanh | 0.01 | 95.38 | 0.164 | 100 | agotó 100 épocas |
+| **tanh** | **0.1** | **96.63** | 0.135 | 31 | temprana |
+| ReLU | 0.01 | 95.90 | 0.146 | 99 | agotó 100 épocas |
+| ReLU | 0.1 | 96.67 | 0.124 | 21 | temprana |
 
-La configuración elegida es `[784,256,10]`, ReLU, salida softmax,
-cross-entropy, momentum 0.9 con tasa 0.01, mini-batch de 32, shuffle,
-inicialización automática He/Xavier y preprocesamiento identidad.
-Tiene 203 530 parámetros. Su ventaja media sobre momentum con 128 neuronas
-es 0,13 puntos porcentuales, con el doble de parámetros y mayor costo de
-ejecución. La regla fijada prioriza accuracy y elige esta configuración;
-la pequeña diferencia y tres semillas no demuestran superioridad estadística.
-La red de 128 sigue siendo una referencia útil del compromiso entre
-desempeño y tamaño. Frente al baseline, la mejora media es 2,36 puntos
-porcentuales sobre esta misma validación.
+La mejor ReLU supera a la mejor tanh por 0.04 pp (una muestra de validación). Por la regla
+pre-registrada, una diferencia menor a 0.3 pp es empate y se elige tanh. La decisión se
+apoya en esa regla, no en un desempeño mejor: ReLU tiene menor cross-entropy. El apéndice
+revisa esta elección con cinco semillas.
 
-El candidato usa la semilla predefinida 42 y el checkpoint de la época 16:
-99,88 % de accuracy de train, 96,67 % de validación y costos 0,0187 y
-0,1265. La brecha entre costos evidencia sobreajuste; continuar hasta la
-época 30 reduce el costo de train a 0,0059 y aumenta el de validación a
-0,1333. La selección del checkpoint conserva la mejor época por costo.
+### Etapa 1 — Tasa de aprendizaje por optimizador
 
-El dígito 5 obtiene precision 92,31 %, recall 88,89 % y F1 90,57 %:
-48 aciertos de 54 imágenes. Los seis errores se predicen como 1 (uno),
-3 (dos) y 9 (tres). Cada error representa 1,85 puntos de recall en esta
-clase; el soporte reducido limita la precisión de la estimación.
-El dígito 8 tiene soporte cero y métricas no evaluables. Macro-F1 y
-balanced accuracy de la confirmación no lo incluyen.
+Accuracy de validación (%), semilla 42. Cuando la mejor tasa caía en un extremo de la
+grilla, se agregó el siguiente valor de la secuencia 1-3-10 hasta encontrar uno peor.
 
-La selección, evidencias, hashes y ruta del modelo se guardan en
-[selection.json](results/selection.json). El candidato recargable está en
-[best_model.npz](results/runs/0231e346d45648ae-seed-42/best_model.npz). La mediana de las mejores
-épocas `[16,17,22]` es **17**: queda registrada como presupuesto de un
-eventual reentrenamiento con toda la data de desarrollo en el paso 9.
-El candidato preparado en este paso es el checkpoint de desarrollo.
+| SGD | | Momentum (μ = 0.9) | | RMSProp | | Adam | |
+|---:|---:|---:|---:|---:|---:|---:|---:|
+| 0.001 | 92.17 | 0.0001 | 92.17 | 0.0001 | 96.26 | 0.0001 | 96.06 |
+| 0.01 | 95.38 | 0.001 | 95.38 | 0.0003 | 96.50 | 0.0003 | 96.26 |
+| 0.05 | 96.54 | 0.01 | 96.71 | **0.001** | **96.95** | **0.001** | **96.75** |
+| 0.1 | 96.63 | 0.05 | 96.83 | 0.003 | 96.22 | 0.003 | 96.67 |
+| **0.3** | **96.95** | **0.1** | **97.47** | | | | |
+| 1.0 | 96.26 | 0.3 | 90.68 | | | | |
 
-![Comparación de tasas y optimizadores](results/analysis/rates.png)
+![Accuracy de validación según la tasa, por optimizador](results/v2/analysis/stage_1_rates.png)
 
-![Comparación de arquitecturas](results/analysis/architectures.png)
+- **Extensiones de borde:** SGD 0.1 → 0.3 → 1.0 y momentum 0.05 → 0.1 → 0.3. Todas las
+  mejores tasas quedaron dentro de su grilla.
+- **Tasas chicas:** con 1e-4 a 1e-2 (SGD) las corridas agotan las 100 épocas con la
+  validación todavía mejorando: convergen lento, no divergen. Con tasas altas la parada
+  llega antes (mejor época 9 a 15) y aparece inestabilidad: momentum 0.3 cae a 90.68 %
+  y su cross-entropy sube a 0.99.
+- **Momentum frente a SGD:** momentum con η = 1e-4 da el mismo resultado que SGD con
+  η = 1e-3 (92.17 %, CE 0.2717), y momentum 1e-3 coincide con SGD 1e-2. Con tasas
+  chicas, momentum equivale aproximadamente a SGD con tasa efectiva η/(1−μ) = 10η.
+- **Accuracy frente a cross-entropy:** momentum 0.1 tiene la mejor accuracy pero peor
+  cross-entropy que momentum 0.05 (0.152 contra 0.130): más aciertos, pero más confianza
+  en los errores.
 
-![Confirmación y costo](results/analysis/confirmation.png)
+### Etapa 2 — Optimizador
 
-## Comprobaciones y alcance
+Se comparan los mejores de la etapa 1 sin reentrenar: **momentum 0.1** (97.47 %) supera
+por 0.52 pp a SGD 0.3 y RMSProp 0.001 (96.95 %), sin empate cercano. SGD 0.3 queda
+segundo por menor cross-entropy y pasa con momentum a la etapa 6.
 
-Se completaron las 26 corridas del protocolo: una corta de dos épocas,
-11 de tasas, seis arquitecturas adicionales y ocho repeticiones de
-confirmación. No hubo fallos numéricos. Todas conservaron el SHA-256 del
-CSV y exactamente los mismos índices de train/validación. Se verificaron
-los hashes de los modelos, el ranking de confirmación y la reproducción
-exacta de las métricas de train y validación al recargar el candidato.
+### Etapas 3 a 5 — Arquitectura y lote (momentum 0.1, semilla 42)
 
-Las siete pruebas de `ej2/tests/test_search.py` pasan: selección por
-media de semillas, grupos incompletos o duplicados, particiones distintas,
-comparaciones controladas, ejecución con procesos, reanudación y
-detección de modelos alterados. También pasaron las 18 comprobaciones
-previas pertinentes de métricas y experimentos de `shared` y ej2.
-Los gráficos y tablas se regeneraron desde resultados guardados.
+| Ancho | Acc. (%) | CE | Parámetros | | Profundidad | Acc. (%) | CE | | Lote | Acc. (%) | CE |
+|---:|---:|---:|---:|---|---|---:|---:|---|---:|---:|---:|
+| 32 | 94.98 | 0.196 | 25 450 | | **[128]** | **97.47** | 0.152 | | 16 | 89.55 | 0.586 |
+| 64 | 96.91 | 0.158 | 50 890 | | [128, 64] | 96.71 | 0.165 | | **32** | **97.47** | 0.152 |
+| **128** | **97.47** | 0.152 | 101 770 | | [128, 64, 32] | 94.74 | 0.198 | | 64 | 96.87 | 0.132 |
+| 256 | 97.07 | 0.197 | 203 530 | | | | | | 128 | 96.50 | 0.133 |
+| 512 | 96.67 | 0.277 | 407 050 | | | | | | | | |
 
-Entorno de entrenamiento: Python 3.14.4, NumPy 2.5.0, Linux/WSL2,
-un hilo de BLAS y OMP por corrida. La generación de figuras usó
-Matplotlib 3.11.2. La evaluación final de generalización y el objetivo
-de 98 % del ejercicio 3 quedan para sus pasos correspondientes.
+Ninguna etapa activó el empate cercano: se mantienen ancho 128, una capa oculta y lote 32.
+La tasa se mantiene fija en 0.1 al cambiar estos factores, como fija el protocolo. Por
+eso las redes grandes y el lote 16 (mejor época 2, CE 0.59) parecen estar al límite de la
+estabilidad con esa tasa: esas comparaciones están confundidas con la tasa.
+
+### Etapa 6 — Cruce con tres semillas (42, 0, 1)
+
+Dos optimizadores × dos tasas (ganadora y mejor vecina) × dos arquitecturas (ganadora de
+la etapa 4 y mejor alternativa de las etapas 3–4):
+
+| Configuración | Acc. media (%) | Desvío (pp) | CE media |
+|---|---:|---:|---:|
+| momentum 0.1, `[784,256,10]` | 97.19 | 0.14 | 0.190 |
+| momentum 0.1, `[784,128,10]` | 97.17 | 0.28 | 0.162 |
+| momentum 0.05, `[784,256,10]` | 96.97 | 0.20 | 0.143 |
+| SGD 0.3, `[784,128,10]` | 96.95 | 0.08 | 0.136 |
+| momentum 0.05, `[784,128,10]` | 96.87 | 0.04 | 0.134 |
+| SGD 0.1, `[784,128,10]` | 96.57 | 0.25 | 0.136 |
+| SGD 0.3, `[784,256,10]` | 96.41 | 0.16 | 0.144 |
+| SGD 0.1, `[784,256,10]` | 96.32 | 0.12 | 0.142 |
+
+Con tres semillas la ventaja de 128 sobre 256 que mostraba la semilla 42 desaparece: las
+dos primeras difieren 0.01 pp, muy por debajo del umbral 2σ (0.45 pp).
+
+### Etapa 7 — Confirmación con cinco semillas (42, 0, 1, 2, 3)
+
+| Configuración | Acc. media (%) | Desvío (pp) | CE media | Mejores épocas | Tiempo medio (s) |
+|---|---:|---:|---:|---|---:|
+| **momentum 0.1, `[784,256,10]`** | **97.24** | 0.15 | 0.190 | 12, 16, 13, 14, 28 | 53.8 |
+| momentum 0.1, `[784,128,10]` | 97.08 | 0.24 | 0.159 | 11, 13, 11, 10, 11 | 12.6 |
+| momentum 0.05, `[784,256,10]` | 96.88 | 0.19 | 0.142 | 13, 11, 9, 10, 14 | 45.6 |
+| control: tanh, SGD 0.1, `[784,128,10]` | 96.44 | 0.37 | 0.138 | 28, 22, 19, 30, 31 | 14.9 |
+
+- **Contra el control** (ganador de la etapa 0): +0.80 pp con umbral 2σ de 0.56 pp, una
+  mejora que supera el umbral. Momentum con una tasa bien ajustada es la técnica que más
+  aporta.
+- **Contra el segundo:** +0.16 pp con umbral de 0.39 pp, no distinguible. 256 neuronas
+  gana por el orden de la regla, pero 128 es equivalente con la mitad de parámetros y un
+  cuarto del tiempo.
+- **Cross-entropy:** el ganador tiene la mejor accuracy y la peor cross-entropy de los
+  cuatro. La regla prioriza accuracy, que es la métrica del enunciado.
+
+![Accuracy media y desvío de la confirmación](results/v2/analysis/stage_7_accuracy.png)
+
+## Configuración seleccionada
+
+`[784,256,10]`, tanh, salida softmax con cross-entropy, momentum (μ = 0.9) con tasa 0.1,
+mini-batch de 32, inicialización automática (Xavier), hasta 100 épocas con parada temprana
+(`config_id` `a2fa557ace07f890`). El candidato es el mejor checkpoint de la semilla 42:
+época 28, accuracy de validación 97.07 % (CE 0.197) y accuracy de entrenamiento 100 %
+(CE 0.0001). La brecha de cross-entropy entre entrenamiento y validación muestra
+sobreajuste en confianza, aunque la accuracy de validación se mantiene. Si se reentrenara,
+el protocolo fija 14 épocas (mediana de las mejores épocas de la confirmación).
+
+![Curvas de entrenamiento y validación del candidato](results/v2/analysis/winner/learning_curves.png)
+
+La cross-entropy de validación se estanca en torno a 0.197 desde la época 12, mientras la
+de entrenamiento tiende a cero: la parada temprana elige la época 28 por mejoras mínimas
+dentro de esa meseta.
+
+Recall de validación del candidato por dígito: 0: 98.3 · 1: 98.8 · 2: 98.3 · 3: 93.5 ·
+4: 96.6 · 5: 90.7 · 6: 98.3 · 7: 98.1 · 8: no evaluable · 9: 95.6 (macro-F1 96.25 %).
+
+## Comprobaciones posteriores (apéndice)
+
+No pueden cambiar la selección; revisan su solidez con más semillas
+([reporte del apéndice](results/v2_appendix/report.md)).
+
+- **ReLU en la configuración final** (cinco semillas): tanh 97.24 ± 0.15 % contra ReLU
+  96.95 ± 0.69 %. La diferencia (0.29 pp) no supera el umbral 2σ (1.00 pp). ReLU tiene
+  menor cross-entropy (0.138 contra 0.190) pero mucha más variación entre semillas
+  (96.10 a 97.67 %): con la semilla 42 sola habría parecido mejor.
+- **Etapas 3–5 con tres semillas:** en profundidad y lote se mantienen los ganadores.
+  En ancho, 256 (97.19 %) y 128 (97.17 %) quedan empatados, lo que coincide con la
+  selección final de 256. El ancho 512 y el lote 16 tienen desvíos de 2 pp o más,
+  consistente con la inestabilidad a tasa 0.1.
+
+![Ancho de la capa oculta con tres semillas](results/v2_appendix/analysis/stages_width.png)
+
+## Evaluación final sobre `digits_test.csv`
+
+Se evaluó una sola vez el candidato (SHA-256 verificado contra `selection.json`), sin
+reentrenar y sin usar el test para ninguna decisión.
+
+| Conjunto | Muestras | Accuracy (%) | Cross-entropy |
+|---|---:|---:|---:|
+| Test, todas las clases | 2497 | **86.70** | 1.749 |
+| Test, sin el 8 | 2254 | **96.05** | 0.226 |
+| Validación, mismo modelo | 2489 | 97.07 | 0.197 |
+| Validación, media de 5 semillas | 2489 | 97.24 ± 0.15 | — |
+
+- **El 8 explica la caída global.** `digits.csv` no tiene ningún 8: la red no puede
+  predecirlo, y los 243 del test son errores (79 se asignan al 3, 43 al 5 y 41 al 9).
+  Esto baja la precision del 3 al 71.6 %.
+- **Sobre las clases vistas** el desempeño se sostiene: 96.05 % en test contra 97.07 % en
+  validación.
+- **El 5**, con sólo 217 ejemplos de entrenamiento, tiene el recall más bajo de las clases
+  vistas (86.5 %), con 12 confusiones hacia el 3.
+
+![Matriz de confusión sobre el test](results/v2/confusion_matrix.png)
+
+![Recall por clase sobre el test](results/v2/per_class_recall.png)
+
+Detalle completo: [evaluación final](results/v2/final_evaluation.md).
+
+## Limitaciones
+
+- La validación no contiene el 8 y tiene pocos 5; cada error de un 5 mueve su recall
+  unos 1.85 pp.
+- Elegir repetidamente sobre la misma validación puede dar una estimación optimista; la
+  brecha de 1 pp con el test sin el 8 es coherente con eso.
+- Mantener la tasa fija al cambiar arquitectura y lote es parte del diseño "un factor a
+  la vez": no explora combinaciones nuevas, salvo las del cruce de la etapa 6.
+- Los tiempos son de pared, con corridas en paralelo; sirven como orden de magnitud y no
+  intervienen en la selección.

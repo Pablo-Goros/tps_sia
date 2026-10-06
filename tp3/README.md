@@ -11,6 +11,7 @@ python -m tps_sia.tp3.ej2.tests.test_datos_digitos
 python -m tps_sia.tp3.ej2.tests.test_shared_compatibility
 python3 -m unittest tps_sia.tp3.shared.tests.test_training_state tps_sia.tp3.shared.tests.test_optimizers
 python3 -m unittest tps_sia.tp3.shared.tests.test_metrics tps_sia.tp3.shared.tests.test_experiments tps_sia.tp3.ej2.tests.test_experiments
+python -m unittest tps_sia.tp3.ej2.tests.test_staged_search tps_sia.tp3.ej2.tests.test_appendix tps_sia.tp3.ej2.tests.test_final_evaluation
 ```
 
 Ejercicios de validación del enunciado: AND con perceptrón escalón, XOR (no resoluble con un
@@ -212,30 +213,57 @@ siendo la elegida.
 
 ## Ejercicio 2 — Clasificación de dígitos (perceptrón multicapa)
 
-Implementada la [carga y exploración de datos](ej2/README.md): caché `.npz`,
-etiquetas one-hot de diez salidas y partición estratificada 80/20 con semilla 42.
-Implementados también el MLP matricial y SGD, con mini-batches,
-inicialización Xavier/He, historia por época y guardar/cargar. Los
-[chequeos del paso 2](ej2/README.md#validación-del-paso-2) verifican gradientes
-por diferencias centradas y XOR en ambas arquitecturas del enunciado.
-El [baseline](ej2/README.md#paso-3--baseline) `[784,128,10]`, ReLU y SGD
-está ejecutado: 95.97 % de accuracy de entrenamiento y 94.38 % de validación.
-El núcleo común ya está extraído a `shared`, conservando las APIs, comandos
-y modelos guardados. [Momentum y Adam](ej2/README.md#paso-4--momentum-y-adam)
-están implementados y verificados, incluida la reanudación de su estado.
-[El paso 5](ej2/README.md#paso-5--control-del-entrenamiento-y-checkpoints)
-incorpora historia acumulativa, parada temprana, checkpoints completos y registro
-opcional de pesos. [El paso 6](ej2/README.md#paso-6--experimentos-y-análisis-reutilizables)
-incorpora el runner común, métricas por clase, trazabilidad de datasets/particiones,
-reanudación y análisis de resultados. El [paso 7](ej2/README.md#paso-7--comparación-y-selección-de-desarrollo)
-está ejecutado: 11 variantes de tasa/optimizador, cuatro arquitecturas con
-dos optimizadores y confirmación de tres finalistas más el baseline con
-tres semillas comunes. Se seleccionó `[784,256,10]`, ReLU y momentum 0.9
-con tasa 0.01: accuracy media de validación **96.81 % ± 0.24 puntos porcentuales**.
-Ver el [informe de desarrollo](ej2/development-report.md) y
-[la selección congelada](ej2/results/selection.json). El candidato de semilla
-42 usa la época 16; se registraron 17 épocas como presupuesto de un eventual
-reentrenamiento. La evaluación final permanece para el paso 9.
+MLP matricial con backpropagation, activaciones tanh/ReLU/logística, salida softmax con
+cross-entropy, entrenamiento online/mini-batch/batch, optimizadores SGD, momentum, Adam y
+RMSProp, parada temprana, checkpoints con reanudación exacta y métricas por clase. El
+detalle de cada paso está en el [README del ejercicio](ej2/README.md).
+
+### Cómo correrlo
+
+```bash
+# Búsqueda por etapas: una invocación por etapa, en orden (0 a 7)
+OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 python -m tps_sia.tp3.ej2.src.staged_search --stage 0 --workers 4
+# ... etapas 1 a 7
+python -m tps_sia.tp3.ej2.src.search_analysis --protocol v2 --results-dir tps_sia/tp3/ej2/results/v2 --output-dir tps_sia/tp3/ej2/results/v2/analysis
+
+# Apéndice: comprobaciones posteriores que no cambian la selección
+python -m tps_sia.tp3.ej2.src.appendix run --part relu --workers 4
+python -m tps_sia.tp3.ej2.src.appendix run --part stages_3_5 --workers 4
+python -m tps_sia.tp3.ej2.src.appendix report
+
+# Evaluación final sobre digits_test.csv (una sola vez; no repite sin --overwrite)
+python -m tps_sia.tp3.ej2.src.final_evaluation
+```
+
+En PowerShell, definir antes `$env:OPENBLAS_NUM_THREADS = "1"` y
+`$env:OMP_NUM_THREADS = "1"`. Los resultados se guardan en `ej2/results/v2/` y
+`ej2/results/v2_appendix/`. Se versionan las decisiones, métricas, figuras y el modelo
+candidato; los checkpoints y los demás modelos (unos 550 MB) están en el Drive del equipo.
+
+### Resultados
+
+Las respuestas completas, con las tablas de cada etapa, están en el
+[informe de desarrollo](ej2/development-report.md).
+
+* **(a) Evaluación:** partición estratificada 80/20 de `digits.csv` (semilla 42), accuracy
+  de validación como criterio, cross-entropy para desempatar y elegir el checkpoint,
+  métricas por clase y confusión. `digits_test.csv` se usa una sola vez, al final.
+* **(b) Variantes:** búsqueda de un factor a la vez (activación, tasa para cuatro
+  optimizadores, optimizador, ancho, profundidad y lote), un cruce con tres semillas y una
+  confirmación con cinco. Son 58 corridas en total.
+* **Selección:** `[784,256,10]`, tanh, momentum 0.9 con tasa 0.1, lote 32: accuracy media de
+  validación **97.24 % ± 0.15** con cinco semillas. Supera al control (SGD 0.1, 96.44 %) por
+  encima del umbral 2σ; frente a la misma red con 128 neuronas (97.08 %) la diferencia
+  no es distinguible.
+
+| Evaluación final | Muestras | Accuracy |
+|---|---:|---:|
+| Test, todas las clases | 2497 | **86.70 %** |
+| Test, sin el 8 | 2254 | **96.05 %** |
+| Validación del mismo modelo | 2489 | 97.07 % |
+
+`digits.csv` no tiene ningún 8, así que la red no puede reconocerlo: los 243 ochos del test
+son errores y explican casi toda la caída de la accuracy global.
 
 ---
 
