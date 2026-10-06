@@ -103,13 +103,15 @@ def write_history(path: Path, history: dict) -> None:
     with path.open('w', encoding='utf-8', newline='') as file:
         writer = csv.writer(file)
         writer.writerow(['epoch', 'train_loss', 'validation_loss', 'train_accuracy',
-                         'validation_accuracy', 'learning_rate', 'updates', 'gradient_norm'])
+                         'validation_accuracy', 'learning_rate', 'updates', 'gradient_norm', 'training_objective', 'l2_penalty'])
         for i, epoch in enumerate(epochs):
             val = validation.get(epoch, (None, None))
             writer.writerow([epoch, history['costo'][i], val[0], history['accuracy'][i], val[1],
                              (history.get('learning_rate') or [None] * len(epochs))[i],
                              (history.get('updates') or [None] * len(epochs))[i],
-                             history['norma_gradiente'][i]])
+                             history['norma_gradiente'][i],
+                             history.get('training_objective', [])[i] if i < len(history.get('training_objective', [])) else None,
+                             history.get('l2_penalty', [])[i] if i < len(history.get('l2_penalty', [])) else None])
 
 
 def _integer(value, name, minimum=1):
@@ -119,7 +121,7 @@ def _integer(value, name, minimum=1):
 
 def validate_config(config: dict) -> dict:
     """Canonicalize defaults and reject unsupported options before reading data."""
-    if not isinstance(config, dict) or set(config) - (set(DEFAULTS) | {'dataset', 'cache', 'data'}):
+    if not isinstance(config, dict) or set(config) - (set(DEFAULTS) | {'dataset', 'cache', 'data', 'l2', 'augmentation', 'lr_scheduler', 'batch_norm'}):
         raise ValueError('Unknown experiment configuration fields.')
     c = copy.deepcopy(DEFAULTS)
     for key, value in config.items():
@@ -169,6 +171,8 @@ def validate_config(config: dict) -> dict:
         raise ValueError('validation_fraction must be between 0 and 1.')
     if c['preprocessing']['name'] not in ('identity', 'standardize'):
         raise ValueError('Preprocessing supports identity or standardize.')
+    if c.get('augmentation') and c['preprocessing']['name'] != 'identity':
+        raise ValueError('Zero-padded translations currently require identity preprocessing.')
     logging = c['weight_logging']
     if not isinstance(logging['enabled'], bool):
         raise ValueError('weight_logging.enabled must be boolean.')
@@ -179,6 +183,10 @@ def validate_config(config: dict) -> dict:
     if isinstance(beta, bool) or not isinstance(beta, (int, float)) or not np.isfinite(beta) or beta <= 0:
         raise ValueError('Activation beta must be positive and finite.')
     model = build_model(c)  # Also validates optimizer and architecture.
+    if 'lr_scheduler' in c:
+        c['lr_scheduler'] = model.lr_scheduler
+    if 'batch_norm' in c:
+        c['batch_norm'] = model.batch_norm
     for index in logging['selected_weights']:
         if not isinstance(index, (list, tuple)) or len(index) != 3:
             raise ValueError('Selected weight must be [layer, row, column].')
@@ -198,7 +206,9 @@ def build_model(config: dict) -> MLP:
     return MLP(config['architecture'], activacion=config['activation'], salida=config['output'],
                beta=config['activation_parameters']['beta'], tamano_lote=config['batch_size'],
                inicializacion=config['initialization'], semilla=config['model_seed'],
-               optimizador=construir_optimizador(config['optimizer']))
+               optimizador=construir_optimizador(config['optimizer']), l2=config.get('l2', 0.0),
+               augmentation=config.get('augmentation'), lr_scheduler=config.get('lr_scheduler'),
+               batch_norm=config.get('batch_norm'))
 
 
 def preprocess(X: np.ndarray, settings: dict) -> np.ndarray:

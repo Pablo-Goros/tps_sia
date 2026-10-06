@@ -17,6 +17,7 @@ from tps_sia.tp3.ej3.src.analysis import analyze, render_group
 from tps_sia.tp3.ej3.src.experiments import Search, STAGES
 from tps_sia.tp3.ej3.src.factor_study import FactorStudy, PARTS, eligible_indices, nested_subsets
 from tps_sia.tp3.ej3.src.protocol import CONFIG, Development, bind_output
+from tps_sia.tp3.ej3.src.final_evaluation import evaluate as final_evaluate
 
 
 def save(path, value):
@@ -142,6 +143,183 @@ class WorkflowTests(unittest.TestCase):
         self.assertEqual(value['model_seed'], 7)
         self.assertEqual(value['optimizer']['name'], 'momentum')
         self.assertEqual(len(value['data']['validation_indices']), 9)
+
+    def test_joint_search_confirmation_and_analysis_without_training(self):
+        protocol = json.loads(self.config.read_text())
+        protocol['stages']['joint'] = {'architecture': [784, 8, 10],
+                                     'learning_rates': [0.03, 0.1, 0.3],
+                                     'batch_sizes': [32, 64]}
+        save(self.config, protocol)
+        search = self.search()
+        jobs = search.run_stage('joint', dry_run=True)['jobs']
+        self.assertEqual(len(jobs), 6)
+        self.assertEqual({(j['config']['optimizer']['learning_rate'], j['config']['batch_size'])
+                          for j in jobs}, {(r, b) for r in (0.03, 0.1, 0.3) for b in (32, 64)})
+        self.assertTrue(all(j['config']['architecture'] == [784, 8, 10] for j in jobs))
+        self.assertFalse(search.stage_path('joint').exists())
+        with patch.object(Search, 'run_labeled', lambda s, jobs:
+                          fake_rows(jobs, s.output, s.identity, s.development.root)):
+            for stage in ('controls', 'joint', 'confirmation'):
+                search.run_stage(stage)
+        selected = json.loads((self.output / 'selection.json').read_text())
+        self.assertEqual(selected['seeds'], [42, 0, 1])
+        self.assertFalse(search.stage_path('rates').exists())
+        analyze(self.output, self.root / 'absent-factors', self.root / 'analysis', plots=False)
+        self.assertTrue((self.root / 'analysis/search/stage_joint/comparison.csv').exists())
+
+    def test_joint_requires_explicit_protocol_and_rejects_invalid_grid(self):
+        with self.assertRaises(ValueError):
+            self.search().run_stage('joint', dry_run=True)
+        protocol = json.loads(self.config.read_text())
+        protocol['stages']['joint'] = {'architecture': [784, 8, 10],
+                                     'learning_rates': [0.1, float('nan')],
+                                     'batch_sizes': [32]}
+        save(self.config, protocol)
+        with self.assertRaises(ValueError):
+            self.search()
+
+    def final_candidate(self):
+        self.complete_search()
+        selection_path = self.output / 'selection.json'
+        selected = json.loads(selection_path.read_text())
+        candidate = self.output / selected['validation_model']
+        report_path = candidate.parent / 'results.json'
+        report = json.loads(report_path.read_text())
+        model = runner.build_model(report['config'])
+        model.guardar(candidate)  # Untrained synthetic fixture, never a course result.
+        report['preprocessing'] = model.preprocessing
+        report['model_sha256'] = runner.sha256_file(candidate)
+        selected['model_sha256'] = report['model_sha256']
+        save(report_path, report)
+        save(selection_path, selected)
+        return selection_path, candidate
+
+    def test_l2_confirmation_always_keeps_zero_control(self):
+        protocol = json.loads(self.config.read_text())
+        protocol['stages']['joint'] = {'architecture': [784, 8, 10],
+                                     'learning_rates': [0.1], 'batch_sizes': [32],
+                                     'l2_values': [0, 0.001]}
+        protocol['stages']['confirmation']['finalists'] = 1
+        save(self.config, protocol)
+        search = self.search()
+        def rows(s, jobs):
+            result = fake_rows(jobs, s.output, s.identity, s.development.root)
+            for r in result:
+                r['accuracy'] = 0.99 if r['config'].get('l2') else 0.8
+            return result
+        with patch.object(Search, 'run_labeled', rows):
+            search.run_stage('controls')
+            search.run_stage('joint')
+        jobs = search.planned_jobs('confirmation')
+        control = [(c, label) for c, label in jobs
+                   if c['architecture'] == [784, 8, 10] and not c.get('l2')]
+        self.assertEqual({c['model_seed'] for c, _ in control}, {42, 0, 1})
+
+    def test_translation_grid_and_confirmation_control(self):
+        protocol = json.loads(self.config.read_text())
+        protocol['stages']['joint'] = {'architecture': [784, 8, 10],
+                                     'learning_rates': [0.1], 'batch_sizes': [32],
+                                     'translation_shifts': [0, 1, 2]}
+        protocol['stages']['confirmation']['finalists'] = 1
+        save(self.config, protocol)
+        search = self.search()
+        jobs = search.planned_jobs('joint')
+        self.assertEqual([c.get('augmentation', {}).get('max_shift', 0) for c, _ in jobs], [0, 1, 2])
+        def rows(s, jobs):
+            result = fake_rows(jobs, s.output, s.identity, s.development.root)
+            for r in result:
+                r['accuracy'] = 0.99 if r['config'].get('augmentation') else 0.8
+            return result
+        with patch.object(Search, 'run_labeled', rows):
+            search.run_stage('controls')
+            search.run_stage('joint')
+        confirmed = search.planned_jobs('confirmation')
+        control = [c for c, _ in confirmed
+                   if c['architecture'] == [784, 8, 10] and not c.get('augmentation')]
+        self.assertEqual({c['model_seed'] for c in control}, {42, 0, 1})
+
+    def test_combined_l2_translation_keeps_both_zero_l2_controls(self):
+        protocol = json.loads(self.config.read_text())
+        protocol['stages']['joint'] = {'architecture': [784, 8, 10],
+                                     'learning_rates': [0.01], 'batch_sizes': [32],
+                                     'l2_values': [0, 0.0001], 'translation_shifts': [0, 1]}
+        protocol['stages']['confirmation']['finalists'] = 1
+        save(self.config, protocol)
+        search = self.search()
+        self.assertEqual(len(search.planned_jobs('joint')), 4)
+        def rows(s, jobs):
+            result = fake_rows(jobs, s.output, s.identity, s.development.root)
+            for r in result:
+                r['accuracy'] = 0.99 if r['config'].get('l2') else 0.8
+            return result
+        with patch.object(Search, 'run_labeled', rows):
+            search.run_stage('controls')
+            search.run_stage('joint')
+        controls = [c for c, _ in search.planned_jobs('confirmation')
+                    if c['architecture'] == [784, 8, 10] and not c.get('l2')]
+        self.assertEqual({(c.get('augmentation', {}).get('max_shift', 0), c['model_seed'])
+                          for c in controls}, {(shift, seed) for shift in (0, 1)
+                                               for seed in (42, 0, 1)})
+
+    def test_architecture_rate_translation_cross_and_confirmation(self):
+        protocol = json.loads(self.config.read_text())
+        protocol['stages']['joint'] = {'architectures': [[784, 4, 10], [784, 8, 10]],
+                                     'learning_rates': [0.01, 0.03], 'batch_sizes': [32],
+                                     'translation_shifts': [0, 1]}
+        save(self.config, protocol)
+        search = self.search()
+        jobs = search.run_stage('joint', dry_run=True)['jobs']
+        self.assertEqual(len(jobs), 8)
+        self.assertEqual(len({j['label'] for j in jobs}), 8)
+        combinations = {(j['config']['architecture'][1], j['config']['optimizer']['learning_rate'],
+                         j['config'].get('augmentation', {}).get('max_shift', 0)) for j in jobs}
+        self.assertEqual(combinations, {(w, r, s) for w in (4, 8) for r in (0.01, 0.03) for s in (0, 1)})
+        with patch.object(Search, 'run_labeled', lambda s, jobs:
+                          fake_rows(jobs, s.output, s.identity, s.development.root)):
+            search.run_stage('controls')
+            search.run_stage('joint')
+            confirm_jobs = search.planned_jobs('confirmation')
+            for w in (4, 8):
+                for r in (0.01, 0.03):
+                    matched = [c['model_seed'] for c, _ in confirm_jobs
+                               if c['architecture'][1] == w and c['optimizer']['learning_rate'] == r
+                               and not c.get('augmentation')]
+                    self.assertEqual(set(matched), {42, 0, 1})
+            search.run_stage('confirmation')
+        self.assertTrue((self.output / 'selection.json').exists())
+
+    def test_joint_architecture_schema_is_unambiguous(self):
+        protocol = json.loads(self.config.read_text())
+        joint = {'architectures': [[784, 4, 10], [784, 4, 10]],
+                 'learning_rates': [0.01], 'batch_sizes': [32]}
+        for spec in (joint, {**joint, 'architecture': [784, 4, 10]},
+                     {**joint, 'architectures': []}):
+            protocol['stages']['joint'] = spec
+            save(self.config, protocol)
+            with self.assertRaises(ValueError):
+                self.search()
+
+    def test_final_dry_run_never_loads_test_or_creates_output(self):
+        selection, candidate = self.final_candidate()
+        with patch('tps_sia.tp3.ej3.src.final_evaluation.cargar',
+                   side_effect=AssertionError('Reserved test must not be loaded')):
+            report = final_evaluate(self.config, selection, dry_run=True, root=self.root)
+        self.assertFalse(report['test_loaded'])
+        self.assertFalse((self.output / 'final').exists())
+        candidate.write_bytes(b'corrupt')
+        with self.assertRaises(ValueError):
+            final_evaluate(self.config, selection, dry_run=True, root=self.root)
+
+    def test_final_synthetic_predictions_and_overwrite_protection(self):
+        selection, _ = self.final_candidate()
+        (self.root / 'data/digits_test.csv').write_bytes((self.root / 'data/digits.csv').read_bytes())
+        report = final_evaluate(self.config, selection, root=self.root, batch_size=3)
+        self.assertEqual(report['test']['samples'], 20)
+        with np.load(self.output / 'final/predictions.npz') as predictions:
+            self.assertEqual(report['correct'], int(np.sum(predictions['actual'] == predictions['predicted'])))
+            self.assertEqual(predictions['probabilities'].shape, (20, 10))
+        with self.assertRaises(FileExistsError):
+            final_evaluate(self.config, selection, root=self.root)
 
     def test_factor_studies_and_saved_only_analysis(self):
         self.complete_search()

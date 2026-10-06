@@ -9,7 +9,7 @@ from tps_sia.tp3.shared.experiments import (
     config_identity, fingerprint, recorded_config, write_json,
 )
 from tps_sia.tp3.shared.staged_search import execute_jobs, group_summary, rank
-from .protocol import CONFIG, OUTPUT, TP3, Development, bind_output, read_json
+from .protocol import CONFIG, OUTPUT, TP3, Development, bind_output, read_json, joint_architectures
 
 STAGES = ('controls', 'rates', 'architectures', 'batches', 'confirmation')
 
@@ -44,9 +44,28 @@ class Search:
         d, p = self.development, self.protocol
         if stage == 'controls':
             return [(d.baseline, 'baseline'), (d.reference, 'ej2-reference')]
+        if stage == 'joint':
+            if 'joint' not in p['stages']:
+                raise ValueError('Joint search requires a new protocol with stages.joint.')
+            spec = p['stages']['joint']
+            return [(d.config(d.reference, architecture=architecture,
+                              strategy='mini_batch', batch_size=size,
+                              optimizer={**d.reference['optimizer'], 'learning_rate': rate},
+                              **({'l2': strength} if strength else {}),
+                              **({'augmentation': {'name': 'translation', 'max_shift': shift}}
+                                 if shift else {})),
+                     f'joint-rate-{rate:g}-batch-{size}' +
+                     (f'-l2-{strength:g}' if 'l2_values' in spec else '') +
+                     (f'-shift-{shift}' if 'translation_shifts' in spec else '') +
+                     ('-architecture-' + '-'.join(map(str, architecture)) if 'architectures' in spec else ''))
+                    for rate in spec['learning_rates'] for size in spec['batch_sizes']
+                    for strength in spec.get('l2_values', [0])
+                    for shift in spec.get('translation_shifts', [0])
+                    for architecture in joint_architectures(spec)]
         if stage == 'confirmation':
             pool = []
-            for previous in STAGES[:-1]:
+            previous_stages = ('controls', 'joint') if 'joint' in p['stages'] else STAGES[:-1]
+            for previous in previous_stages:
                 pool.extend(self.load_stage(previous)['runs'])
             candidates = {}
             for row in rank(pool):
@@ -55,6 +74,13 @@ class Search:
             for row in self.load_stage('controls')['runs']:
                 if row['config_id'] not in {r['config_id'] for r in finalists}:
                     finalists.append(row)
+            if {'l2_values', 'translation_shifts'} & set(p['stages'].get('joint', {})):
+                for row in self.load_stage('joint')['runs']:
+                    if (not row['config'].get('l2', 0)
+                            and ('l2_values' in p['stages']['joint']
+                                 or not row['config'].get('augmentation'))
+                            and row['config_id'] not in {r['config_id'] for r in finalists}):
+                        finalists.append(row)
             return [(d.config(row['config'], seed), row['label'])
                     for row in finalists for seed in p['confirmation_seeds']]
         previous = STAGES[STAGES.index(stage) - 1]
@@ -80,7 +106,7 @@ class Search:
         return jobs
 
     def run_stage(self, stage, dry_run=False):
-        if stage not in STAGES:
+        if stage not in (*STAGES, 'joint'):
             raise ValueError(f'Unknown stage: {stage}')
         if self.stage_path(stage).exists():
             value = self.load_stage(stage)
@@ -162,7 +188,7 @@ class Search:
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     mode = parser.add_mutually_exclusive_group(required=True)
-    mode.add_argument('--stage', choices=STAGES)
+    mode.add_argument('--stage', choices=(*STAGES, 'joint'))
     mode.add_argument('--experiment', type=Path, help='JSON overrides for one independent run')
     parser.add_argument('--config', type=Path, default=CONFIG)
     parser.add_argument('--output-dir', type=Path, default=OUTPUT)

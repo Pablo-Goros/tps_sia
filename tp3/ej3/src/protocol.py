@@ -61,7 +61,7 @@ def load_protocol(path):
         raise ValueError('Checkpoints must be selected by validation_loss.')
     stage_keys = {'rates': 'learning_rates', 'architectures': 'architectures',
                   'batches': 'batch_sizes', 'confirmation': 'finalists'}
-    if set(p['stages']) != set(stage_keys):
+    if set(p['stages']) not in (set(stage_keys), set(stage_keys) | {'joint'}):
         raise ValueError('Invalid search stages.')
     for stage, key in stage_keys.items():
         spec = p['stages'][stage]
@@ -82,6 +82,49 @@ def load_protocol(path):
             positive_integer(width, 'layer width')
     for size in p['stages']['batches']['batch_sizes']:
         positive_integer(size, 'batch_size', 2)
+    if 'joint' in p['stages']:
+        joint = p['stages']['joint']
+        required_joint = {'learning_rates', 'batch_sizes'}
+        allowed_joint = required_joint | {'architecture', 'architectures', 'l2_values', 'translation_shifts'}
+        if (not required_joint <= set(joint) <= allowed_joint
+                or len({'architecture', 'architectures'} & set(joint)) != 1):
+            raise ValueError('Invalid joint search settings.')
+        variants = joint_architectures(joint)
+        if not isinstance(variants, list) or not variants:
+            raise ValueError('Joint architectures must be a nonempty list.')
+        for architecture in variants:
+            if (not isinstance(architecture, list) or len(architecture) < 3
+                    or architecture[0] != 784 or architecture[-1] != 10):
+                raise ValueError('Joint architecture requires 784 inputs and 10 outputs.')
+            for width in architecture:
+                positive_integer(width, 'joint layer width')
+        if len({tuple(a) for a in variants}) != len(variants):
+            raise ValueError('Joint architectures must be unique.')
+        for key in ('learning_rates', 'batch_sizes'):
+            values = joint[key]
+            if not isinstance(values, list) or not values:
+                raise ValueError(f'Joint {key} must be a nonempty list.')
+            for value in values:
+                if key == 'batch_sizes':
+                    positive_integer(value, 'joint batch_size', 2)
+                elif (isinstance(value, bool) or not isinstance(value, (int, float))
+                      or not np.isfinite(value) or value <= 0):
+                    raise ValueError('Joint learning rates must be finite and positive.')
+            if len(set(values)) != len(values):
+                raise ValueError(f'Joint {key} must be unique.')
+        if 'l2_values' in joint:
+            values = joint['l2_values']
+            if (not isinstance(values, list) or not values
+                    or any(isinstance(v, bool) or not isinstance(v, (int, float))
+                           or not np.isfinite(v) or v < 0 for v in values)
+                    or len(set(values)) != len(values) or 0 not in values):
+                raise ValueError('L2 grid requires unique finite nonnegative values and a zero control.')
+        if 'translation_shifts' in joint:
+            values = joint['translation_shifts']
+            if (not isinstance(values, list) or not values
+                    or any(isinstance(v, bool) or not isinstance(v, int) or not 0 <= v < 28 for v in values)
+                    or len(set(values)) != len(values) or 0 not in values):
+                raise ValueError('Translation grid requires unique integer shifts 0..27 and a zero control.')
     factors = p['factor_study']
     if set(factors) != {'digits_dataset', 'digits_cache', 'subset_fractions', 'subset_seed', 'seeds'}:
         raise ValueError('Invalid factor study settings.')
@@ -94,6 +137,11 @@ def load_protocol(path):
             or fractions != sorted(set(fractions)) or fractions[-1] != 1.0):
         raise ValueError('Subset fractions must increase uniquely and finish at 1.0.')
     return p
+
+
+def joint_architectures(spec):
+    """Old single-architecture protocols retain their configuration and identities."""
+    return spec['architectures'] if 'architectures' in spec else [spec['architecture']]
 
 
 def bind_output(output, identity):
@@ -173,6 +221,19 @@ class Development:
             self.config(self.reference, optimizer={**self.reference['optimizer'], 'learning_rate': rate})
         for architecture in p['stages']['architectures']['architectures']:
             self.config(self.reference, architecture=architecture)
+        if 'joint' in p['stages']:
+            spec = p['stages']['joint']
+            for rate in spec['learning_rates']:
+                for size in spec['batch_sizes']:
+                    for strength in spec.get('l2_values', [0]):
+                        for shift in spec.get('translation_shifts', [0]):
+                            for architecture in joint_architectures(spec):
+                                self.config(self.reference, architecture=architecture,
+                                            strategy='mini_batch', batch_size=size,
+                                            optimizer={**self.reference['optimizer'], 'learning_rate': rate},
+                                            **({'l2': strength} if strength else {}),
+                                            **({'augmentation': {'name': 'translation', 'max_shift': shift}}
+                                               if shift else {}))
         self.identity = {'schema_version': 1, 'protocol': p['protocol'],
                          'primary_seed': p['primary_seed'],
                          'search_sha256': protocol_sha256(self.path),

@@ -17,7 +17,10 @@ import time
 import numpy as np
 
 from .activations import construir_activacion
+from .augmentation import translate_images, rotate_images, validate_augmentation
 from .atomic_files import replace
+from .schedulers import validate_scheduler, plateau_step
+from .batch_norm import validate_batch_norm, backward as batch_norm_backward
 from .optimizers import Optimizador, SGD, construir_optimizador
 
 
@@ -37,6 +40,8 @@ class Historia:
     epochs: list[int] = field(default_factory=list)
     updates: list[int] = field(default_factory=list)
     learning_rate: list[float] = field(default_factory=list)
+    l2_penalty: list[float] = field(default_factory=list)
+    training_objective: list[float] = field(default_factory=list)
     stop_reason: str | None = None
     epocas_corridas: int = 0
     tiempo_segundos: float = 0.0
@@ -49,7 +54,9 @@ class MLP:
     def __init__(self, arquitectura: list[int], activacion: str = "tanh",
                  salida: str = "softmax", eta: float = 0.01, beta: float = 1.0,
                  tamano_lote: int | None = 32, inicializacion: str = "auto",
-                 semilla: int = 0, optimizador: Optimizador | None = None) -> None:
+                 semilla: int = 0, optimizador: Optimizador | None = None,
+                 l2: float = 0.0, augmentation: dict | None = None,
+                 lr_scheduler: dict | None = None, batch_norm: dict | None = None) -> None:
         if (len(arquitectura) < 2 or any(isinstance(n, (bool, np.bool_)) or
                 not isinstance(n, (int, np.integer)) or n <= 0 for n in arquitectura)):
             raise ValueError("La arquitectura debe contener al menos dos tamaños enteros positivos")
@@ -67,6 +74,11 @@ class MLP:
         if inicializacion not in ("auto", "xavier", "he"):
             raise ValueError("La inicialización debe ser auto, xavier o he")
         self.arquitectura = [int(n) for n in arquitectura]
+        if (isinstance(l2, (bool, np.bool_)) or not isinstance(l2, (int, float))
+                or not np.isfinite(l2) or l2 < 0):
+            raise ValueError('L2 debe ser finito y no negativo')
+        self.l2 = float(l2)
+        self.augmentation = validate_augmentation(augmentation, self.arquitectura[0])
         self.activacion = construir_activacion(activacion, beta)
         self.salida = salida
         self.activacion_salida = construir_activacion("logistica", beta)
@@ -74,6 +86,13 @@ class MLP:
         self.tamano_lote = None if tamano_lote is None else int(tamano_lote)
         self.inicializacion = inicializacion
         self.optimizador = optimizador if optimizador is not None else SGD(eta)
+        self.lr_scheduler = validate_scheduler(lr_scheduler)
+        initial_config = self.optimizador.configuracion()
+        initial_rate = initial_config.get('learning_rate', initial_config.get('eta'))
+        if self.lr_scheduler and self.lr_scheduler['min_lr'] > initial_rate:
+            raise ValueError('Scheduler min_lr cannot exceed initial learning rate.')
+        self.scheduler_state = {'best': None, 'bad_epochs': 0, 'reductions': 0,
+                                'current_lr': initial_rate}
         self.seed = int(semilla)
         self.initialization_layers = []
         self.preprocessing = {"name": "identity"}
@@ -94,11 +113,20 @@ class MLP:
             self.pesos.append(self.rng.normal(0, escala, size=(n_in, n_out)))
             self.biases.append(np.zeros(n_out))
         self.historia = Historia()
+        self.batch_norm = validate_batch_norm(batch_norm)
+        if self.batch_norm and (len(self.arquitectura) < 3 or self.tamano_lote == 1):
+            raise ValueError('BatchNorm requires a hidden layer and batches of at least2 samples.')
+        hidden = self.arquitectura[1:-1] if self.batch_norm else []
+        self.bn_gamma = [np.ones(width) for width in hidden]
+        self.bn_beta = [np.zeros(width) for width in hidden]
+        self.bn_state = {'running_mean': [np.zeros(width) for width in hidden],
+                         'running_var': [np.ones(width) for width in hidden],
+                         'batches_tracked': [0 for _ in hidden]}
 
     @property
     def parametros(self) -> list[np.ndarray]:
         """Orden fijo para optimizadores y gradient checks: pesos, luego biases."""
-        return self.pesos + self.biases
+        return self.pesos + self.biases + self.bn_gamma + self.bn_beta
 
     def _entradas(self, X: np.ndarray) -> np.ndarray:
         X = np.asarray(X, dtype=float)
@@ -120,10 +148,30 @@ class MLP:
             raise ValueError("Cada fila de y debe sumar 1 para softmax (one-hot o distribución)")
         return y
 
-    def _forward(self, X: np.ndarray) -> tuple[list[np.ndarray], list[np.ndarray]]:
+    def _forward(self, X: np.ndarray, *, training=False, update_running=False,
+                 bn_cache=None) -> tuple[list[np.ndarray], list[np.ndarray]]:
         activaciones, nets = [X], []
         for i, (w, b) in enumerate(zip(self.pesos, self.biases)):
             h = activaciones[-1] @ w + b
+            if self.batch_norm and i < len(self.pesos)-1:
+                if training:
+                    if len(X) < 2:
+                        raise ValueError('BatchNorm training requires at least2 samples.')
+                    mean, variance = h.mean(axis=0), h.var(axis=0)
+                    if update_running:
+                        momentum = self.batch_norm['momentum']
+                        self.bn_state['running_mean'][i] *= 1-momentum
+                        self.bn_state['running_mean'][i] += momentum*mean
+                        self.bn_state['running_var'][i] *= 1-momentum
+                        self.bn_state['running_var'][i] += momentum*variance*len(X)/(len(X)-1)
+                        self.bn_state['batches_tracked'][i] += 1
+                else:
+                    mean, variance = self.bn_state['running_mean'][i], self.bn_state['running_var'][i]
+                inverse = 1/np.sqrt(variance+self.batch_norm['epsilon'])
+                normalized = (h-mean)*inverse
+                if bn_cache is not None:
+                    bn_cache.append((normalized, inverse))
+                h = self.bn_gamma[i]*normalized + self.bn_beta[i]
             nets.append(h)
             if i < len(self.pesos) - 1:
                 o = self.activacion.theta(h)
@@ -160,23 +208,43 @@ class MLP:
         a, h = self._forward(X)
         return self._costo(y, a[-1], h[-1])
 
-    def _gradientes(self, X: np.ndarray, y: np.ndarray) -> list[np.ndarray]:
-        a, h = self._forward(X)
+    def _gradientes(self, X: np.ndarray, y: np.ndarray, *, update_running=False) -> list[np.ndarray]:
+        cache = []
+        a, h = self._forward(X, training=bool(self.batch_norm),
+                             update_running=update_running, bn_cache=cache)
         delta = (a[-1] - y) / len(X)
         if self.salida == "logistica":
             delta *= self.activacion_salida.dtheta(h[-1], a[-1])
         dw, db = [None] * len(self.pesos), [None] * len(self.biases)
+        dg, dt = [None]*len(self.bn_gamma), [None]*len(self.bn_beta)
         for i in range(len(self.pesos) - 1, -1, -1):
+            if self.batch_norm and i < len(self.pesos)-1:
+                delta, dg[i], dt[i] = batch_norm_backward(delta, *cache[i], self.bn_gamma[i])
             dw[i] = a[i].T @ delta
+            if self.l2:
+                dw[i] += self.l2 * self.pesos[i]
             db[i] = delta.sum(axis=0)
             if i > 0:
                 delta = (delta @ self.pesos[i].T) * self.activacion.dtheta(h[i - 1], a[i])
-        return dw + db
+        return dw + db + dg + dt
 
     def backprop(self, X: np.ndarray, y: np.ndarray) -> list[np.ndarray]:
-        """Gradientes del costo medio, sin actualizar parámetros ni estado."""
+        """Gradientes de loss media + L2, sin penalizar biases ni modificar estado."""
         X = self._entradas(X)
         return self._gradientes(X, self._objetivos(y, len(X)))
+
+    def l2_penalty(self) -> float:
+        """lambda/2 * sum(||W||²); lambda is independent of batch/sample count."""
+        return self.l2 / 2 * sum(float(np.sum(w ** 2)) for w in self.pesos) if self.l2 else 0.0
+
+    def training_objective(self, X: np.ndarray, y: np.ndarray) -> float:
+        """Objective differentiated by backprop; costo remains predictive loss."""
+        if self.batch_norm:
+            X = self._entradas(X)
+            y = self._objetivos(y, len(X))
+            a, h = self._forward(X, training=True)
+            return self._costo(y, a[-1], h[-1]) + self.l2_penalty()
+        return self.costo(X, y) + self.l2_penalty()
 
     @staticmethod
     def _accuracy(y: np.ndarray, o: np.ndarray) -> float:
@@ -197,6 +265,8 @@ class MLP:
             "parameters": self.parametros, "optimizer": self.optimizador.export_state(),
             "rng": self.rng.bit_generator.state, "history": self.historia.to_dict(),
             "early_stopping": self.early_stopping,
+            "scheduler_state": self.scheduler_state,
+            "bn_state": self.bn_state,
         })
 
     def _restore(self, state: dict) -> None:
@@ -205,7 +275,7 @@ class MLP:
                 p.shape != value.shape or not np.all(np.isfinite(value))
                 for p, value in zip(self.parametros, parameters)):
             raise ValueError("Parámetros inválidos en el estado de entrenamiento")
-        optimizer = construir_optimizador(self.optimizador.configuracion())
+        optimizer = construir_optimizador(state['optimizer']['config'])
         optimizer.restore_state(state["optimizer"], parameters)
         for p, value in zip(self.parametros, parameters):
             p[:] = value
@@ -213,6 +283,25 @@ class MLP:
         self.rng.bit_generator.state = copy.deepcopy(state["rng"])
         self.historia = Historia(**copy.deepcopy(state["history"]))
         self.early_stopping = copy.deepcopy(state["early_stopping"])
+        if 'scheduler_state' in state:
+            self.scheduler_state = copy.deepcopy(state['scheduler_state'])
+        if 'bn_state' in state:
+            self._restore_bn_state(state['bn_state'])
+
+    def _restore_bn_state(self, state):
+        if not isinstance(state, dict) or set(state) != {'running_mean', 'running_var', 'batches_tracked'}:
+            raise ValueError('Invalid BatchNorm state.')
+        n = len(self.bn_gamma)
+        if any(len(state[key]) != n for key in state):
+            raise ValueError('BatchNorm layer count mismatch.')
+        for i, gamma in enumerate(self.bn_gamma):
+            for key in ('running_mean', 'running_var'):
+                value = np.asarray(state[key][i])
+                if value.shape != gamma.shape or not np.all(np.isfinite(value)):
+                    raise ValueError('Invalid BatchNorm statistics.')
+            if np.any(state['running_var'][i] < 0) or type(state['batches_tracked'][i]) is not int or state['batches_tracked'][i] < 0:
+                raise ValueError('Invalid BatchNorm variance or count.')
+        self.bn_state = copy.deepcopy(state)
 
     def guardar_best(self, ruta: str | Path) -> None:
         """Guarda la mejor época con su optimizador/RNG, sin cambiar el último estado."""
@@ -296,6 +385,19 @@ class MLP:
                   "gradient_reduction": "mean_per_sample", "learning_rate_schedule": "constant",
                   "strategy": "batch" if self.tamano_lote is None else "online" if self.tamano_lote == 1 else "mini_batch",
                   "batch_size": self.tamano_lote, "validation": X_val is not None}
+        if self.l2:
+            config['l2'] = self.l2
+            config['objective'] = 'mean_predictive_loss + l2/2 * sum_squared_weights; biases excluded'
+        if self.augmentation:
+            config['augmentation'] = self.augmentation
+        if self.batch_norm:
+            if len(X) < 2:
+                raise ValueError('BatchNorm training requires at least2 samples.')
+            config['batch_norm'] = self.batch_norm
+        if self.lr_scheduler:
+            if X_val is None:
+                raise ValueError('Plateau scheduler requires validation data.')
+            config['learning_rate_schedule'] = self.lr_scheduler
         if self.training_config and config != self.training_config:
             # Un cambio de política empieza un nuevo seguimiento de selección.
             self.early_stopping = {"best_value": None, "best_epoch": None, "reference_value": None, "bad_epochs": 0}
@@ -311,6 +413,10 @@ class MLP:
         inicio = time.perf_counter()
         previous_time = self.historia.tiempo_segundos
         lote = len(X) if self.tamano_lote is None else self.tamano_lote
+        # Old checkpoints have no objective history; their penalty was zero.
+        if not self.historia.l2_penalty and self.historia.epocas_corridas:
+            self.historia.l2_penalty = [0.0] * self.historia.epocas_corridas
+            self.historia.training_objective = list(self.historia.costo)
         self.historia.stop_reason = None
         for local_epoch in range(epocas):
             rollback = self._snapshot()
@@ -321,9 +427,19 @@ class MLP:
                     normas = []
                     lr_config = self.optimizador.configuracion()
                     rate = lr_config.get("learning_rate", lr_config.get("eta"))
-                    for j in range(0, len(X), lote):
-                        idx = orden[j:j + lote]
-                        gradients = self._gradientes(X[idx], y[idx])
+                    starts = list(range(0, len(X), lote))
+                    if self.batch_norm and len(starts)>1 and len(X)-starts[-1] == 1:
+                        starts.pop()  # Merge singleton tail into the preceding mini-batch.
+                    for batch_index, j in enumerate(starts):
+                        end = starts[batch_index+1] if batch_index+1 < len(starts) else len(X)
+                        idx = orden[j:end]
+                        batch = X[idx]
+                        if self.augmentation:
+                            batch = translate_images(batch, self.augmentation['max_shift'], self.rng)
+                            if self.augmentation['name'] == 'translation_rotation':
+                                batch = rotate_images(batch, self.augmentation['max_angle_degrees'], self.rng)
+                        gradients = (self._gradientes(batch, y[idx], update_running=True)
+                                     if self.batch_norm else self._gradientes(batch, y[idx]))
                         if not all(np.all(np.isfinite(g)) for g in gradients):
                             raise FloatingPointError("Gradiente no finito")
                         normas.append(float(np.sqrt(sum(np.sum(g ** 2) for g in gradients))))
@@ -344,11 +460,12 @@ class MLP:
                                     "update": float(self.pesos[index[0]][index[1], index[2]] - before[index[0]][index[1], index[2]])} for index in selected]})
                     a, h = self._forward(X)
                     metrics = [self._costo(y, a[-1], h[-1]), float(np.mean((a[-1]-y)**2)), self._accuracy(y, a[-1])]
+                    penalty = self.l2_penalty()
                     val_metrics = []
                     if X_val is not None:
                         av, hv = self._forward(X_val)
                         val_metrics = [self._costo(y_val, av[-1], hv[-1]), float(np.mean((av[-1]-y_val)**2)), self._accuracy(y_val, av[-1])]
-                    if not np.all(np.isfinite(metrics + val_metrics)):
+                    if not np.all(np.isfinite(metrics + val_metrics + [penalty])):
                         raise FloatingPointError("Métricas no finitas")
             except (KeyboardInterrupt, FloatingPointError) as exc:
                 self._restore(rollback)
@@ -357,6 +474,8 @@ class MLP:
             hist = self.historia
             for name, value in zip(("costo", "mse", "accuracy"), metrics):
                 getattr(hist, name).append(value)
+            hist.l2_penalty.append(penalty)
+            hist.training_objective.append(metrics[0] + penalty)
             for name, value in zip(("costo_validacion", "mse_validacion", "accuracy_validacion"), val_metrics):
                 getattr(hist, name).append(value)
             if val_metrics:
@@ -366,6 +485,12 @@ class MLP:
             hist.epochs.append(hist.epocas_corridas)
             hist.updates.append(self.updates_completed)
             hist.learning_rate.append(rate)
+            if self.lr_scheduler:
+                next_rate = plateau_step(self.lr_scheduler, self.scheduler_state, val_metrics[0], rate)
+                if hasattr(self.optimizador, 'learning_rate'):
+                    self.optimizador.learning_rate = next_rate
+                else:
+                    self.optimizador.eta = next_rate
             if val_metrics:
                 value = val_metrics[0] if monitor == "validation_loss" else val_metrics[2]
                 old = self.early_stopping["best_value"]
@@ -423,6 +548,10 @@ class MLP:
             "activacion": self.activacion.nombre, "salida": self.salida,
             "beta": self.beta, "tamano_lote": self.tamano_lote,
             "inicializacion": self.inicializacion,
+            "l2": self.l2,
+            "augmentation": self.augmentation,
+            "lr_scheduler": self.lr_scheduler,
+            "batch_norm": self.batch_norm,
             "optimizador": self.optimizador.configuracion(),
             "rng": self.rng.bit_generator.state, "historia": self.historia.to_dict(),
         }
@@ -438,6 +567,8 @@ class MLP:
             return value
         arrays = {f"w_{i}": w for i, w in enumerate(self.pesos)}
         arrays.update({f"b_{i}": b for i, b in enumerate(self.biases)})
+        arrays.update({f'bn_gamma_{i}': gamma for i, gamma in enumerate(self.bn_gamma)})
+        arrays.update({f'bn_beta_{i}': beta for i, beta in enumerate(self.bn_beta)})
         state = self.optimizador.export_state()
         # Los momentos se guardan como arrays NPZ, sin pickle ni listas JSON
         # de millones de números; la metadata conserva su orden explícito.
@@ -453,6 +584,8 @@ class MLP:
             "training_calls": self.training_calls,
             "early_stopping": self.early_stopping, "best_state": self.best_state,
             "weight_logging": self.weight_logging,
+            "scheduler_state": self.scheduler_state,
+            "bn_state": self.bn_state,
         })
         # Respetar la ruta exacta, sin agregar automáticamente la extensión .npz.
         ruta = Path(ruta)
@@ -508,14 +641,21 @@ class MLP:
                     if valor.shape != destino.shape or not np.all(np.isfinite(valor)):
                         raise ValueError(f"Parámetro inválido en el modelo: {clave}")
                     destino[:] = valor
+            for prefix, parameters in (('bn_gamma', modelo.bn_gamma), ('bn_beta', modelo.bn_beta)):
+                for i, parameter in enumerate(parameters):
+                    value = datos[f'{prefix}_{i}']
+                    if value.shape != parameter.shape or not np.all(np.isfinite(value)):
+                        raise ValueError('Invalid BatchNorm affine parameter.')
+                    parameter[:] = value
             if version >= 2:
                 modelo.optimizador.restore_state(state, modelo.parametros)
         modelo.rng.bit_generator.state = rng
         modelo.historia = Historia(**historia)
         for key, value in training_state.items():
-            if key not in {"seed", "initialization_layers", "preprocessing", "training_config", "training_calls", "early_stopping", "best_state", "weight_logging"}:
+            if key not in {"seed", "initialization_layers", "preprocessing", "training_config", "training_calls", "early_stopping", "best_state", "weight_logging", "scheduler_state", "bn_state"}:
                 raise ValueError("Campo desconocido en el estado de entrenamiento")
             setattr(modelo, key, value)
+        modelo._restore_bn_state(modelo.bn_state)
         if version == 3:
             hist = modelo.historia
             if (hist.epocas_corridas != len(hist.costo)

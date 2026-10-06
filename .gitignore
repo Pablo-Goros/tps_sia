@@ -4,7 +4,18 @@ tp3/*/cache/
 tp3/ej2/results/v2/
 tp3/ej2/results/v2_appendix/
 __pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
 
-tp3/ej3/results/search/
-tp3/ej3/results/factors/
-tp3/ej3/results/analysis/
+# Local exercise 3 experiments and outputs
+tp3/ej3/configs/
+tp3/ej3/results/
+tp3/ej3/runs/
+tp3/ej3/run_*.ps1
+
+# Local working notes and presentation drafts
+tp3/ej3/continuation.md
+tp3/ej3/presentation-draft.md
+tp3/presentation-content.md
+tp3/presentation-plan.md
