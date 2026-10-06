@@ -1,10 +1,8 @@
 # Ejercicio 3 — Dígitos con `more_digits.csv`
 
-El enunciado en PDF llama al archivo `more_data_digits.csv`; el archivo disponible
-es `data/more_digits.csv`. Está implementada la exploración, la partición de desarrollo y el código para
+El archivo de datos es `data/more_digits.csv`. Está implementada la exploración, la partición de desarrollo y el código para
 controles, búsqueda por etapas, corridas puntuales, estudio de factores y análisis.
-Los experimentos de ej3 todavía no se ejecutaron. Este flujo no evalúa test,
-no reentrena para entrega ni implementa extensiones opcionales.
+Este flujo no evalúa test, no reentrena para entrega ni implementa extensiones opcionales.
 
 ## Exploración de datos y partición
 
@@ -66,15 +64,14 @@ con `--tables-only` no necesita Matplotlib.
 ## Protocolo y referencia del ejercicio 2
 
 `configs/search.json` fija dataset, partición, presupuesto, candidatos y semillas.
-La referencia predeterminada es `ej2/results/v2/selection.json`. Sus artefactos no
-están incluidos en este checkout: colocar allí la selección definitiva antes de
-correr. Si se decide usar otra selección, pasar su ruta explícitamente:
+La referencia predeterminada es `ej2/results/v2/selection.json`, la selección del
+ejercicio 2, que está versionada; ej3 sólo lee sus hiperparámetros. Si se decide usar
+otra selección, pasar su ruta explícitamente:
 
 ```powershell
-python -m tps_sia.tp3.ej3.src.experiments --stage controls --reference-selection tps_sia/tp3/ej2/results/selection.json --dry-run
+python -m tps_sia.tp3.ej3.src.experiments --stage controls --reference-selection tps_sia/tp3/<ruta>/selection.json --dry-run
 ```
 
-Ese ejemplo elige **v1** de forma explícita; no es la selección v2 documentada.
 Repetir `--reference-selection` en todos los comandos de entrenamiento y estudio
 de factores, o cambiar `reference_selection` en el protocolo antes de comenzar.
 La selección debe estar dentro de `tp3/` para registrar una ruta portable.

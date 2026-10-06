@@ -1,0 +1,5 @@
+config_id,label,seeds,completed,runs,accuracy_mean,accuracy_std,loss_mean,chosen_epochs,epochs_run,stop_reasons,parameter_count,duration_seconds_mean,seed42_run_id
+ab5b7a7b81bc5eec,tanh-sgd-0.01,[42],1,1,0.9537967055042186,,0.16363993824184891,[100],[100],['no convergió (presupuesto agotado)'],101770,41.61190859996714,ab5b7a7b81bc5eec-seed-42
+f807d94b0ff65abb,tanh-sgd-0.1,[42],1,1,0.9662515066291684,,0.13512445038867676,[31],[41],['parada temprana'],101770,16.947039799997583,f807d94b0ff65abb-seed-42
+18fa27645a769a1d,relu-sgd-0.01,[42],1,1,0.959019686621133,,0.14604681564866356,[99],[100],['no convergió (presupuesto agotado)'],101770,39.01257000002079,18fa27645a769a1d-seed-42
+186e8bebf0849d92,relu-sgd-0.1,[42],1,1,0.9666532744073926,,0.12377826135988718,[21],[31],['parada temprana'],101770,12.391562199918553,186e8bebf0849d92-seed-42

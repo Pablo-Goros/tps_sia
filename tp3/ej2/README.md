@@ -505,12 +505,11 @@ python -m tps_sia.tp3.ej2.src.experiments --config tps_sia/tp3/ej2/configs/searc
 python -m tps_sia.tp3.ej2.src.analysis --results-dir tps_sia/tp3/ej2/results/search --output-dir tps_sia/tp3/ej2/results/analysis
 ```
 
-`search.json` predefine 11 candidatos de tasa/optimizador, incluyendo el baseline,
-y las semillas `[42, 0, 1]`. Cada invocación entrena sólo el candidato y la semilla
-indicados; `--all` ejecuta explícitamente los 33 pares. La comparación y selección
-completas pertenecen al paso 7 y aún están pendientes. La regla predefinida ordena
-por accuracy de validación, menor cross-entropy y menor número de parámetros;
-los finalistas se confirman con semillas comunes, sin elegir la mejor semilla.
+`configs/search.json` define candidatos con nombre (entre ellos el baseline) y sus
+semillas. Cada invocación entrena sólo el candidato y la semilla indicados; `--all`
+entrena todos los pares. Este comando sirve para correr, pausar y reanudar una
+configuración puntual; la selección del ejercicio se hace con la búsqueda por etapas
+del [paso 7](#paso-7--búsqueda-por-etapas-un-factor-a-la-vez).
 
 Las rutas `dataset` y `cache` del JSON se resuelven respecto de su directorio.
 El runner recibe rutas explícitas y rechaza `digits_test.csv`, incluidos enlaces
@@ -590,66 +589,15 @@ compatibilidad del split 80/20, inicialización desde pesos y reanudación exact
 para los tres optimizadores. Con Matplotlib disponible verifican también las
 cinco figuras guardadas; esa prueba se omite si falta la dependencia.
 
-## Paso 7 — Comparación y selección de desarrollo
+## Paso 7 — Búsqueda por etapas: un factor a la vez
 
-La búsqueda completa tiene un comando propio; `experiments --all` conserva
-su significado anterior y ejecuta todas las tasas con todas las semillas.
-El comando por etapas evita ese barrido redundante:
-
-```bash
-OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 python3 -m tps_sia.tp3.ej2.src.search --config tps_sia/tp3/ej2/configs/search.json --output-dir tps_sia/tp3/ej2/results --workers 4
-python3 -m tps_sia.tp3.ej2.src.search_analysis --results-dir tps_sia/tp3/ej2/results --output-dir tps_sia/tp3/ej2/results/analysis
-python3 -m unittest tps_sia.tp3.ej2.tests.test_search
-```
-
-En PowerShell, establecer `$env:OPENBLAS_NUM_THREADS="1"` y
-`$env:OMP_NUM_THREADS="1"` antes de ejecutar el comando sin esos prefijos.
-`--workers` controla corridas simultáneas; su valor por defecto es 1.
-NumPy basta para entrenar; el análisis requiere además Matplotlib.
-
-El protocolo se guarda antes de entrenar y se conserva al repetir el comando.
-Una corrida de dos épocas estima el costo. Luego se comparan las 11 variantes
-de tasa/optimizador con semilla 42 y presupuesto común de 30 épocas. Se
-eligen los dos optimizadores mejor ubicados, cada uno con su mejor tasa,
-para comparar `[784,64,10]`, `[784,128,10]`, `[784,256,10]` y
-`[784,128,64,10]`. La arquitectura de 128 neuronas reutiliza la corrida
-anterior. Las tres mejores configuraciones del conjunto explorado y el
-baseline se confirman con las semillas comunes 42, 0 y 1; cada corrida ya
-terminada se reutiliza. Las decisiones quedan en `rates.json`,
-`architectures.json`, `finalists.json` y `confirmation.json`.
-
-Cada checkpoint se elige por la menor cross-entropy de validación. El ranking
-de configuraciones usa accuracy media de las tres semillas, cross-entropy
-media, cantidad de parámetros y, como desempate determinista, identificador
-de configuración. No se selecciona una semilla favorable: el candidato usa
-la semilla predefinida 42 y su mejor checkpoint de desarrollo. Se guarda
-`results/selection.json` con configuración, semillas, huellas, evidencia,
-modelo candidato y mediana de las mejores épocas como presupuesto para un
-eventual reentrenamiento del paso 9. Este paso no reentrena con toda la data.
-
-Repetir el mismo comando reutiliza corridas completas y reanuda las
-interrumpidas desde su checkpoint; no reemplaza resultados terminados.
-Un protocolo distinto requiere otro directorio. Usar un solo proceso
-coordinador de `search` por directorio. Con varios workers, una interrupción
-del coordinador puede esperar a que terminen las corridas activas.
-
-El análisis usa sólo archivos guardados y genera tablas por etapa,
-curvas comparadas, dispersión y costo de confirmación, métricas por clase,
-confusiones y curvas individuales. Los tiempos son de pared y dependen de
-la concurrencia y del equipo; no constituyen una medición aislada de la
-velocidad relativa de los optimizadores. La selección no usa esos tiempos.
-Ver el [análisis de desarrollo](development-report.md) para las respuestas
-a las preguntas del ejercicio y la interpretación de las comparaciones.
-
-
-## Paso 7b — Búsqueda v2: un factor a la vez
-
-La búsqueda del paso 7 (26 corridas en `results/runs/`, `results/selection.json`)
-se conserva como antecedente **v1**. La v2 rehace la selección con un protocolo de
-*coordinate descent* pre-registrado en
-[`configs/search_v2.json`](configs/search_v2.json): cada etapa cambia **un** factor
-y el resto queda en el mejor valor de la etapa anterior. Está implementada y probada
-con un smoke test; **la búsqueda completa todavía no se ejecutó**.
+La selección del ejercicio sigue un protocolo de *coordinate descent* pre-registrado en
+[`configs/search_v2.json`](configs/search_v2.json): cada etapa cambia **un** factor y el
+resto queda en el mejor valor de la etapa anterior. La búsqueda se ejecutó completa
+(58 corridas). Sus resultados están en `results/v2/`: se versionan las decisiones,
+métricas, historias, figuras y el modelo candidato; los checkpoints y los demás modelos
+están en el Drive del equipo. El análisis, las respuestas a las preguntas del ejercicio y
+la evaluación final están en el [informe de desarrollo](development-report.md).
 
 Base fija: `[784,128,10]`, softmax + cross-entropy, lote 32, inicialización `auto`
 (He para ReLU, Xavier para tanh), partición estratificada 80/20 con `split_seed` 42,
@@ -730,8 +678,7 @@ relativos a `tp3/`, y `config_id` excluye rutas dependientes de la máquina, por
 la misma configuración tiene el mismo id en cualquier equipo. El SHA-256 del protocolo
 se calcula con fines de línea LF (Git con `core.autocrlf` escribe CRLF en Windows).
 El SHA-256 de `digits.csv` sí depende de sus bytes: un checkout con otros fines de
-línea produce otro hash y no reutiliza corridas. Los resultados v1 conservan sus
-rutas absolutas originales y no se migraron.
+línea produce otro hash y no reutiliza corridas.
 
 El análisis v2 genera, por etapa, tabla (`stage_<N>.csv` y `comparison_v2.md`), barras
 de accuracy con desvío entre semillas cuando existen, curvas train/validación de las
@@ -766,17 +713,23 @@ Tiempo por época medido en Windows 11, Python 3.13, NumPy 2.5.3, un hilo de BLA
 | SGD `[784,512,10]`, lote 32 | 2.3 s | 2.65 s |
 | Adam `[784,128,10]`, lote 32 | 0.79 s | 1.00 s |
 
-Con unas 95 corridas nuevas y 30–60 épocas típicas por la parada temprana, la búsqueda
-completa se estima en 1.5–3.5 h en serie (la etapa 6, con 24 corridas, es la más
-cara); con `--workers 4` y un hilo por proceso, del orden de 0.5–1 h. Cada corrida
-ocupa 3–12 MB (checkpoint y mejor modelo, con estado del optimizador).
+La ejecución completa entrenó 58 corridas; casi todas terminaron por parada temprana
+entre las épocas 15 y 40. Con `--workers 4` y un hilo por proceso tardó unos 10
+minutos de pared (unos 28 minutos de entrenamiento sumando todas las corridas). El
+tiempo depende sobre todo del ancho y del optimizador que ganen. Cada corrida ocupa
+3–12 MB (checkpoint y mejor modelo, con estado del optimizador).
 
-## Paso 7c — Apéndice de la búsqueda v2 y evaluación final
+## Paso 8 — Apéndice y evaluación final
 
-La búsqueda v2 se ejecutó completa (58 corridas; selección en `results/v2/selection.json`:
-`[784,256,10]`, tanh, momentum 0.1, lote 32). Este paso no reentrena ni modifica
-`selection.json`, `configs/search_v2.json` ni los `stage_N.json`. Los resultados de
-`results/v2/` y `results/v2_appendix/` se conservan localmente y están excluidos de Git.
+La selección del paso 7 está en `results/v2/selection.json`: `[784,256,10]`, tanh,
+momentum 0.1, lote 32. Este paso no reentrena ni modifica `selection.json`,
+`configs/search_v2.json` ni los `stage_N.json`. De `results/v2/` y `results/v2_appendix/`
+se versiona todo salvo los checkpoints y los modelos (excepto el candidato); la copia
+completa está en el Drive del equipo. Para repetir `appendix run` hacen falta los
+`best_model.npz` de `results/v2/runs`, porque el comando verifica su SHA-256 antes de
+reutilizar cada corrida; `appendix report` y la evaluación final funcionan con lo
+versionado. Los números principales están en el
+[informe de desarrollo](development-report.md).
 
 ### Apéndice (comprobaciones posteriores, no selección)
 
