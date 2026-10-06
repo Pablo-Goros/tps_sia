@@ -272,5 +272,6 @@ son errores y explican casi toda la caída de la accuracy global.
 Implementados los datos y el [flujo de desarrollo](ej3/README.md): controles,
 búsqueda por tasas/arquitecturas/lotes, confirmación con semillas comunes,
 corridas puntuales, reanudación, estudio de factores y análisis desde resultados
-guardados. Los experimentos todavía no se ejecutaron. No incluye evaluación
+guardados. Los resultados de las corridas se guardan en `ej3/results/search/` y
+`ej3/results/factors/`, que no se versionan. No incluye evaluación
 final en test, reentrenamiento para entrega ni técnicas opcionales.

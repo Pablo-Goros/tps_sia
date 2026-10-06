@@ -1,10 +1,8 @@
 # Ejercicio 3 — Dígitos con `more_digits.csv`
 
-El enunciado en PDF llama al archivo `more_data_digits.csv`; el archivo disponible
-es `data/more_digits.csv`. Está implementada la exploración, la partición de desarrollo y el código para
+El archivo de datos es `data/more_digits.csv`. Está implementada la exploración, la partición de desarrollo y el código para
 controles, búsqueda por etapas, corridas puntuales, estudio de factores y análisis.
-Los experimentos de ej3 todavía no se ejecutaron. Este flujo no evalúa test,
-no reentrena para entrega ni implementa extensiones opcionales.
+Este flujo no evalúa test, no reentrena para entrega ni implementa extensiones opcionales.
 
 ## Exploración de datos y partición
 
