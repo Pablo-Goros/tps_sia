@@ -1,0 +1,56 @@
+{
+  "schema_version": 1,
+  "identity": {
+    "config": {
+      "architecture": [
+        784,
+        128,
+        10
+      ],
+      "activation": "tanh",
+      "activation_parameters": {
+        "beta": 1.0
+      },
+      "output": "softmax",
+      "loss": "cross_entropy",
+      "optimizer": {
+        "name": "momentum",
+        "learning_rate": 0.1,
+        "momentum": 0.9
+      },
+      "strategy": "mini_batch",
+      "batch_size": 32,
+      "shuffle": true,
+      "initialization": "auto",
+      "model_seed": 1,
+      "split_seed": 42,
+      "validation_fraction": 0.2,
+      "epochs": 100,
+      "stopping": {
+        "epsilon": 0.0,
+        "patience": 10,
+        "min_delta": 0.0,
+        "monitor": "validation_loss"
+      },
+      "preprocessing": {
+        "name": "identity"
+      },
+      "checkpoint_every": 1,
+      "weight_logging": {
+        "enabled": false,
+        "every_updates": 100,
+        "selected_weights": []
+      },
+      "dataset": "data/digits.csv",
+      "cache": "ej2/cache/digits.npz"
+    },
+    "initialization": {
+      "mode": "fresh"
+    },
+    "dataset_sha256": "11271dbc12a3a8db967f6c2708e55ae1918d69186e81d91c53c24e305fc5d3f4",
+    "metadata": {
+      "protocol": "ej2-one-factor-at-a-time-v2",
+      "search_sha256": "e9ae3412ecff5bd1ca2e90bc0d17191addebc4451df7f7e394b2293d9dbcb10a"
+    }
+  }
+}

@@ -1,0 +1,456 @@
+{
+  "schema_version": 2,
+  "protocol": "ej2-one-factor-at-a-time-v2",
+  "search_sha256": "e9ae3412ecff5bd1ca2e90bc0d17191addebc4451df7f7e394b2293d9dbcb10a",
+  "paths_relative_to": "tp3",
+  "selection_rule": [
+    "mean validation accuracy descending",
+    "mean validation cross-entropy ascending",
+    "parameter count ascending",
+    "config_id ascending"
+  ],
+  "config": {
+    "architecture": [
+      784,
+      256,
+      10
+    ],
+    "activation": "tanh",
+    "activation_parameters": {
+      "beta": 1.0
+    },
+    "output": "softmax",
+    "loss": "cross_entropy",
+    "optimizer": {
+      "name": "momentum",
+      "learning_rate": 0.1,
+      "momentum": 0.9
+    },
+    "strategy": "mini_batch",
+    "batch_size": 32,
+    "shuffle": true,
+    "initialization": "auto",
+    "split_seed": 42,
+    "validation_fraction": 0.2,
+    "epochs": 100,
+    "stopping": {
+      "epsilon": 0.0,
+      "patience": 10,
+      "min_delta": 0.0,
+      "monitor": "validation_loss"
+    },
+    "preprocessing": {
+      "name": "identity"
+    },
+    "checkpoint_every": 1,
+    "weight_logging": {
+      "enabled": false,
+      "every_updates": 100,
+      "selected_weights": []
+    },
+    "dataset": "data/digits.csv",
+    "cache": "ej2/cache/digits.npz"
+  },
+  "config_id": "a2fa557ace07f890",
+  "seeds": [
+    42,
+    0,
+    1,
+    2,
+    3
+  ],
+  "delivery_seed": 42,
+  "dataset": {
+    "source": "data/digits.csv",
+    "sha256": "11271dbc12a3a8db967f6c2708e55ae1918d69186e81d91c53c24e305fc5d3f4",
+    "split_sha256": "7c9e97bc7e6e41e7a2cb3b4c8dca5b0297ef76ae036537411216530abb9e617c",
+    "split_indices": "split.npz",
+    "split_seed": 42,
+    "validation_fraction": 0.2,
+    "train_samples": 9960,
+    "validation_samples": 2489,
+    "class_counts": [
+      1480,
+      1685,
+      1489,
+      1532,
+      1460,
+      271,
+      1479,
+      1566,
+      0,
+      1487
+    ],
+    "train_class_counts": [
+      1184,
+      1348,
+      1191,
+      1226,
+      1168,
+      217,
+      1183,
+      1253,
+      0,
+      1190
+    ],
+    "validation_class_counts": [
+      296,
+      337,
+      298,
+      306,
+      292,
+      54,
+      296,
+      313,
+      0,
+      297
+    ]
+  },
+  "candidate_model": "runs/a2fa557ace07f890-seed-42/best_model.npz",
+  "model_sha256": "51d2208f10e443581e370823c609278a3d63d550ad10342b2bfa8f3d389b2be1",
+  "candidate_epoch": 28,
+  "retraining_epochs": 14,
+  "retraining_epoch_rule": "median best validation-loss epoch across the confirmation seeds",
+  "delivery_policy": {
+    "candidate": "seed-42 best validation checkpoint of the stage-7 winner",
+    "retraining_epochs": "median best epoch of the stage-7 winner across its seeds",
+    "test_policy": "digits_test.csv is never read during the search"
+  },
+  "evidence": {
+    "stages": [
+      "stage_0.json",
+      "stage_1.json",
+      "stage_2.json",
+      "stage_3.json",
+      "stage_4.json",
+      "stage_5.json",
+      "stage_6.json",
+      "stage_7.json"
+    ],
+    "ranking": [
+      {
+        "config_id": "a2fa557ace07f890",
+        "label": "momentum-0.1-hidden-256",
+        "seeds": [
+          0,
+          1,
+          2,
+          3,
+          42
+        ],
+        "run_ids": [
+          "a2fa557ace07f890-seed-0",
+          "a2fa557ace07f890-seed-1",
+          "a2fa557ace07f890-seed-2",
+          "a2fa557ace07f890-seed-3",
+          "a2fa557ace07f890-seed-42"
+        ],
+        "parameter_count": 203530,
+        "config": {
+          "architecture": [
+            784,
+            256,
+            10
+          ],
+          "activation": "tanh",
+          "activation_parameters": {
+            "beta": 1.0
+          },
+          "output": "softmax",
+          "loss": "cross_entropy",
+          "optimizer": {
+            "name": "momentum",
+            "learning_rate": 0.1,
+            "momentum": 0.9
+          },
+          "strategy": "mini_batch",
+          "batch_size": 32,
+          "shuffle": true,
+          "initialization": "auto",
+          "split_seed": 42,
+          "validation_fraction": 0.2,
+          "epochs": 100,
+          "stopping": {
+            "epsilon": 0.0,
+            "patience": 10,
+            "min_delta": 0.0,
+            "monitor": "validation_loss"
+          },
+          "preprocessing": {
+            "name": "identity"
+          },
+          "checkpoint_every": 1,
+          "weight_logging": {
+            "enabled": false,
+            "every_updates": 100,
+            "selected_weights": []
+          },
+          "dataset": "data/digits.csv",
+          "cache": "ej2/cache/digits.npz"
+        },
+        "status": "completed",
+        "accuracy_mean": 0.9724387304138208,
+        "accuracy_std": 0.0014652135418891294,
+        "loss_mean": 0.1897478989683578,
+        "loss_std": 0.013929882338866327,
+        "chosen_epochs": [
+          12,
+          16,
+          13,
+          14,
+          28
+        ],
+        "all_converged": true,
+        "duration_seconds_mean": 53.81394131993875
+      },
+      {
+        "config_id": "9df75e8e35726026",
+        "label": "momentum-0.1-hidden-128",
+        "seeds": [
+          0,
+          1,
+          2,
+          3,
+          42
+        ],
+        "run_ids": [
+          "9df75e8e35726026-seed-0",
+          "9df75e8e35726026-seed-1",
+          "9df75e8e35726026-seed-2",
+          "9df75e8e35726026-seed-3",
+          "9df75e8e35726026-seed-42"
+        ],
+        "parameter_count": 101770,
+        "config": {
+          "architecture": [
+            784,
+            128,
+            10
+          ],
+          "activation": "tanh",
+          "activation_parameters": {
+            "beta": 1.0
+          },
+          "output": "softmax",
+          "loss": "cross_entropy",
+          "optimizer": {
+            "name": "momentum",
+            "learning_rate": 0.1,
+            "momentum": 0.9
+          },
+          "strategy": "mini_batch",
+          "batch_size": 32,
+          "shuffle": true,
+          "initialization": "auto",
+          "split_seed": 42,
+          "validation_fraction": 0.2,
+          "epochs": 100,
+          "stopping": {
+            "epsilon": 0.0,
+            "patience": 10,
+            "min_delta": 0.0,
+            "monitor": "validation_loss"
+          },
+          "preprocessing": {
+            "name": "identity"
+          },
+          "checkpoint_every": 1,
+          "weight_logging": {
+            "enabled": false,
+            "every_updates": 100,
+            "selected_weights": []
+          },
+          "dataset": "data/digits.csv",
+          "cache": "ej2/cache/digits.npz"
+        },
+        "status": "completed",
+        "accuracy_mean": 0.970831659300924,
+        "accuracy_std": 0.0023530012799270854,
+        "loss_mean": 0.1592371737869299,
+        "loss_std": 0.011810604226293035,
+        "chosen_epochs": [
+          11,
+          13,
+          11,
+          10,
+          11
+        ],
+        "all_converged": true,
+        "duration_seconds_mean": 12.589386719977483
+      },
+      {
+        "config_id": "53ff0b2ae5f90723",
+        "label": "momentum-0.05-hidden-256",
+        "seeds": [
+          0,
+          1,
+          2,
+          3,
+          42
+        ],
+        "run_ids": [
+          "53ff0b2ae5f90723-seed-0",
+          "53ff0b2ae5f90723-seed-1",
+          "53ff0b2ae5f90723-seed-2",
+          "53ff0b2ae5f90723-seed-3",
+          "53ff0b2ae5f90723-seed-42"
+        ],
+        "parameter_count": 203530,
+        "config": {
+          "architecture": [
+            784,
+            256,
+            10
+          ],
+          "activation": "tanh",
+          "activation_parameters": {
+            "beta": 1.0
+          },
+          "output": "softmax",
+          "loss": "cross_entropy",
+          "optimizer": {
+            "name": "momentum",
+            "learning_rate": 0.05,
+            "momentum": 0.9
+          },
+          "strategy": "mini_batch",
+          "batch_size": 32,
+          "shuffle": true,
+          "initialization": "auto",
+          "split_seed": 42,
+          "validation_fraction": 0.2,
+          "epochs": 100,
+          "stopping": {
+            "epsilon": 0.0,
+            "patience": 10,
+            "min_delta": 0.0,
+            "monitor": "validation_loss"
+          },
+          "preprocessing": {
+            "name": "identity"
+          },
+          "checkpoint_every": 1,
+          "weight_logging": {
+            "enabled": false,
+            "every_updates": 100,
+            "selected_weights": []
+          },
+          "dataset": "data/digits.csv",
+          "cache": "ej2/cache/digits.npz"
+        },
+        "status": "completed",
+        "accuracy_mean": 0.9688228204098032,
+        "accuracy_std": 0.0018972629896533157,
+        "loss_mean": 0.14194334611574824,
+        "loss_std": 0.0031805087661863473,
+        "chosen_epochs": [
+          13,
+          11,
+          9,
+          10,
+          14
+        ],
+        "all_converged": true,
+        "duration_seconds_mean": 45.605607140017675
+      },
+      {
+        "config_id": "f807d94b0ff65abb",
+        "label": "control-tanh-sgd-0.1",
+        "seeds": [
+          0,
+          1,
+          2,
+          3,
+          42
+        ],
+        "run_ids": [
+          "f807d94b0ff65abb-seed-0",
+          "f807d94b0ff65abb-seed-1",
+          "f807d94b0ff65abb-seed-2",
+          "f807d94b0ff65abb-seed-3",
+          "f807d94b0ff65abb-seed-42"
+        ],
+        "parameter_count": 101770,
+        "config": {
+          "architecture": [
+            784,
+            128,
+            10
+          ],
+          "activation": "tanh",
+          "activation_parameters": {
+            "beta": 1.0
+          },
+          "output": "softmax",
+          "loss": "cross_entropy",
+          "optimizer": {
+            "name": "sgd",
+            "learning_rate": 0.1
+          },
+          "strategy": "mini_batch",
+          "batch_size": 32,
+          "shuffle": true,
+          "initialization": "auto",
+          "split_seed": 42,
+          "validation_fraction": 0.2,
+          "epochs": 100,
+          "stopping": {
+            "epsilon": 0.0,
+            "patience": 10,
+            "min_delta": 0.0,
+            "monitor": "validation_loss"
+          },
+          "preprocessing": {
+            "name": "identity"
+          },
+          "checkpoint_every": 1,
+          "weight_logging": {
+            "enabled": false,
+            "every_updates": 100,
+            "selected_weights": []
+          },
+          "dataset": "data/digits.csv",
+          "cache": "ej2/cache/digits.npz"
+        },
+        "status": "completed",
+        "accuracy_mean": 0.964403374849337,
+        "accuracy_std": 0.0036778762527427257,
+        "loss_mean": 0.1383547615951401,
+        "loss_std": 0.0042434488416637425,
+        "chosen_epochs": [
+          28,
+          22,
+          19,
+          30,
+          31
+        ],
+        "all_converged": true,
+        "duration_seconds_mean": 14.942743359971791
+      }
+    ],
+    "comparisons": {
+      "winner_vs_runner_up": {
+        "better": "a2fa557ace07f890",
+        "other": "9df75e8e35726026",
+        "difference": 0.0016070711128968185,
+        "sigma": 0.001960033895966316,
+        "threshold": 0.003920067791932632,
+        "significant": false
+      },
+      "winner_vs_control": {
+        "better": "a2fa557ace07f890",
+        "other": "f807d94b0ff65abb",
+        "difference": 0.00803535556448376,
+        "sigma": 0.00279943069692966,
+        "threshold": 0.00559886139385932,
+        "significant": true
+      }
+    },
+    "sigma_definition": "pooled sample standard deviation across seeds, sqrt((s_a^2 + s_b^2) / 2) with ddof=1"
+  },
+  "limitations": [
+    "Validation has no digit 8; its recall is not evaluable.",
+    "Digit 5 has 54 validation samples; each error moves its recall by ~1.85 points.",
+    "Repeated validation selection can be optimistic; final test remains reserved."
+  ]
+}

@@ -1,0 +1,4 @@
+config_id,label,seeds,completed,runs,accuracy_mean,accuracy_std,loss_mean,chosen_epochs,epochs_run,stop_reasons,parameter_count,duration_seconds_mean,seed42_run_id
+9df75e8e35726026,hidden-128,[42],1,1,0.9746886299718762,,0.1520262140979041,[11],[21],['parada temprana'],101770,10.217875000089407,9df75e8e35726026-seed-42
+8850cf7ac6c3ccc9,hidden-128-64,[42],1,1,0.9670550421856167,,0.16491992389048346,[15],[25],['parada temprana'],109386,13.585606900043786,8850cf7ac6c3ccc9-seed-42
+6714dddac64b999e,hidden-128-64-32,[42],1,1,0.9473684210526315,,0.19835672102922497,[8],[18],['parada temprana'],111146,10.579873699927703,6714dddac64b999e-seed-42

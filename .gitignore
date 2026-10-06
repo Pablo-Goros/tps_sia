@@ -1,8 +1,13 @@
 salidas/
 *.egg-info/
 tp3/*/cache/
-tp3/ej2/results/v2/
-tp3/ej2/results/v2_appendix/
+# ej2 v2: se versiona la evidencia liviana y el modelo candidato; la copia completa
+# (checkpoints y mejores modelos de cada corrida) queda en el Drive del equipo.
+tp3/ej2/results/v2/**/checkpoint.npz
+tp3/ej2/results/v2/**/best_model.npz
+!tp3/ej2/results/v2/runs/a2fa557ace07f890-seed-42/best_model.npz
+tp3/ej2/results/v2_appendix/**/checkpoint.npz
+tp3/ej2/results/v2_appendix/**/best_model.npz
 __pycache__/
 
 tp3/ej3/results/search/

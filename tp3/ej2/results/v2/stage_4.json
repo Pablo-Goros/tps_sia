@@ -1,0 +1,364 @@
+{
+  "schema_version": 1,
+  "stage": 4,
+  "factor": "depth",
+  "protocol": "ej2-one-factor-at-a-time-v2",
+  "search_sha256": "e9ae3412ecff5bd1ca2e90bc0d17191addebc4451df7f7e394b2293d9dbcb10a",
+  "runs": [
+    {
+      "label": "hidden-128",
+      "run_id": "9df75e8e35726026-seed-42",
+      "config_id": "9df75e8e35726026",
+      "seed": 42,
+      "status": "completed",
+      "stop_reason": "early_stopping",
+      "converged": true,
+      "accuracy": 0.9746886299718762,
+      "loss": 0.1520262140979041,
+      "chosen_epoch": 11,
+      "epochs_run": 21,
+      "parameter_count": 101770,
+      "duration_seconds": 10.217875000089407,
+      "activation": "tanh",
+      "architecture": [
+        784,
+        128,
+        10
+      ],
+      "batch_size": 32,
+      "optimizer": "momentum",
+      "learning_rate": 0.1,
+      "dataset_sha256": "11271dbc12a3a8db967f6c2708e55ae1918d69186e81d91c53c24e305fc5d3f4",
+      "split_sha256": "7c9e97bc7e6e41e7a2cb3b4c8dca5b0297ef76ae036537411216530abb9e617c",
+      "config": {
+        "architecture": [
+          784,
+          128,
+          10
+        ],
+        "activation": "tanh",
+        "activation_parameters": {
+          "beta": 1.0
+        },
+        "output": "softmax",
+        "loss": "cross_entropy",
+        "optimizer": {
+          "name": "momentum",
+          "learning_rate": 0.1,
+          "momentum": 0.9
+        },
+        "strategy": "mini_batch",
+        "batch_size": 32,
+        "shuffle": true,
+        "initialization": "auto",
+        "split_seed": 42,
+        "validation_fraction": 0.2,
+        "epochs": 100,
+        "stopping": {
+          "epsilon": 0.0,
+          "patience": 10,
+          "min_delta": 0.0,
+          "monitor": "validation_loss"
+        },
+        "preprocessing": {
+          "name": "identity"
+        },
+        "checkpoint_every": 1,
+        "weight_logging": {
+          "enabled": false,
+          "every_updates": 100,
+          "selected_weights": []
+        },
+        "dataset": "data/digits.csv",
+        "cache": "ej2/cache/digits.npz"
+      }
+    },
+    {
+      "label": "hidden-128-64",
+      "run_id": "8850cf7ac6c3ccc9-seed-42",
+      "config_id": "8850cf7ac6c3ccc9",
+      "seed": 42,
+      "status": "completed",
+      "stop_reason": "early_stopping",
+      "converged": true,
+      "accuracy": 0.9670550421856167,
+      "loss": 0.16491992389048346,
+      "chosen_epoch": 15,
+      "epochs_run": 25,
+      "parameter_count": 109386,
+      "duration_seconds": 13.585606900043786,
+      "activation": "tanh",
+      "architecture": [
+        784,
+        128,
+        64,
+        10
+      ],
+      "batch_size": 32,
+      "optimizer": "momentum",
+      "learning_rate": 0.1,
+      "dataset_sha256": "11271dbc12a3a8db967f6c2708e55ae1918d69186e81d91c53c24e305fc5d3f4",
+      "split_sha256": "7c9e97bc7e6e41e7a2cb3b4c8dca5b0297ef76ae036537411216530abb9e617c",
+      "config": {
+        "architecture": [
+          784,
+          128,
+          64,
+          10
+        ],
+        "activation": "tanh",
+        "activation_parameters": {
+          "beta": 1.0
+        },
+        "output": "softmax",
+        "loss": "cross_entropy",
+        "optimizer": {
+          "name": "momentum",
+          "learning_rate": 0.1,
+          "momentum": 0.9
+        },
+        "strategy": "mini_batch",
+        "batch_size": 32,
+        "shuffle": true,
+        "initialization": "auto",
+        "split_seed": 42,
+        "validation_fraction": 0.2,
+        "epochs": 100,
+        "stopping": {
+          "epsilon": 0.0,
+          "patience": 10,
+          "min_delta": 0.0,
+          "monitor": "validation_loss"
+        },
+        "preprocessing": {
+          "name": "identity"
+        },
+        "checkpoint_every": 1,
+        "weight_logging": {
+          "enabled": false,
+          "every_updates": 100,
+          "selected_weights": []
+        },
+        "dataset": "data/digits.csv",
+        "cache": "ej2/cache/digits.npz"
+      }
+    },
+    {
+      "label": "hidden-128-64-32",
+      "run_id": "6714dddac64b999e-seed-42",
+      "config_id": "6714dddac64b999e",
+      "seed": 42,
+      "status": "completed",
+      "stop_reason": "early_stopping",
+      "converged": true,
+      "accuracy": 0.9473684210526315,
+      "loss": 0.19835672102922497,
+      "chosen_epoch": 8,
+      "epochs_run": 18,
+      "parameter_count": 111146,
+      "duration_seconds": 10.579873699927703,
+      "activation": "tanh",
+      "architecture": [
+        784,
+        128,
+        64,
+        32,
+        10
+      ],
+      "batch_size": 32,
+      "optimizer": "momentum",
+      "learning_rate": 0.1,
+      "dataset_sha256": "11271dbc12a3a8db967f6c2708e55ae1918d69186e81d91c53c24e305fc5d3f4",
+      "split_sha256": "7c9e97bc7e6e41e7a2cb3b4c8dca5b0297ef76ae036537411216530abb9e617c",
+      "config": {
+        "architecture": [
+          784,
+          128,
+          64,
+          32,
+          10
+        ],
+        "activation": "tanh",
+        "activation_parameters": {
+          "beta": 1.0
+        },
+        "output": "softmax",
+        "loss": "cross_entropy",
+        "optimizer": {
+          "name": "momentum",
+          "learning_rate": 0.1,
+          "momentum": 0.9
+        },
+        "strategy": "mini_batch",
+        "batch_size": 32,
+        "shuffle": true,
+        "initialization": "auto",
+        "split_seed": 42,
+        "validation_fraction": 0.2,
+        "epochs": 100,
+        "stopping": {
+          "epsilon": 0.0,
+          "patience": 10,
+          "min_delta": 0.0,
+          "monitor": "validation_loss"
+        },
+        "preprocessing": {
+          "name": "identity"
+        },
+        "checkpoint_every": 1,
+        "weight_logging": {
+          "enabled": false,
+          "every_updates": 100,
+          "selected_weights": []
+        },
+        "dataset": "data/digits.csv",
+        "cache": "ej2/cache/digits.npz"
+      }
+    }
+  ],
+  "decision": {
+    "incumbent_config_id": "9df75e8e35726026",
+    "near_tie": null,
+    "order": [
+      "9df75e8e35726026",
+      "8850cf7ac6c3ccc9",
+      "6714dddac64b999e"
+    ],
+    "winner": {
+      "label": "hidden-128",
+      "run_id": "9df75e8e35726026-seed-42",
+      "config_id": "9df75e8e35726026",
+      "seed": 42,
+      "status": "completed",
+      "stop_reason": "early_stopping",
+      "converged": true,
+      "accuracy": 0.9746886299718762,
+      "loss": 0.1520262140979041,
+      "chosen_epoch": 11,
+      "epochs_run": 21,
+      "parameter_count": 101770,
+      "duration_seconds": 10.217875000089407,
+      "activation": "tanh",
+      "architecture": [
+        784,
+        128,
+        10
+      ],
+      "batch_size": 32,
+      "optimizer": "momentum",
+      "learning_rate": 0.1,
+      "dataset_sha256": "11271dbc12a3a8db967f6c2708e55ae1918d69186e81d91c53c24e305fc5d3f4",
+      "split_sha256": "7c9e97bc7e6e41e7a2cb3b4c8dca5b0297ef76ae036537411216530abb9e617c",
+      "config": {
+        "architecture": [
+          784,
+          128,
+          10
+        ],
+        "activation": "tanh",
+        "activation_parameters": {
+          "beta": 1.0
+        },
+        "output": "softmax",
+        "loss": "cross_entropy",
+        "optimizer": {
+          "name": "momentum",
+          "learning_rate": 0.1,
+          "momentum": 0.9
+        },
+        "strategy": "mini_batch",
+        "batch_size": 32,
+        "shuffle": true,
+        "initialization": "auto",
+        "split_seed": 42,
+        "validation_fraction": 0.2,
+        "epochs": 100,
+        "stopping": {
+          "epsilon": 0.0,
+          "patience": 10,
+          "min_delta": 0.0,
+          "monitor": "validation_loss"
+        },
+        "preprocessing": {
+          "name": "identity"
+        },
+        "checkpoint_every": 1,
+        "weight_logging": {
+          "enabled": false,
+          "every_updates": 100,
+          "selected_weights": []
+        },
+        "dataset": "data/digits.csv",
+        "cache": "ej2/cache/digits.npz"
+      }
+    }
+  },
+  "winner": {
+    "label": "hidden-128",
+    "run_id": "9df75e8e35726026-seed-42",
+    "config_id": "9df75e8e35726026",
+    "seed": 42,
+    "status": "completed",
+    "stop_reason": "early_stopping",
+    "converged": true,
+    "accuracy": 0.9746886299718762,
+    "loss": 0.1520262140979041,
+    "chosen_epoch": 11,
+    "epochs_run": 21,
+    "parameter_count": 101770,
+    "duration_seconds": 10.217875000089407,
+    "activation": "tanh",
+    "architecture": [
+      784,
+      128,
+      10
+    ],
+    "batch_size": 32,
+    "optimizer": "momentum",
+    "learning_rate": 0.1,
+    "dataset_sha256": "11271dbc12a3a8db967f6c2708e55ae1918d69186e81d91c53c24e305fc5d3f4",
+    "split_sha256": "7c9e97bc7e6e41e7a2cb3b4c8dca5b0297ef76ae036537411216530abb9e617c",
+    "config": {
+      "architecture": [
+        784,
+        128,
+        10
+      ],
+      "activation": "tanh",
+      "activation_parameters": {
+        "beta": 1.0
+      },
+      "output": "softmax",
+      "loss": "cross_entropy",
+      "optimizer": {
+        "name": "momentum",
+        "learning_rate": 0.1,
+        "momentum": 0.9
+      },
+      "strategy": "mini_batch",
+      "batch_size": 32,
+      "shuffle": true,
+      "initialization": "auto",
+      "split_seed": 42,
+      "validation_fraction": 0.2,
+      "epochs": 100,
+      "stopping": {
+        "epsilon": 0.0,
+        "patience": 10,
+        "min_delta": 0.0,
+        "monitor": "validation_loss"
+      },
+      "preprocessing": {
+        "name": "identity"
+      },
+      "checkpoint_every": 1,
+      "weight_logging": {
+        "enabled": false,
+        "every_updates": 100,
+        "selected_weights": []
+      },
+      "dataset": "data/digits.csv",
+      "cache": "ej2/cache/digits.npz"
+    }
+  }
+}
