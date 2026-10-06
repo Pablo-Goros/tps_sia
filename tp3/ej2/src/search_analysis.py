@@ -278,7 +278,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--results-dir', type=Path, required=True)
     parser.add_argument('--output-dir', type=Path, required=True)
-    parser.add_argument('--protocol', choices=('v1', 'v2'), default='v1')
+    parser.add_argument('--protocol', choices=('v1', 'v2'), default='v2')
     args = parser.parse_args()
     (generate_v2 if args.protocol == 'v2' else generate_study)(args.results_dir, args.output_dir)
 
