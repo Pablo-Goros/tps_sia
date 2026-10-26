@@ -80,27 +80,7 @@ if not args.skip_search:
     print("\nMejores por QE:\n", agg.sort_values("QE").head(8).round(3).to_string(index=False))
     print("\nMejores por TE (con QE):\n", agg.sort_values(["TE", "QE"]).head(8).round(3).to_string(index=False))
 
-    # efecto de cada hiperparámetro (promediando el resto)
-    fig, axes = plt.subplots(1, 6, figsize=(21, 3.6))
-    for ax, hp in zip(axes, ["k", "radius0", "eta0", "eta_schedule", "epochs", "init"]):
-        g = agg.groupby(hp)[["QE", "TE"]].mean()
-        g["dead"] = agg.groupby(hp)["dead"].mean()
-        ax2 = ax.twinx()
-        xs = [str(v) for v in g.index]
-        ax.plot(xs, g["QE"], "o-", color="C0", label="QE")
-        ax2.plot(xs, g["TE"], "s--", color="C3", label="TE")
-        ax2.plot(xs, g["dead"] / (agg.k ** 2).max(), "^:", color="gray", label="muertas (frac.)")
-        ax.set_title(hp); ax.set_ylabel("QE", color="C0"); ax2.set_ylabel("TE / muertas", color="C3")
-    fig.suptitle("Efecto marginal de cada hiperparámetro (promedio sobre el resto y 3 semillas)")
-    save(fig, OUT / "busqueda_marginal.png")
-
-    # QE vs TE para k, destacando el trade-off
-    fig, ax = plt.subplots(figsize=(7, 5))
-    for k, g in agg.groupby("k"):
-        ax.scatter(g.QE, g.TE, label=f"k={k}", alpha=0.7)
-    ax.set_xlabel("error de cuantización (QE)"); ax.set_ylabel("error topográfico (TE)")
-    ax.set_title("Trade-off QE vs TE por tamaño de grilla"); ax.legend()
-    save(fig, OUT / "busqueda_qe_te.png")
+    # (las figuras de hiperparámetros las genera ej1_kohonen_hp.py a partir de busqueda_raw.csv)
 
 # ============================================================ 2. modelo final
 cfg_json = json.load(open(args.config))
@@ -128,7 +108,10 @@ for i, name in enumerate(names):
     annot[r][c] += ("\n" if annot[r][c] else "") + name.replace("@", "")
 fig, ax = plt.subplots(figsize=(2.6 * k + 1, 2.4 * k + 1))
 heatmap(hits, title=f"Creadores por neurona (grilla {k}x{k})", annot=annot, cmap="YlOrBr",
-        cbar_label="cantidad", ax=ax)
+        cbar_label="cantidad", vmin=0, ax=ax)
+for (r, c), v in np.ndenumerate(hits):
+    if v == 0:
+        ax.text(c, r, "✕ (sin creadores)", ha="center", va="center", fontsize=9, color="C3")
 save(fig, OUT / "hits.png")
 
 # ---- hits por tema dominante (para interpretar regiones)

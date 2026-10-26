@@ -23,7 +23,7 @@ tp4/
 │   ├── qr.py                    # PNG <-> matriz {1,-1}, decodificación con OpenCV
 │   └── plots.py
 ├── configs/                     # hiperparámetros finales (json)
-├── ej1_eda.py  ej1_pca.py  ej1_kohonen.py  ej1_oja.py
+├── ej1_eda.py  ej1_pca.py  ej1_kohonen.py  ej1_kohonen_hp.py  ej1_oja.py
 ├── ej2_letras.py  ej2_qr.py
 ├── tests/test_teorica.py        # chequeos contra los ejemplos de las diapositivas
 ├── run_all.sh
@@ -52,6 +52,7 @@ o por partes (el orden importa porque cada script usa salidas del anterior):
 python3 ej1_eda.py               # -> resultados/eda/variables_seleccionadas.json, tema_dominante.csv
 python3 ej1_pca.py               # -> resultados/pca/ (usa la selección del EDA)
 python3 ej1_kohonen.py           # barrido (864 corridas) + modelo final; --skip-search para solo el final
+python3 ej1_kohonen_hp.py        # figuras de hiperparámetros a partir del barrido (hp_*.png)
 python3 ej1_oja.py               # usa el autovector PC1 de ej1_pca para comparar
 python3 ej2_letras.py
 python3 ej2_qr.py

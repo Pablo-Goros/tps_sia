@@ -5,6 +5,7 @@ cd "$(dirname "$0")"
 python3 ej1_eda.py
 python3 ej1_pca.py
 python3 ej1_kohonen.py "$@"
+python3 ej1_kohonen_hp.py
 python3 ej1_oja.py
 python3 ej2_letras.py
 python3 ej2_qr.py

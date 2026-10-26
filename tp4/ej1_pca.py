@@ -77,11 +77,48 @@ for t, c in colors.items():
 for i, n in enumerate(names):
     ax.annotate(n, (Y[i, 0], Y[i, 1]), fontsize=6, alpha=0.8, xytext=(3, 2), textcoords="offset points")
 scale = np.abs(Y[:, :2]).max() * 0.9
-for j, v in enumerate(sel):
-    l1, l2 = load.PC1.iloc[j], load.PC2.iloc[j]
-    ax.arrow(0, 0, l1 * scale, l2 * scale, color="#20B2AA", alpha=0.8,
-             head_width=0.08, length_includes_head=True)
-    ax.text(l1 * scale * 1.08, l2 * scale * 1.08, v, fontsize=6.5, color="#20B2AA")
+TURQ = "#20B2AA"
+ends = np.column_stack([load.PC1.values, load.PC2.values]) * scale
+for ex, ey in ends:
+    ax.plot([0, ex], [0, ey], color=TURQ, lw=1.1, alpha=0.9)
+
+# Etiquetas al final de cada línea, separadas para que no se superpongan:
+# se ubican un poco más allá del extremo y se empujan verticalmente las que chocan.
+ax.set_xlim(Y[:, 0].min() - 0.8, Y[:, 0].max() + 1.2)
+ax.set_ylim(Y[:, 1].min() - 0.6, Y[:, 1].max() + 0.6)
+fig.canvas.draw()
+y_per_px = (ax.get_ylim()[1] - ax.get_ylim()[0]) / ax.bbox.height
+x_per_px = (ax.get_xlim()[1] - ax.get_xlim()[0]) / ax.bbox.width
+FS = 7
+h = FS * 2.0 * y_per_px                       # alto aprox. de una etiqueta en datos
+pos = []
+for (ex, ey), v in zip(ends, sel):
+    d = np.hypot(ex, ey) or 1.0
+    px, py = ex + ex / d * 0.25, ey + ey / d * 0.25
+    w = len(v) * FS * 0.72 * x_per_px          # ancho aprox. en datos
+    ha = "left" if ex >= 0 else "right"
+    pos.append([px, py, w, ha, v, ex, ey])
+for _ in range(200):                           # relajación: separar pares que se solapan
+    moved = False
+    for i in range(len(pos)):
+        for j in range(i + 1, len(pos)):
+            a, b = pos[i], pos[j]
+            ax0, ax1 = (a[0], a[0] + a[2]) if a[3] == "left" else (a[0] - a[2], a[0])
+            bx0, bx1 = (b[0], b[0] + b[2]) if b[3] == "left" else (b[0] - b[2], b[0])
+            if ax0 < bx1 and bx0 < ax1 and abs(a[1] - b[1]) < h:
+                push = (h - abs(a[1] - b[1])) / 2 + 0.01
+                if a[1] >= b[1]:
+                    a[1] += push; b[1] -= push
+                else:
+                    a[1] -= push; b[1] += push
+                moved = True
+    if not moved:
+        break
+for px, py, w, ha, v, ex, ey in pos:
+    if abs(py - ey) > h * 0.6:                 # si se desplazó, un conector fino al extremo
+        ax.plot([ex, px], [ey, py], color=TURQ, lw=0.5, alpha=0.5, ls=":")
+    ax.text(px, py, v, fontsize=FS, color=TURQ, ha=ha, va="center", zorder=5,
+            bbox=dict(boxstyle="round,pad=0.15", fc="white", ec="none", alpha=0.75))
 ax.axhline(0, color="k", lw=0.5); ax.axvline(0, color="k", lw=0.5)
 ax.set_xlabel(f"PC1 ({evr[0]:.1%})"); ax.set_ylabel(f"PC2 ({evr[1]:.1%})")
 ax.set_title("Biplot: creadores y cargas en PC1-PC2"); ax.legend(fontsize=8)

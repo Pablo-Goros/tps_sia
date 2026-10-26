@@ -18,7 +18,9 @@ def save(fig, path: str | Path, dpi: int = 130):
 
 
 def heatmap(M, title="", xlabel="", ylabel="", annot=None, cmap="viridis", fmt="{:.2f}",
-            cbar_label="", figsize=(6, 5), xticks=None, yticks=None, ax=None, vmin=None, vmax=None):
+            cbar_label="", figsize=(6, 5), xticks=None, yticks=None, ax=None, vmin=None, vmax=None,
+            fontsize=6.5, text_color=None):
+    """text_color: None -> blanco/negro según la luminancia de la celda; o un color fijo."""
     own = ax is None
     if own:
         fig, ax = plt.subplots(figsize=figsize)
@@ -34,12 +36,19 @@ def heatmap(M, title="", xlabel="", ylabel="", annot=None, cmap="viridis", fmt="
         ax.set_yticklabels(yticks, fontsize=7)
     if annot is not None:
         M = np.asarray(M, dtype=float)
-        thr = (np.nanmax(M) + np.nanmin(M)) / 2 if np.isfinite(M).any() else 0
+        # color del texto según la luminancia real del color de fondo de la celda
+        norm = im.norm
+        cm = im.cmap
         for i in range(M.shape[0]):
             for j in range(M.shape[1]):
                 a = annot[i][j] if not isinstance(annot, bool) else fmt.format(M[i, j])
-                ax.text(j, i, a, ha="center", va="center", fontsize=6.5,
-                        color="white" if (np.isfinite(M[i, j]) and M[i, j] < thr) else "black")
+                if np.isfinite(M[i, j]):
+                    r, g, b, _ = cm(norm(M[i, j]))
+                    lum = 0.299 * r + 0.587 * g + 0.114 * b
+                else:
+                    lum = 1.0
+                ax.text(j, i, a, ha="center", va="center", fontsize=fontsize,
+                        color=text_color or ("white" if lum < 0.5 else "black"))
     cb = plt.colorbar(im, ax=ax, fraction=0.046, pad=0.04)
     if cbar_label:
         cb.set_label(cbar_label)

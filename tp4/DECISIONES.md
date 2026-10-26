@@ -139,22 +139,28 @@ promete que una SOM debe lograr):
   "Vecindario"), es decir que el mapa preservó la topología.
 * **Unidades muertas**: neuronas sin ningún registro (slide "Inicialización").
 
-**Barrido** (`busqueda.csv`, `busqueda_marginal.png`, `busqueda_qe_te.png`): k ∈ {3,4,5,6}, R(0) ∈ {k, 2, 1},
-η₀ ∈ {0.1, 0.5, 0.9}, esquema de η ∈ {inverso, lineal}, épocas ∈ {100, 500}, init ∈ {muestras, uniforme},
-3 semillas cada uno → 864 entrenamientos. Conclusiones:
+**Barrido y ablación.** Primero un barrido completo de 864 corridas con 3 semillas (`ej1_kohonen.py`,
+`busqueda.csv`: k ∈ {3,4,5,6}, R(0) ∈ {k, 2, 1}, η₀ ∈ {0.1, 0.5, 0.9}, esquema de η ∈ {inverso, lineal},
+épocas ∈ {100, 500}, init ∈ {muestras, uniforme}) para ubicar la región razonable. Después, para justificar
+cada valor, una **ablación con 10 semillas** (`ej1_kohonen_hp.py`): se parte de la configuración final y se
+cambia un solo hiperparámetro por vez, midiendo QE, TE y en cuántas semillas aparece alguna unidad muerta
+(figuras `hp_k.png`, `hp_mapas_k.png`, `hp_radio.png`, `hp_eta0.png`, `hp_esquema_eta.png`, `hp_epocas.png`,
+`hp_init.png`, todo junto en `hp_ablacion.png`; números en `hp_tabla.csv`). Conclusiones:
 
-| Hiperparámetro | Efecto observado | Decisión |
+| Hiperparámetro | Efecto observado (10 semillas) | Decisión |
 |---|---|---|
-| **k** | QE baja al crecer k (3: 3.45 → 6: 2.63) pero solo porque hay más prototipos: con 50 registros, k=5 deja ≈3.5 neuronas muertas y k=6 ≈10 de 36. k=3 (9 neuronas, ~5.5 creadores por neurona) mezcla temas. | **k = 4** (16 neuronas, ~3 creadores por neurona, 0–1 muertas). La teórica reconoce que "no hay un criterio demostrado para definir el tamaño de la grilla": se elige el mayor k que no genera huecos. |
-| **R(0)** | R=1 constante (sin vecindario = competitivo puro) da el QE más bajo pero el TE más alto (más del doble que R(0)=k) y más unidades muertas: no auto‑organiza. R(0)=k→1 da TE≈0. | **R(0) = k = 4, decreciendo linealmente a 1**: es el setup de la teórica y el que produce un mapa donde la posición significa algo (necesario para la Matriz U). |
-| **η₀ / esquema** | Diferencias de QE < 2 %. El esquema inverso `η₀/(1+época)` cae al piso en ~50 épocas y enmascara el efecto de las épocas; el lineal aprovecha todo el entrenamiento y da TE menor (0.006 vs 0.012) y menos unidades muertas. | **η: 0.5 → 0.01 lineal**. η₀ = 0.5 cumple "η(0) < 1" y con R grande al principio mueve todo el mapa; después afina. |
-| **épocas** | 100 → 500 mejora QE ~1.5 % con esquema lineal. | **500 épocas** (25 000 iteraciones, cuesta < 1 s). |
-| **init** | Casi igual en QE; muestras da menos muertas con k grande. | **muestras** (recomendación explícita de la teórica). |
+| **k** | QE baja al crecer k (3: 3.43 → 6: 2.59) pero solo porque hay más prototipos: con 50 registros, k=5 deja 4.2 neuronas muertas de 25 (17 %) y k=6 8.9 de 36 (25 %), en las 10 semillas. k=3 (9 neuronas, ~5.5 creadores por neurona) mezcla temas. k=4 tiene a lo sumo 1 muerta (0.7 en promedio, aparece en 7 de 10 semillas). | **k = 4** (16 neuronas, ~3 creadores por neurona). La teórica reconoce que "no hay un criterio demostrado para definir el tamaño de la grilla": se elige el mayor k en el que casi todas las neuronas representan creadores reales. La única neurona vacía del modelo final, (3,2), está sobre la cresta de la Matriz U entre arte y masivos: es un prototipo intermedio donde no hay datos, no un defecto de entrenamiento. |
+| **R(0)** | **R = k constante (sin achicar el vecindario) destruye el mapa**: QE 3.90, TE 0.87, 11 de 16 neuronas muertas; todas las neuronas se mueven juntas y colapsan en 5 prototipos. R = 1 constante (competitivo puro, sin vecindario) da QE igual (3.143) pero TE 0.010 y no ordena el mapa. R(0) = 2 → 1 y R(0) = k → 1 son equivalentes en QE (3.136 / 3.145, dentro del desvío 0.015); k → 1 es el único con TE = 0 en las 10 semillas. | **R(0) = k = 4, decreciendo linealmente a 1**: es el setup de la teórica ("R(0) puede ser el tamaño total de la grilla y va decreciendo hasta R = 1") y el que produce un mapa donde la posición significa algo (necesario para la Matriz U). Lo importante es *que* decrezca; desde dónde arranca casi no cambia el resultado. |
+| **esquema de η** | **η constante 0.5 (sin decaer)**: QE 3.40, TE 0.14, los pesos nunca se asientan. η₀/(1+época): QE 3.21, se estanca a las ~50 épocas (`hp_curvas.png`). Lineal y exponencial hasta 0.01: 3.145 / 3.157, equivalentes. | **η lineal 0.5 → 0.01**. Cumple "η(i) → 0" de la teórica aprovechando todo el entrenamiento. El "η(i) = 1/i" literal de la slide decae demasiado rápido para 25 000 iteraciones. |
+| **η₀** | Entre 0.1 y 0.9 el QE varía 0.006 (menos que el desvío). Sí hay una tendencia en unidades muertas: η₀ = 0.9 produce alguna en 9 de 10 semillas, η₀ = 0.3 en 3 de 10, η₀ = 0.5 en 7 de 10. | **η₀ = 0.5** ("η(0) < 1"). Es una elección dentro de un rango plano: 0.3 habría dado algo menos de unidades muertas con el mismo QE, y 0.9 es la peor opción. |
+| **épocas** | Con 3 semillas 500 parecía tener más unidades muertas que 100; con 10 semillas se ve que es ruido: la unidad muerta aparece en 2–7 de 10 semillas para *cualquier* cantidad de épocas y el QE varía 0.01 entre 100 y 1000 épocas, menos que el desvío entre semillas (0.015). Solo 50 épocas es peor (QE 3.166, TE 0.010). | **500 épocas**: 25 000 iteraciones, del orden del "500·N" de la teórica, único valor con TE = 0 en las 10 semillas, y cuesta < 1 s. Hay que decirlo explícitamente: 100 o 300 épocas darían el mismo mapa. |
+| **init** | Muestras vs. uniforme en [min, max] de los datos: QE 3.145 / 3.143, muertas 7/10 en ambos, TE 0.000 / 0.006. Indistinguibles. | **muestras** (recomendación explícita de la teórica contra unidades muertas; acá la uniforme no las genera porque está acotada al rango de los datos, no es "aleatoria lejos de todo"). |
 
-La configuración final es además de las **más reproducibles**: desvío de QE entre semillas 0.006
-contra hasta 0.05 en otras configuraciones con k=4 (y 0.12 con k=6) (`busqueda.csv`, columna `QE_std`).
+En resumen: lo que decide la calidad del mapa es que **R y η decrezcan** (sin eso QE sube 10–25 % y TE
+se dispara) y que **k no exceda lo que 50 registros pueden poblar**. Entre las variantes que cumplen eso,
+las diferencias son menores que el ruido entre semillas; la configuración final es la de la teórica.
 
-**Modelo final**: QE = 3.15, TE = 0.00, 1 unidad muerta (de 16), U media = 2.51 (`entrenamiento.png`).
+**Modelo final** (semilla 42): QE = 3.15, TE = 0.00, 1 unidad muerta (de 16), U media = 2.51 (`entrenamiento.png`).
 
 **Análisis de la grilla** (`hits.png`, `hits_por_tema.png`, `planos_*.png`, `resumen_neuronas.txt`, `perfiles_neuronas.csv`):
 
@@ -457,6 +463,7 @@ real (`cv2.QRCodeDetector`) sobre la salida de la red: los 5 originales decodifi
 | `ej1_eda.py` | `resultados/eda/` (describe, boxplots, correlaciones, derivadas, variables seleccionadas) |
 | `ej1_pca.py` | `resultados/pca/` (autovalores, scree, cargas, biplot, índice PC1, proyección) |
 | `ej1_kohonen.py` | `resultados/kohonen/` (barrido de 864 corridas, hits, Matriz U, planos, perfiles, SOM vs PCA) |
+| `ej1_kohonen_hp.py` | `resultados/kohonen/hp_*.png` (ablación con 10 semillas, un hiperparámetro a la vez: k, R(0), η₀, esquema de η, épocas, init; mapas por k; curvas de QE) |
 | `ej1_oja.py` | `resultados/oja/` (barrido de η, convergencia, pesos vs PC1, índice, ranking por tema) |
 | `ej2_letras.py` | `resultados/hopfield_letras/` (ortogonalidad, capacidad, ruido, energía, espurio) |
 | `ej2_qr.py` | `resultados/hopfield_qr/` (falla con 5, subconjuntos, ruido, deterioros, energía, capacidad, `salida.txt`) |
