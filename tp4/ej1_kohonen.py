@@ -153,14 +153,14 @@ save(fig, OUT / "umatrix.png")
 
 # ---- planos de componentes (promedio de la variable estandarizada por neurona)
 groups = {
-    "escala": ["followers", "average_reach", "average_impressions", "average_video_views", "price_usd", "non_follower_reach_pct"],
+    "escala": ["average_impressions", "average_video_views", "price_usd", "non_follower_reach_pct", "monthly_posts", "argentina_audience_pct"],
     "engagement": ["likes_per_1000", "comments_per_1000", "saves_per_1000", "shares_per_1000", "profile_visits_per_1000", "average_watch_time_seconds"],
-    "tema": ["topic_football_pct", "topic_makeup_pct", "topic_dogs_pct", "topic_art_pct", "argentina_audience_pct", "sponsored_posts_pct"],
+    "tema": ["topic_football_pct", "topic_makeup_pct", "topic_dogs_pct", "topic_art_pct", "sponsored_posts_pct", "trend_posts_pct"],
     "formato": ["content_tutorial_pct", "content_review_pct", "content_entertainment_pct", "content_showcase_pct", "video_posts_pct", "short_form_posts_pct"],
 }
 for gname, feats in groups.items():
     fig, axes = plt.subplots(2, 3, figsize=(14, 8))
-    for ax, f in zip(axes.ravel(), feats):
+    for ax, f in zip(axes.ravel(), [f for f in feats if f in sel]):
         M = som.component_plane(sel.index(f))
         heatmap(M, title=f, annot=True, cmap="RdBu_r", vmin=-2, vmax=2, ax=ax)
     fig.suptitle(f"Pesos de la red por variable ({gname}; z-score, rojo = alto)")

@@ -29,9 +29,9 @@ X = df[sel].values
 names = df["name"].values
 
 pca = PCA().fit(X)
-# Orientación de signo (ver DECISIONES.md): PC1 con average_reach positivo
-# ("más PC1 = más alcance masivo"), PC2 con topic_art_pct positivo.
-pca.orient(0, sel.index("average_reach")).orient(1, sel.index("topic_art_pct"))
+# Orientación de signo (ver DECISIONES.md): PC1 con average_impressions positivo
+# ("más PC1 = más visibilidad"), PC2 con topic_art_pct positivo.
+pca.orient(0, sel.index("average_impressions")).orient(1, sel.index("topic_art_pct"))
 Y = pca.transform(X)
 evr = pca.explained_variance_ratio_
 cum = pca.cumulative_variance()
@@ -79,9 +79,9 @@ for i, n in enumerate(names):
 scale = np.abs(Y[:, :2]).max() * 0.9
 for j, v in enumerate(sel):
     l1, l2 = load.PC1.iloc[j], load.PC2.iloc[j]
-    ax.arrow(0, 0, l1 * scale, l2 * scale, color="gray", alpha=0.6,
+    ax.arrow(0, 0, l1 * scale, l2 * scale, color="#20B2AA", alpha=0.8,
              head_width=0.08, length_includes_head=True)
-    ax.text(l1 * scale * 1.08, l2 * scale * 1.08, v, fontsize=6.5, color="dimgray")
+    ax.text(l1 * scale * 1.08, l2 * scale * 1.08, v, fontsize=6.5, color="#20B2AA")
 ax.axhline(0, color="k", lw=0.5); ax.axvline(0, color="k", lw=0.5)
 ax.set_xlabel(f"PC1 ({evr[0]:.1%})"); ax.set_ylabel(f"PC2 ({evr[1]:.1%})")
 ax.set_title("Biplot: creadores y cargas en PC1-PC2"); ax.legend(fontsize=8)

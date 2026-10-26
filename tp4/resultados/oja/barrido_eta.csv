@@ -1,0 +1,8 @@
+eta,cos_final,cos_min,norm_final,epocas_0_99,diverge
+0.1 -> 1/(1+epoca),,,,-1.0,1.0
+0.5 -> 1/(1+epoca),,,,-1.0,1.0
+1/(1.2*lambda1)=0.070,,,,-1.0,1.0
+constante 1e-2,0.9765,0.9733,1.0329,24.0,0.0
+constante 1e-3,0.9999,0.9999,1.0031,6.2,0.0
+constante 1e-4,1.0,1.0,1.0003,68.6,0.0
+constante 5e-2,,,,-1.0,1.0

@@ -85,11 +85,19 @@ print("\nTema dominante por creador:\n", dom.value_counts().to_string())
 df[["creator_id", "name", "tema_dominante"]].to_csv(OUT / "tema_dominante.csv", index=False)
 
 # ------------------------------------------------------ selección de variables
-# Se eliminan únicamente las columnas que son combinaciones EXACTAS de otras:
-# aportan información redundante (correlación 1 con su original) y nada más.
-drop = ["price_ars", "organic_posts_pct", "total_engagement_per_1000", "estimated_argentina_reach"]
+# (a) Se eliminan las columnas que son combinaciones EXACTAS de otras: aportan
+#     información redundante (correlación 1 con su original) y nada más.
+drop_exactas = ["price_ars", "organic_posts_pct", "total_engagement_per_1000", "estimated_argentina_reach"]
+# (b) Del bloque de "escala" (followers / reach / impressions / video_views / price, r = 0.82..0.997
+#     entre sí) se eliminan las dos variables más correlacionadas con el resto del bloque
+#     (correlacion.png): average_reach (0.997 con video_views, 0.987 con impressions, 0.918 con
+#     followers) y followers (0.91 con las tres). Quedan average_impressions y average_video_views
+#     como indicadores de visibilidad, más price_usd como perfil comercial.
+drop_correlacionadas = ["average_reach", "followers"]
+drop = drop_exactas + drop_correlacionadas
 selected = [c for c in num.columns if c not in drop]
-json.dump({"selected": selected, "dropped": drop,
+json.dump({"selected": selected, "dropped": drop, "dropped_exactas": drop_exactas,
+           "dropped_correlacionadas": drop_correlacionadas,
            "note": "topic_* y content_* suman 100 cada grupo: se conservan las 4 de cada uno por "
                    "interpretabilidad; eso introduce 2 autovalores nulos en PCA (ver DECISIONES.md)."},
           open(OUT / "variables_seleccionadas.json", "w"), indent=2, ensure_ascii=False)

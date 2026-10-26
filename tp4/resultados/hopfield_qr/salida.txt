@@ -1,0 +1,97 @@
+5 QR de 37x37 -> N = 1369; cota de capacidad 0.15 N = 205 patrones
+  beverages  decodifica como: https://github.com/eugepineiro/sia-tips/blob/feature/tp4-images/TPs/TP4/beverages_menu.png
+  dessert    decodifica como: https://github.com/eugepineiro/sia-tips/blob/feature/tp4-images/TPs/TP4/dessert_menu.png
+  food       decodifica como: https://github.com/eugepineiro/sia-tips/blob/feature/tp4-images/TPs/TP4/food_menu.png
+  specials   decodifica como: https://github.com/eugepineiro/sia-tips/blob/feature/tp4-images/TPs/TP4/specials_menu.png
+  wine       decodifica como: https://github.com/eugepineiro/sia-tips/blob/feature/tp4-images/TPs/TP4/wine_menu.png
+
+Solapamiento xi^mu . xi^nu / N  (0 = ortogonales, 1 = idénticos):
+           beverages  dessert   food  specials   wine
+beverages      1.000    0.757  0.600     0.594  0.576
+dessert        0.757    1.000  0.594     0.614  0.576
+food           0.600    0.594  1.000     0.766  0.860
+specials       0.594    0.614  0.766     1.000  0.763
+wine           0.576    0.576  0.860     0.763  1.000
+módulos idénticos en los 5 QR: 69.8% (955 de 1369)
+
+== Red con los 5 QR almacenados ==
+       qr  bits_inestables  punto_fijo  iter  H_patron  H_final  hamming_final
+beverages              225       False     2  -1789.71 -2172.88            225
+  dessert              225       False     2  -1801.85 -2172.88            225
+     food               71       False     2  -2077.45 -2172.88             71
+ specials              103       False     2  -1982.47 -2172.88            103
+     wine               91       False     2  -2041.53 -2172.88             91
+Todos convergen al mismo atractor espurio? True  H(atractor) = -2172.9 < min H(patrones) = -2077.4
+overlaps del atractor con cada QR: {'beverages': np.float64(0.671), 'dessert': np.float64(0.671), 'food': np.float64(0.896), 'specials': np.float64(0.85), 'wine': np.float64(0.867)}
+¿el lector decodifica el atractor? NO
+
+== Subconjuntos ==
+   solap_max  estables  recuperacion_20pct
+p                                         
+1      0.000       1.0                 1.0
+2      0.670       1.0                 1.0
+3      0.791       0.0                 0.0
+4      0.822       0.0                 0.0
+5      0.860       0.0                 0.0
+(todos los pares funcionan; ningún trío/cuarteto. Detalle en subconjuntos.csv)
+
+== Red con el par ['food', 'wine'] (solapamiento 0.860) ==
+  'food' punto fijo: True  H = -1189.5
+  'wine' punto fijo: True  H = -1189.5
+
+Ejemplo 'food' con ruido 25% (355 módulos): 2 iteraciones, recuperado=True; lector antes: NO | después: https://github.com/eugepineiro/sia-tips/blob/feature/tp4-images/TPs/TP4/food_menu.png
+  energía por paso: [-276.7, -1189.5, -1189.5]
+  Hamming al original por paso: [355, 0, 0]
+
+== Barrido de ruido (par) ==
+       recuperado  espurio   otro  negativo  ciclo   iter     bits  hamming_final        H0        Hf  lector_consulta  lector_final
+ruido                                                                                                                               
+0.00        1.000    0.000  0.000       0.0  0.000  1.000    0.000           0.00 -1189.464 -1189.464              1.0         1.000
+0.05        1.000    0.000  0.000       0.0  0.000  2.000   68.150           0.00  -964.413 -1189.464              0.0         1.000
+0.10        1.000    0.000  0.000       0.0  0.000  2.000  137.583           0.00  -759.063 -1189.464              0.0         1.000
+0.15        1.000    0.000  0.000       0.0  0.000  2.000  202.550           0.00  -588.653 -1189.464              0.0         1.000
+0.20        1.000    0.000  0.000       0.0  0.000  2.000  274.600           0.00  -425.286 -1189.464              0.0         1.000
+0.25        1.000    0.000  0.000       0.0  0.000  2.000  344.317           0.00  -292.807 -1189.464              0.0         1.000
+0.30        1.000    0.000  0.000       0.0  0.000  2.000  408.167           0.00  -193.884 -1189.464              0.0         1.000
+0.35        1.000    0.000  0.000       0.0  0.000  2.000  478.400           0.00  -107.356 -1189.464              0.0         1.000
+0.40        1.000    0.000  0.000       0.0  0.000  2.000  546.883           0.00   -48.606 -1189.464              0.0         1.000
+0.45        0.850    0.033  0.117       0.0  0.033  2.033  614.267          12.80   -12.225 -1189.239              0.0         0.967
+0.50        0.233    0.100  0.367       0.3  0.100  2.117  684.400         643.45    -0.049 -1169.174              0.0         0.500
+
+== Deterioros realistas (par) ==
+              caso   qr  bits  iter   ok  lector_antes  lector_despues  hamming_final
+esquina rota 10x10 food    53     2 True          True            True              0
+esquina rota 10x10 wine    53     2 True          True            True              0
+esquina rota 16x16 food   139     2 True         False            True              0
+esquina rota 16x16 wine   139     2 True         False            True              0
+        mancha r=6 food    60     2 True         False            True              0
+        mancha r=6 wine    58     2 True         False            True              0
+       mancha r=10 food   159     2 True         False            True              0
+       mancha r=10 wine   161     2 True         False            True              0
+     rayón 2 filas food    41     2 True         False            True              0
+     rayón 2 filas wine    40     2 True         False            True              0
+     rayón 5 filas food    99     2 True         False            True              0
+     rayón 5 filas wine    90     2 True         False            True              0
+    rasgado 8 col. food   153     2 True         False            True              0
+    rasgado 8 col. wine   147     2 True         False            True              0
+       borrado 30% food   208     2 True         False            True              0
+       borrado 30% wine   201     2 True         False            True              0
+       borrado 50% food   358     2 True         False            True              0
+       borrado 50% wine   350     2 True         False            True              0
+  p=   2 (p/N=0.001)  QR estables=1.00  recuperación 15% ruido=1.00
+  p=  27 (p/N=0.020)  QR estables=0.00  recuperación 15% ruido=0.00
+  p=  52 (p/N=0.038)  QR estables=0.00  recuperación 15% ruido=0.00
+  p= 102 (p/N=0.075)  QR estables=0.00  recuperación 15% ruido=0.00
+  p= 152 (p/N=0.111)  QR estables=0.00  recuperación 15% ruido=0.00
+  p= 202 (p/N=0.148)  QR estables=0.00  recuperación 15% ruido=0.00
+  p= 252 (p/N=0.184)  QR estables=0.00  recuperación 15% ruido=0.00
+  p= 302 (p/N=0.221)  QR estables=0.00  recuperación 15% ruido=0.00
+  p= 402 (p/N=0.294)  QR estables=0.00  recuperación 15% ruido=0.00
+  aleatorios p=  10 (p/N=0.007)  estables=1.00  recuperación 15% ruido=1.00
+  aleatorios p=  50 (p/N=0.037)  estables=1.00  recuperación 15% ruido=1.00
+  aleatorios p= 100 (p/N=0.073)  estables=0.80  recuperación 15% ruido=0.80
+  aleatorios p= 150 (p/N=0.110)  estables=0.35  recuperación 15% ruido=0.30
+  aleatorios p= 200 (p/N=0.146)  estables=0.00  recuperación 15% ruido=0.00
+  aleatorios p= 250 (p/N=0.183)  estables=0.00  recuperación 15% ruido=0.00
+  aleatorios p= 300 (p/N=0.219)  estables=0.00  recuperación 15% ruido=0.00
+  aleatorios p= 400 (p/N=0.292)  estables=0.00  recuperación 15% ruido=0.00
