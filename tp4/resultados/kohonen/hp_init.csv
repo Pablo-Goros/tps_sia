@@ -1,3 +1,0 @@
-,hiperparametro,es_final,QE,QE_sd,TE,TE_sd,dead,dead_sd,semillas_con_muertas
-muestras del dataset,init,True,3.145,0.0161,0.0,0.0,0.7,0.483,7
-"uniforme en [min, max]",init,False,3.1426,0.0139,0.006,0.0097,0.8,0.6325,7

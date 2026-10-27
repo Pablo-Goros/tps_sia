@@ -1,6 +1,0 @@
-price_ars = 1500 * price_usd: REDUNDANTE 
-organic_posts_pct = 100 - sponsored_posts_pct: REDUNDANTE 
-total_engagement_per_1000 = likes + comments + saves + shares: REDUNDANTE 
-estimated_argentina_reach = average_reach * argentina_audience_pct / 100: REDUNDANTE (error max 0.50, redondeo)
-suma topic_*_pct = 100: REDUNDANTE 
-suma content_*_pct = 100: REDUNDANTE 
