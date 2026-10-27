@@ -1,0 +1,7 @@
+,hiperparametro,es_final,QE,QE_sd,TE,TE_sd,dead,dead_sd,semillas_con_muertas
+50,epocas,False,3.1662,0.0256,0.01,0.0194,0.5,0.527,5
+100,epocas,False,3.1508,0.0139,0.002,0.0063,0.5,0.527,5
+200,epocas,False,3.1567,0.0151,0.006,0.0097,0.2,0.4216,2
+300,epocas,False,3.1512,0.0112,0.002,0.0063,0.3,0.483,3
+500,epocas,True,3.145,0.0161,0.0,0.0,0.7,0.483,7
+1000,epocas,False,3.1443,0.0166,0.002,0.0063,0.3,0.483,3

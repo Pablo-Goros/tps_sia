@@ -55,6 +55,7 @@ python3 ej1_pca.py               # -> resultados/pca/ (usa la selección del EDA
 python3 ej1_kohonen.py           # barrido (864 corridas) + modelo final; --skip-search para solo el final
 python3 ej1_kohonen_hp.py        # figuras de hiperparámetros a partir del barrido (hp_*.png)
 python3 ej1_oja.py               # usa el autovector PC1 de ej1_pca para comparar
+python3 ej1_campanias.py         # 4 casos de campaña (short/long x fútbol/perros) con Kohonen + índice
 python3 ej2_letras.py
 python3 ej2_qr.py
 python3 ej2_qr_pinv.py           # los 5 QR con la regla de la pseudoinversa (≈ 3 min) -> resultados/hopfield_qr_pinv/

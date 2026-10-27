@@ -1,0 +1,5 @@
+,hiperparametro,es_final,QE,QE_sd,TE,TE_sd,dead,dead_sd,semillas_con_muertas
+η₀/(1+época),esquema_eta,False,3.2118,0.0334,0.006,0.0135,0.3,0.483,3
+lineal → 0.01,esquema_eta,True,3.145,0.0161,0.0,0.0,0.7,0.483,7
+exponencial → 0.01,esquema_eta,False,3.1569,0.0111,0.002,0.0063,0.7,0.483,7
+constante 0.5,esquema_eta,False,3.4032,0.0555,0.144,0.0659,1.2,0.9189,8

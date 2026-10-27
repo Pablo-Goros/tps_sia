@@ -505,6 +505,7 @@ La red, la regla de actualización y la energía `H = −½ SᵀWS` son las mism
 | `ej1_kohonen.py` | `resultados/kohonen/` (barrido de 864 corridas, hits, Matriz U, planos, perfiles, SOM vs PCA) |
 | `ej1_kohonen_hp.py` | `resultados/kohonen/hp_*.png` (ablación con 10 semillas, un hiperparámetro a la vez: k, R(0), η₀, esquema de η, épocas, init; mapas por k; curvas de QE) |
 | `ej1_oja.py` | `resultados/oja/` (barrido de η, convergencia, pesos vs PC1, índice, ranking por tema) |
+| `ej1_campanias.py` | `resultados/campanias/` (candidatos por caso short/long × fútbol/perros, mapa con candidatos, comparación con followers) |
 | `ej2_letras.py` | `resultados/hopfield_letras/` (ortogonalidad, capacidad, ruido, energía, espurio) |
 | `ej2_qr.py` | `resultados/hopfield_qr/` (falla con 5, subconjuntos, ruido, deterioros, energía, capacidad, `salida.txt`) |
 | `ej2_qr_pinv.py` | `resultados/hopfield_qr_pinv/` (estabilidad y espurios, ruido, confusión, energía, desgastes, `salida.txt`) |

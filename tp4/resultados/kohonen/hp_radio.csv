@@ -1,0 +1,5 @@
+,hiperparametro,es_final,QE,QE_sd,TE,TE_sd,dead,dead_sd,semillas_con_muertas
+1 (const.),radio,False,3.143,0.0134,0.01,0.017,0.7,0.483,7
+2 → 1,radio,False,3.1362,0.0195,0.004,0.0084,0.9,0.5676,8
+k=4 → 1,radio,True,3.145,0.0161,0.0,0.0,0.7,0.483,7
+k=4 (const.),radio,False,3.9015,0.0024,0.866,0.1586,11.2,0.6325,10
