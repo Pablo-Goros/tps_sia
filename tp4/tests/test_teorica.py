@@ -25,6 +25,41 @@ def test_hopfield_ejemplo_teorica():
     assert r.energies[-1] <= r.energies[0]                    # la energía no crece
 
 
+def test_hopfield_pinv_es_proyector_y_estabiliza_patrones_correlacionados():
+    """Pseudoinversa: W = K^T (K K^T)^-1 K es la proyección sobre span(K); W xi = xi, así que cada
+    patrón (aun muy correlacionado con los otros) es punto fijo, y H = -1/2 ||W S||^2 >= -N/2."""
+    rng = np.random.default_rng(0)
+    N, p = 200, 5
+    base = rng.choice([-1.0, 1.0], size=N)
+    K = np.array([np.where(rng.random(N) < 0.1, -base, base) for _ in range(p)])      # ~80 % de solapamiento
+    hebb = Hopfield().train(K)
+    assert not all(np.array_equal(hebb.recall(x).final, x) for x in K)                  # con Hebb no todos son estables
+    net = Hopfield().train(K, rule="pinv")
+    assert np.allclose(net.W, net.W.T) and np.allclose(net.W @ net.W, net.W)           # proyector ortogonal
+    assert np.allclose(net.W @ K.T, K.T) and np.isclose(np.trace(net.W), p)
+    for x in K:
+        assert np.array_equal(net.recall(x).final, x)                                    # estables (con Hebb no lo son)
+        assert np.isclose(net.energy(x), -N / 2)                                         # tocan el piso
+    S = rng.choice([-1.0, 1.0], size=(50, N))
+    assert all(net.energy(s) >= -N / 2 - 1e-9 for s in S)                                # el piso es una cota
+
+
+def test_hopfield_pinv_coincide_con_hebb_si_ortogonales():
+    """Si K K^T = N I (patrones ortogonales) la pseudoinversa se reduce a Hebb (con la diagonal)."""
+    K = np.array([[1, 1, 1, 1], [1, -1, 1, -1], [1, 1, -1, -1.0]])
+    assert np.allclose(K @ K.T, 4 * np.eye(3))
+    assert np.allclose(Hopfield().train(K, rule="pinv").W, K.T @ K / 4)
+
+
+def test_hopfield_pinv_rechaza_patrones_dependientes():
+    K = np.array([[1, 1, -1, -1.0], [-1, -1, 1, 1.0]])                                   # xi2 = -xi1: K K^T singular
+    try:
+        Hopfield().train(K, rule="pinv")
+    except ValueError:
+        return
+    raise AssertionError("debió fallar con patrones linealmente dependientes")
+
+
 def test_hopfield_letra_J_enunciado():
     J = np.array([[1, 1, 1, 1, 1], [-1, -1, -1, 1, -1], [-1, -1, -1, 1, -1], [1, -1, -1, 1, -1], [1, 1, 1, -1, -1]])
     assert np.array_equal(letter("J"), J)

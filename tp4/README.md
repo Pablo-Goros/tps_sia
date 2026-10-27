@@ -18,13 +18,14 @@ tp4/
 │   ├── pca.py                   # PCA por autovalores de la matriz de correlaciones
 │   ├── kohonen.py               # SOM: vecindario, R(i), eta(i), QE/TE, Matriz U, planos
 │   ├── oja.py                   # neurona lineal con regla de Oja
-│   ├── hopfield.py              # W = (1/N) K K^T, recall sync/async, energía, ruido, ortogonalidad
+│   ├── hopfield.py              # W = (1/N) K K^T (o pseudoinversa), recall sync/async, energía, ruido, ortogonalidad
+│   ├── deterioros.py            # desgastes de un QR: esquina rota, mancha, rayón, borrado, tinta desvanecida
 │   ├── letras.py                # abecedario 5x5 en {1,-1} y búsqueda de grupos ortogonales
 │   ├── qr.py                    # PNG <-> matriz {1,-1}, decodificación con OpenCV
 │   └── plots.py
 ├── configs/                     # hiperparámetros finales (json)
 ├── ej1_eda.py  ej1_pca.py  ej1_kohonen.py  ej1_kohonen_hp.py  ej1_oja.py
-├── ej2_letras.py  ej2_qr.py
+├── ej2_letras.py  ej2_qr.py  ej2_qr_pinv.py
 ├── tests/test_teorica.py        # chequeos contra los ejemplos de las diapositivas
 ├── run_all.sh
 └── resultados/                  # se genera al correr (figuras, csv, txt)
@@ -56,6 +57,7 @@ python3 ej1_kohonen_hp.py        # figuras de hiperparámetros a partir del barr
 python3 ej1_oja.py               # usa el autovector PC1 de ej1_pca para comparar
 python3 ej2_letras.py
 python3 ej2_qr.py
+python3 ej2_qr_pinv.py           # los 5 QR con la regla de la pseudoinversa (≈ 3 min) -> resultados/hopfield_qr_pinv/
 python3 tests/test_teorica.py    # o: python3 -m pytest tests/
 ```
 

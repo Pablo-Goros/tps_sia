@@ -454,6 +454,46 @@ real (`cv2.QRCodeDetector`) sobre la salida de la red: los 5 originales decodifi
 6. **Modo sincrónico puede ciclar** (ciclos de período 2 en 10 % de los casos con 50 % de ruido). El modo
    asincrónico (implementado, `update="async"`) evita ciclos a costa de más iteraciones.
 
+### 2.3 Los 5 QR con la pseudoinversa (`ej2_qr_pinv.py`, `configs/hopfield_qr_pinv.json` → `resultados/hopfield_qr_pinv/`)
+
+Extensión que responde a la limitación 1 de 2.2: en vez de una red por par de menús, se cambia la regla de pesos.
+**No está en la teórica** (la teórica solo da Hebb); se presenta *además* del análisis de por qué Hebb falla, no en su lugar.
+
+**Qué cambia.** Solo `W`: `train(patterns, rule="pinv")` calcula `W = Kᵀ (K Kᵀ)⁻¹ K` (K con un patrón por fila, rango 5 de 5).
+La red, la regla de actualización y la energía `H = −½ SᵀWS` son las mismas.
+
+* `W` es la proyección ortogonal sobre el espacio que generan los patrones: simétrica, `W² = W`, `W ξ = ξ`. Por eso
+  cada QR es punto fijo si los patrones son linealmente independientes, por correlacionados que estén.
+* Energía: `H(S) = −½ ‖W S‖² ≥ −N/2 = −684,5`, porque `‖S‖² = N` y una proyección no agranda la norma. Los patrones tocan la cota.
+* Si los patrones son ortogonales (`K Kᵀ = N·I`) se reduce a Hebb: Hebb es el caso particular.
+* **Diagonal**: se conserva (con ella el piso es exactamente −N/2). Anulándola los QR quedan en −682,0; en pruebas exploratorias no cambió el comportamiento.
+* Contras: no es una regla local, hay que invertir una matriz p×p y exige patrones linealmente independientes (`train` lanza `ValueError` si no).
+
+**Resultados** (`salida.txt`; actualización sincrónica, semilla 11, 30 corridas por QR y nivel = 150 por nivel):
+
+* **Estabilidad**: 5/5 puntos fijos, todos con H = −684,5 (Hebb: 0/5). Siguen existiendo estados espurios: partiendo de 300 estados
+  aleatorios (modo async), 94 terminan en uno, con H entre −646,2 y −616,3, siempre por encima del piso (con Hebb el espurio era más profundo que los QR).
+* **Ruido aleatorio** (`ruido.csv`, `ruido.png`): recuperación exacta 100 % hasta 30 %, 99,3 % con 35 %, 95,3 % con 40 %, 62,7 % con 45 % y 6,7 % con 50 %.
+  El lector no decodifica ninguna entrada con ≥ 5 % de ruido y sí todas las salidas correctas.
+* **A dónde va cuando falla** (`confusion_*.csv`, `categorias_vs_ruido.png`): con 40–50 % de ruido, de 203 fallas el 58 % termina en un espurio,
+  el 22 % en otro QR y el 20 % en el negativo de un QR. Los negados aparecen recién con 50 %, cuando la entrada ya no se correlaciona con el QR de
+  partida y el resultado es prácticamente azar. (Con ruido estructurado la proporción cambia; ver limitación 3.)
+* **Energía** (`energia_trayectorias.png`, `energia_final.png`): nunca sube en las 1650 corridas y casi toda la caída ocurre en la primera iteración.
+  Correcto, equivocado y negado terminan exactamente en −684,5; solo el espurio queda más arriba. La energía final separa "llegó a un QR" de "se quedó en una mezcla",
+  pero no dice *cuál* QR: para eso hay que mirar la matriz de confusión o validar con el lector.
+* **Desgastes** (`desgastes.csv`, `desgastes.png`, `desgastes_ejemplos.png`): esquina rota, mancha, rayón, borrado y tinta desvanecida con severidad 5–60 %
+  de la superficie. Hasta 30 % se recupera el 100 % en los cinco tipos; con 60 %: esquina rota 92,7 %, borrado 91,3 %, rayón 94,0 %, mancha 100 %.
+  Control: ruido al azar que cambia la misma cantidad de módulos (se recupera el 100 %), es decir, el daño agrupado es algo más difícil que el disperso.
+  El lector solo lee la entrada dañada con ≤ 5 % de superficie.
+
+**Limitaciones**
+
+1. **Mejora la capacidad, no la tolerancia al ruido**: para el par `food`+`wine`, con el mismo ruido, Hebb y pinv recuperan lo mismo (100 % hasta 40 %, 85 % con 45 %, 32 % con 50 %; `par_hebb_vs_pinv.csv`); la ganancia es poder guardar 5 QR en lugar de 2.
+2. **Los estados espurios no desaparecen**; solo dejan de ser más profundos que los patrones.
+3. **Con ruido estructurado la proporción de fallas cambia**: con ≥ 40 % de superficie dañada, esquina rota y borrado fallan más hacia "otro QR" que hacia espurios, y el rayón al revés (`desgastes_raw.csv`).
+4. **Más de 5 QR**: en teoría hasta p < N patrones independientes, pero las cuencas de atracción se achican al acercarse a N. No se probó.
+5. Valen las limitaciones 2, 3 y 4 de 2.2 (la red solo devuelve lo que ya conoce, escala N², la foto real hay que binarizarla).
+
 ---
 
 ## 3. Qué entregan los scripts
@@ -467,4 +507,5 @@ real (`cv2.QRCodeDetector`) sobre la salida de la red: los 5 originales decodifi
 | `ej1_oja.py` | `resultados/oja/` (barrido de η, convergencia, pesos vs PC1, índice, ranking por tema) |
 | `ej2_letras.py` | `resultados/hopfield_letras/` (ortogonalidad, capacidad, ruido, energía, espurio) |
 | `ej2_qr.py` | `resultados/hopfield_qr/` (falla con 5, subconjuntos, ruido, deterioros, energía, capacidad, `salida.txt`) |
+| `ej2_qr_pinv.py` | `resultados/hopfield_qr_pinv/` (estabilidad y espurios, ruido, confusión, energía, desgastes, `salida.txt`) |
 | `tests/test_teorica.py` | verificación contra los ejemplos de las diapositivas |

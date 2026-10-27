@@ -18,6 +18,9 @@ Energía (slide "Convergencia"):  H = -1/2 sum_{i,j} w_ij S_i S_j
   aparecer otros mínimos: ESTADOS ESPURIOS.
 
 Limitaciones: p <= 0.15 N y patrones "más o menos" ortogonales (crosstalk).
+
+Extensión (no está en la teórica): regla de la pseudoinversa, train(..., rule="pinv"),
+  W = K^T (K K^T)^-1 K, que descuenta la correlación entre patrones (ver DECISIONES.md, 2.3).
 """
 from __future__ import annotations
 
@@ -52,9 +55,18 @@ class Hopfield:
         self.W: np.ndarray | None = None
         self.patterns: np.ndarray | None = None   # (p, N)
         self.N: int = 0
+        self.rule: str = "hebb"
 
     # ---------------------------------------------------------------- train
-    def train(self, patterns: np.ndarray) -> "Hopfield":
+    def train(self, patterns: np.ndarray, rule: str = "hebb", zero_diag: bool | None = None) -> "Hopfield":
+        """rule: 'hebb' -> W = (1/N) K^T K              (por defecto, diagonal en 0)
+                 'pinv' -> W = K^T (K K^T)^-1 K         (pseudoinversa; Personnaz / Kanter-Sompolinsky)
+        K tiene un patrón por fila. Con 'pinv' W es la proyección ortogonal sobre el espacio que
+        generan los patrones: W xi^mu = xi^mu, así que cada patrón almacenado es punto fijo si los
+        patrones son linealmente independientes. Si son ortogonales (K K^T = N I) coincide con Hebb.
+        zero_diag: anular w_ii. Por defecto True para 'hebb' y False para 'pinv' (con la diagonal
+        la energía de un patrón es exactamente -N/2, que es el piso -1/2 ||W S||^2 >= -N/2)."""
+        assert rule in ("hebb", "pinv")
         K = np.asarray(patterns, dtype=float)
         if K.ndim != 2:
             K = K.reshape(len(patterns), -1)
@@ -62,8 +74,16 @@ class Hopfield:
         self.patterns = K
         p, N = K.shape
         self.N = N
-        W = (K.T @ K) / N                # (1/N) sum_mu xi_i xi_j
-        np.fill_diagonal(W, 0.0)         # w_ii = 0
+        self.rule = rule
+        if rule == "hebb":
+            W = (K.T @ K) / N            # (1/N) sum_mu xi_i xi_j
+        else:
+            if np.linalg.matrix_rank(K) < p:
+                raise ValueError("pinv requiere patrones linealmente independientes (K K^T singular)")
+            W = K.T @ np.linalg.inv(K @ K.T) @ K
+            W = (W + W.T) / 2            # simetría exacta (el producto la tiene salvo redondeo)
+        if zero_diag if zero_diag is not None else rule == "hebb":
+            np.fill_diagonal(W, 0.0)     # w_ii = 0
         self.W = W
         return self
 
