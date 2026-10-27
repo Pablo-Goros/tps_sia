@@ -1,0 +1,12 @@
+{
+  "k": 4,
+  "radius0": 4.0,
+  "radius_final": 1.0,
+  "radius_schedule": "linear",
+  "eta0": 0.5,
+  "eta_schedule": "linear",
+  "eta_final": 0.01,
+  "epochs": 500,
+  "init": "samples",
+  "seed": 42
+}

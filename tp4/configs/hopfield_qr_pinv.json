@@ -1,0 +1,18 @@
+{
+  "carpeta": "datos/hopfield",
+  "update": "sync",
+  "seed": 11,
+  "max_iter": 50,
+  "niveles_ruido": [0.0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5],
+  "repeticiones": 30,
+  "par": ["food", "wine"],
+  "ruido_confusion": [0.45, 0.5],
+  "ruido_trayectorias": [0.2, 0.4, 0.5],
+  "ruido_energia_final_min": 0.4,
+  "inicios_aleatorios": 300,
+  "update_espurios": "async",
+  "max_iter_espurios": 200,
+  "niveles_desgaste": [0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.4, 0.5, 0.6],
+  "desvanecido_f_max": 0.4,
+  "ejemplo_desgaste": {"qr": "food", "f": 0.4, "seed": 1}
+}
