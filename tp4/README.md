@@ -43,8 +43,13 @@ decodificable; si no está instalado, `ej2_qr.py` corre igual y reporta `<cv2 no
 ## Ejecución
 
 ```bash
-./run_all.sh                     # todo, en orden (≈ 6 min; el barrido de Kohonen es lo más lento)
+./run_all.sh                     # todo, en orden (≈ 15 min; el barrido de Kohonen es lo más lento)
 ```
+
+> **Nota sobre permisos**: si `./run_all.sh` falla con `permission denied`, el archivo perdió el bit de
+> ejecución (pasa al commitear desde Windows o al copiarlo). Alternativas:
+> `bash run_all.sh` (funciona siempre), o restaurarlo en el repo con
+> `chmod +x run_all.sh && git update-index --chmod=+x run_all.sh`.
 
 o por partes (el orden importa porque cada script usa salidas del anterior):
 
