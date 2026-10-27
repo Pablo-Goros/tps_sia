@@ -15,7 +15,7 @@ usa `scikit-learn` ni `minisom`.
 | Estandarización z‑score antes de PCA, Kohonen y Oja | Teórica Kohonen 02.2 ("Importante: estandarizar todos los vectores"), teórica PCA 05.3 ("Covarianza vs Correlación": si las escalas difieren, la varianza la dominan las variables grandes → usar correlación = covarianza de variables estandarizadas), teórica Oja ("es mejor estandarizar todas las variables de entrada"). Acá `followers` va de 10⁴ a 10⁶ y los `_pct` de 0 a 100: sin estandarizar PCA sería "la componente followers". |
 | Desvío con `ddof=1` (varianza muestral 1/(n‑1)) | Es la "varianza muestral" de la teórica PCA (slide "Medidas descriptivas"). Para 50 registros la diferencia con 1/n es irrelevante, pero se fija una convención. |
 | Semillas fijas en todos los experimentos y promedios sobre varias semillas en los barridos | Kohonen, Oja y el ruido de Hopfield son estocásticos; sin semillas no se pueden reproducir ni comparar configuraciones. |
-| Tests contra los ejemplos numéricos de las diapositivas (`tests/test_teorica.py`) | Verifica que `W` de Hopfield coincide con la slide 29, que ζ=(1,−1,−1,−1)→ξ¹ como en las slides 31‑32, que los autovalores del ejercicio de PCA dan 6/3/2, y la letra J del enunciado. |
+| Tests contra los ejemplos numéricos de las diapositivas (`tests/test_teorica.py`) | Verifica que `W` de Hopfield coincide con la slide 29, que ζ=(1,−1,−1,−1)→ξ¹ como en las slides 31‑32, que los autovalores del ejercicio de PCA dan 6/3/2. |
 
 ---
 
@@ -337,51 +337,12 @@ que se puede restringir por región del mapa.
   teórica (`S(t+1) = sign(W S(t))`). Se implementó también la asincrónica (una neurona por vez, orden
   aleatorio), para la cual la demostración de que H nunca crece aplica exactamente; en los
   experimentos la energía nunca aumentó con la sincrónica, pero sí aparecieron ciclos de período 2
-  (hasta 22 % de los casos con 50 % de ruido en letras), cosa que la teórica anticipa ("puede
+  (≈ 10 % de las corridas con 50 % de ruido en los QR), cosa que la teórica anticipa ("puede
   desembocar en ciclos").
 * Ruido: cada componente se invierte con probabilidad p ("sal y pimienta"). Se eligió este modelo porque
   el estado es binario y la teórica define la consulta como un patrón "con perturbaciones".
 
-### 2.1 Letras 5×5 (`ej2_letras.py` → `resultados/hopfield_letras/`)
-
-**Qué letras almacenar – por análisis de ortogonalidad.** Se dibujaron las 26 letras en 5×5 (la J es
-exactamente la del enunciado) y se calculó `ξ^μ·ξ^ν` para todos los pares
-(`ortogonalidad_abecedario.png`) y para los 14 950 grupos de 4 (`mejores_grupos.csv`,
-`peores_grupos.csv`). La teórica (slides "Estabilidad") muestra que el patrón ν es estable si el
-*crosstalk* `(1/N) Σ_{μ≠ν} ξ_i^μ (ξ^μ·ξ^ν)` no da vuelta el signo de `ξ_i^ν`, lo que exige
-patrones "más o menos ortogonales". **Se eligen G, R, T, V**: todos los productos internos valen ±1
-(sobre N = 25), el mínimo posible con 25 bits (impar). El peor grupo, H M N W, tiene productos de
-hasta 21/25.
-
-**Capacidad.** `p ≤ 0.15·N = 3.75` → con 4 letras estamos en el límite teórico. Aun así las 4 son
-puntos fijos porque son casi ortogonales (el 0.15 N es para patrones *aleatorios*). `capacidad.csv` /
-`capacidad.png`: agregando letras en orden greedy de menor crosstalk, hasta p = 5 el 100 % de los patrones
-es estable y la recuperación con 10 % de ruido ≥ 97 %; en p = 6 cae a 83 % / 69 %; en p = 8 a 38 % / 27 %;
-en p ≥ 11 ningún patrón es estable. La transición ocurre justo donde `crosstalk_max` salta de 0.04 a
-0.28–0.36, confirmando que lo que manda es la ortogonalidad, y que la cota 0.15 N es del orden correcto.
-
-**Ortogonales vs. correlacionadas** (`ortogonal_vs_correlacionado.png`): con HMNW almacenadas la red
-recupera el 25 % de las consultas **incluso sin ruido** (3 de las 4 letras ni siquiera son puntos
-fijos); con GRTV el 100 %.
-
-**Ruido** (`ruido.csv`, `ruido.png`, 200 repeticiones × 4 letras por nivel): recuperación perfecta hasta
-8 % (2 bits), 99 % con 12 % (3 bits), 91 % con 20 % (5 bits), 71 % con 28 % (7 bits), 55 % con 32 %, 32 %
-con 40 % (10 bits) y 10 % con 50 % (la consulta ya no tiene información: en ese caso la red cae al
-patrón negado 7 %, a otro patrón 52 % o a un espurio 32 %). Las iteraciones crecen suavemente de 1 a
-≈3.5: la red converge muy rápido porque N es chico.
-
-**Energía** (`energia.png`, `ejemplo_evolucion.png`): los 4 patrones tienen H = −10.56 (el mismo valor
-porque son casi ortogonales); una consulta con 12 % de ruido arranca en H ≈ −5.3 y baja en un paso al
-mínimo; H nunca sube entre pasos. El estado espurio tiene H = −7.36: es un mínimo local **menos
-profundo** que los patrones almacenados, exactamente lo que describe la slide "Estados espurios".
-
-**Estado espurio** (`espurio.png`, `espurio.json`): se ingresó una letra con 40 % de bits invertidos y la
-red convergió en 4 iteraciones a un patrón estable que no es ninguna de G/R/T/V ni sus negativos
-(overlaps −0.68, 0.28, 0.36, −0.28): un punto fijo "mezcla", con parecido a −G y a T. El script
-verifica además si el espurio es `sign(±ξ^a ± ξ^b ± ξ^c)` (mezcla de tres, el espurio clásico); en este
-caso no lo es, es otro mínimo local de H.
-
-### 2.2 QR 37×37 (`ej2_qr.py`, `configs/hopfield_qr.json` → `resultados/hopfield_qr/`)
+### 2.1 QR 37×37 (`ej2_qr.py`, `configs/hopfield_qr.json` → `resultados/hopfield_qr/`)
 
 **Representación.** Los PNG de `datos/hopfield` ya son 37×37 (QR versión 5, nivel L). Negro = +1,
 blanco = −1 (`src/qr.py`; si la imagen fuera más grande se muestrea el centro de cada módulo). N = 1369
@@ -454,9 +415,9 @@ real (`cv2.QRCodeDetector`) sobre la salida de la red: los 5 originales decodifi
 6. **Modo sincrónico puede ciclar** (ciclos de período 2 en 10 % de los casos con 50 % de ruido). El modo
    asincrónico (implementado, `update="async"`) evita ciclos a costa de más iteraciones.
 
-### 2.3 Los 5 QR con la pseudoinversa (`ej2_qr_pinv.py`, `configs/hopfield_qr_pinv.json` → `resultados/hopfield_qr_pinv/`)
+### 2.2 Los 5 QR con la pseudoinversa (`ej2_qr_pinv.py`, `configs/hopfield_qr_pinv.json` → `resultados/hopfield_qr_pinv/`)
 
-Extensión que responde a la limitación 1 de 2.2: en vez de una red por par de menús, se cambia la regla de pesos.
+Extensión que responde a la limitación 1 de 2.1: en vez de una red por par de menús, se cambia la regla de pesos.
 **No está en la teórica** (la teórica solo da Hebb); se presenta *además* del análisis de por qué Hebb falla, no en su lugar.
 
 **Qué cambia.** Solo `W`: `train(patterns, rule="pinv")` calcula `W = Kᵀ (K Kᵀ)⁻¹ K` (K con un patrón por fila, rango 5 de 5).
@@ -492,7 +453,7 @@ La red, la regla de actualización y la energía `H = −½ SᵀWS` son las mism
 2. **Los estados espurios no desaparecen**; solo dejan de ser más profundos que los patrones.
 3. **Con ruido estructurado la proporción de fallas cambia**: con ≥ 40 % de superficie dañada, esquina rota y borrado fallan más hacia "otro QR" que hacia espurios, y el rayón al revés (`desgastes_raw.csv`).
 4. **Más de 5 QR**: en teoría hasta p < N patrones independientes, pero las cuencas de atracción se achican al acercarse a N. No se probó.
-5. Valen las limitaciones 2, 3 y 4 de 2.2 (la red solo devuelve lo que ya conoce, escala N², la foto real hay que binarizarla).
+5. Valen las limitaciones 2, 3 y 4 de 2.1 (la red solo devuelve lo que ya conoce, escala N², la foto real hay que binarizarla).
 
 ---
 
@@ -506,7 +467,6 @@ La red, la regla de actualización y la energía `H = −½ SᵀWS` son las mism
 | `ej1_kohonen_hp.py` | `resultados/kohonen/hp_*.png` (ablación con 10 semillas, un hiperparámetro a la vez: k, R(0), η₀, esquema de η, épocas, init; mapas por k; curvas de QE) |
 | `ej1_oja.py` | `resultados/oja/` (barrido de η, convergencia, pesos vs PC1, índice, ranking por tema) |
 | `ej1_campanias.py` | `resultados/campanias/` (candidatos por caso short/long × fútbol/perros, mapa con candidatos, comparación con followers) |
-| `ej2_letras.py` | `resultados/hopfield_letras/` (ortogonalidad, capacidad, ruido, energía, espurio) |
 | `ej2_qr.py` | `resultados/hopfield_qr/` (falla con 5, subconjuntos, ruido, deterioros, energía, capacidad, `salida.txt`) |
 | `ej2_qr_pinv.py` | `resultados/hopfield_qr_pinv/` (estabilidad y espurios, ruido, confusión, energía, desgastes, `salida.txt`) |
 | `tests/test_teorica.py` | verificación contra los ejemplos de las diapositivas |

@@ -10,7 +10,6 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from src.hopfield import Hopfield                      # noqa: E402
 from src.kohonen import Kohonen, KohonenConfig         # noqa: E402
 from src.oja import Oja, OjaConfig, cosine             # noqa: E402
-from src.letras import letter                          # noqa: E402
 
 
 def test_hopfield_ejemplo_teorica():
@@ -58,11 +57,6 @@ def test_hopfield_pinv_rechaza_patrones_dependientes():
     except ValueError:
         return
     raise AssertionError("debió fallar con patrones linealmente dependientes")
-
-
-def test_hopfield_letra_J_enunciado():
-    J = np.array([[1, 1, 1, 1, 1], [-1, -1, -1, 1, -1], [-1, -1, -1, 1, -1], [1, -1, -1, 1, -1], [1, 1, 1, -1, -1]])
-    assert np.array_equal(letter("J"), J)
 
 
 def test_pca_ejercicio_teorica():

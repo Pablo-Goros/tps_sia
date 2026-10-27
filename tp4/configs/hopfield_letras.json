@@ -1,9 +1,0 @@
-{
-  "letras": null,
-  "update": "sync",
-  "seed": 7,
-  "ruido_ejemplo": 0.12,
-  "niveles_ruido": [0.0, 0.04, 0.08, 0.12, 0.16, 0.2, 0.24, 0.28, 0.32, 0.36, 0.4, 0.5],
-  "repeticiones": 200,
-  "ruido_espurio": 0.4
-}

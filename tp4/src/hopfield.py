@@ -20,7 +20,7 @@ Energía (slide "Convergencia"):  H = -1/2 sum_{i,j} w_ij S_i S_j
 Limitaciones: p <= 0.15 N y patrones "más o menos" ortogonales (crosstalk).
 
 Extensión (no está en la teórica): regla de la pseudoinversa, train(..., rule="pinv"),
-  W = K^T (K K^T)^-1 K, que descuenta la correlación entre patrones (ver DECISIONES.md, 2.3).
+  W = K^T (K K^T)^-1 K, que descuenta la correlación entre patrones (ver DECISIONES.md, 2.2).
 """
 from __future__ import annotations
 

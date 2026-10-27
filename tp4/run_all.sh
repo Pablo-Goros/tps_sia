@@ -8,7 +8,6 @@ python3 ej1_kohonen.py "$@"
 python3 ej1_kohonen_hp.py
 python3 ej1_oja.py
 python3 ej1_campanias.py
-python3 ej2_letras.py
 python3 ej2_qr.py
 python3 ej2_qr_pinv.py
 python3 tests/test_teorica.py

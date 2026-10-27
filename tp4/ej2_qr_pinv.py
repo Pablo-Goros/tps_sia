@@ -269,7 +269,7 @@ ax.legend(fontsize=8, loc="lower left")
 ax.set_title("Recuperación vs desgaste (150 corridas por punto)")
 save(fig, OUT / "desgastes.png")
 
-# ===================================================================== 4. control: el par de 2.2 con Hebb y con pinv
+# ===================================================================== 4. control: el par de 2.1 con Hebb y con pinv
 idx = [names.index(n) for n in cfg["par"]]
 cmp_rows = []
 for rule in ("hebb", "pinv"):
