@@ -1,7 +1,7 @@
 # 02: Entrenar, guardar y evaluar un autoencoder básico
 
 **Spec:** [TP5 — Autoencoder básico para caracteres](../spec.md)
-**Status:** in-progress
+**Status:** done
 
 ## What to build
 
@@ -19,16 +19,16 @@ Contexto: [plan confirmado, pasos 2–4](../../../../tp5/assignment_plan.md). Es
 
 ## Acceptance criteria
 
-- [ ] El presupuesto inicial se presenta al usuario y su elección queda registrada antes de ejecutar entrenamiento experimental; una decisión diferida mantiene esa ejecución pendiente.
-- [ ] Un comando documentado consume JSON y genera modelo persistido, manifiesto, historia, métricas y gráficos usando el dataset original completo.
-- [ ] El modelo base utiliza la arquitectura, activaciones, pérdida y optimizador acordados y reutiliza el entrenamiento del TP3.
-- [ ] Codificar los 32 patrones produce `(32,2)` y reconstruir produce `(32,35)` con valores finitos; decodificar los códigos equivale numéricamente a reconstruir.
-- [ ] Guardar y recargar permite reproducir los códigos y las reconstrucciones dentro de tolerancia numérica, sin entrenar nuevamente.
-- [ ] Las métricas verifican el límite de un píxel individualmente para los 32 patrones; solo se declara conjunto aprendido dentro de tolerancia cuando todos cumplen.
-- [ ] Se prueban errores conocidos, incluido el umbral exactamente igual a 0.5, y se diferencia el MSE por píxel de la pérdida usada al entrenar.
-- [ ] Las curvas y la lámina de reconstrucciones coinciden con las métricas y se registra el motivo de parada, incluso si no se alcanza el objetivo académico.
-- [ ] Una prueba corta del flujo público carga→entrenamiento→guardado→recarga→evaluación pasa sin exigir aprender los 32 patrones ni repetir pruebas internas de gradientes y optimizadores.
-- [ ] README y registro experimental permiten reproducir la corrida; un fallo de convergencia se informa y no se oculta como éxito.
+- [x] El presupuesto inicial se presenta al usuario y su elección queda registrada antes de ejecutar entrenamiento experimental; una decisión diferida mantiene esa ejecución pendiente.
+- [x] Un comando documentado consume JSON y genera modelo persistido, manifiesto, historia, métricas y gráficos usando el dataset original completo.
+- [x] El modelo base utiliza la arquitectura, activaciones, pérdida y optimizador acordados y reutiliza el entrenamiento del TP3.
+- [x] Codificar los 32 patrones produce `(32,2)` y reconstruir produce `(32,35)` con valores finitos; decodificar los códigos equivale numéricamente a reconstruir.
+- [x] Guardar y recargar permite reproducir los códigos y las reconstrucciones dentro de tolerancia numérica, sin entrenar nuevamente.
+- [x] Las métricas verifican el límite de un píxel individualmente para los 32 patrones; solo se declara conjunto aprendido dentro de tolerancia cuando todos cumplen.
+- [x] Se prueban errores conocidos, incluido el umbral exactamente igual a 0.5, y se diferencia el MSE por píxel de la pérdida usada al entrenar.
+- [x] Las curvas y la lámina de reconstrucciones coinciden con las métricas y se registra el motivo de parada, incluso si no se alcanza el objetivo académico.
+- [x] Una prueba corta del flujo público carga→entrenamiento→guardado→recarga→evaluación pasa sin exigir aprender los 32 patrones ni repetir pruebas internas de gradientes y optimizadores.
+- [x] README y registro experimental permiten reproducir la corrida; un fallo de convergencia se informa y no se oculta como éxito.
 
 ## Blocked by
 
