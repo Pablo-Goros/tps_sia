@@ -90,3 +90,29 @@ El registro del piloto está en [results/pilot/README.md](results/pilot/README.m
 La comparación de arquitecturas y optimizadores requiere revisar esta evidencia
 y acordar otro presupuesto. Un piloto fallido no demuestra imposibilidad ni
 autoriza reducir el dataset.
+
+## Visualización del espacio latente
+
+```powershell
+python -m src.explore --model results/pilot/model.npz --output results/latent
+```
+
+El comando carga el modelo guardado y codifica los 32 patrones originales sin
+entrenar. Para visualizar el modelo elegido por la comparación, sustituir
+`--model` por la ruta de su archivo `model.npz`. Se admite `--dataset ruta/font.h`.
+
+Produce `latent.png` y `latent.json`. El JSON conserva exactamente 32 puntos en
+el orden del dataset: `code` numérico (96–127), `label` visible, incluidas las
+etiquetas de símbolos y DEL, y `coordinates` con dos valores. Las coordenadas
+son la salida de `Autoencoder.encode` del modelo cargado. La figura usa esas
+mismas coordenadas y asigna a cada patrón una posición de etiqueta separada,
+con una línea hacia su punto, incluso cuando varias coordenadas coinciden.
+La figura y el JSON incluyen los SHA256 del modelo y del dataset. Las rutas del
+JSON describen el entorno original; para regenerar después de trasladar los
+artefactos, pasar sus nuevas rutas al comando y comprobar los hashes.
+
+La prueba `test_explore.py` recarga un modelo, compara los 32 códigos con la
+interfaz pública, verifica etiquetas, archivos y hashes y repite la generación.
+No exige una distribución particular ni considera la separación visual como
+prueba de reconstrucción o generalización. El comando se puede ejecutar sobre
+cualquier modelo válido guardado, sin repetir su entrenamiento.

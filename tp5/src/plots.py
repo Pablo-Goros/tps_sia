@@ -49,3 +49,32 @@ def plot_training(history, output):
     figure.tight_layout()
     figure.savefig(output, dpi=140)
     plt.close(figure)
+
+
+def plot_latent(result, output):
+    """Use separate label lanes so coincident points retain all identities."""
+    import numpy as np
+    points = result['points']
+    coordinates = np.array([point['coordinates'] for point in points])
+    figure, axis = plt.subplots(figsize=(14, 11))
+    figure.subplots_adjust(left=0.22, right=0.78, bottom=0.14, top=0.9)
+    axis.scatter(coordinates[:, 0], coordinates[:, 1], s=30, color='tab:blue')
+    # Split by x, sort each lane by y; every pattern gets its own label slot.
+    ordered = np.argsort(coordinates[:, 0], kind='stable')
+    for lane, indices in enumerate((ordered[:16], ordered[16:])):
+        indices = sorted(indices, key=lambda index: coordinates[index, 1])
+        for height, index in zip(np.linspace(0.025, 0.975, 16), indices):
+            axis.annotate(points[index]['label'], xy=coordinates[index],
+                          xytext=(-0.09 if lane == 0 else 1.09, height),
+                          textcoords='axes fraction', ha='right' if lane == 0 else 'left',
+                          va='center', fontsize=10, annotation_clip=False,
+                          arrowprops={'arrowstyle': '-', 'color': '0.65', 'linewidth': 0.6})
+    axis.set(xlabel='Código latente 1', ylabel='Código latente 2',
+             title='Font3: los 32 patrones en el espacio latente')
+    axis.yaxis.set_label_coords(-0.20, 0.5)
+    axis.grid(alpha=0.2)
+    figure.text(0.04, 0.05, 'Modelo SHA256: ' + result['model']['sha256'] + '\n'
+                + 'Dataset SHA256: ' + result['dataset']['sha256'], fontsize=8,
+                family='monospace')
+    figure.savefig(output, dpi=140)
+    plt.close(figure)
