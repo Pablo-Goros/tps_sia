@@ -13,6 +13,15 @@ Estado del plan: confirmado por el usuario el 2026-11-08. La implementación com
 
 ## Decisiones acordadas
 
+Actualización 2026-11-08: tras revisar el piloto, el usuario autorizó la campaña
+de ocho corridas únicas (máximo 24000 épocas) detallada en `comparison.md` y
+`configs/comparison-architectures.json`. Etapa 1 compara base, ancha y profunda
+con Adam 0.001 y semillas 42/43. Etapa 2 compara Adam y Momentum 0.05/0.9 sobre
+la arquitectura ganadora, reutilizando Adam. Lote 32, máximo 3000 épocas por
+corrida, evaluación cada 100, parada al alcanzar tolerancia. Selección por medias
+entre semillas de máximo error, error medio y MSE; modelo por el mismo orden
+individual dentro de la variante ganadora.
+
 1. Python, NumPy y Matplotlib; reutilizar el MLP y los optimizadores del TP3 mediante una interfaz en TP5.
 2. Comandos Python, configuraciones JSON, modelos persistidos, métricas, gráficos y README reproducible.
 3. Base: `35→20→2→20→35`, tanh en todas las capas internas (incluido el código), salida logística, error cuadrático y Adam. Es una hipótesis experimental, no garantía de convergencia.
