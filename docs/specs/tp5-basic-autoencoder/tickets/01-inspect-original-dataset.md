@@ -1,7 +1,7 @@
 # 01: Inspeccionar el dataset original
 
 **Spec:** [TP5 — Autoencoder básico para caracteres](../spec.md)
-**Status:** in-progress
+**Status:** done
 
 ## What to build
 
@@ -15,13 +15,13 @@ Contexto: [plan confirmado, paso 1](../../../../tp5/assignment_plan.md); criteri
 
 ## Acceptance criteria
 
-- [ ] Desde el TP5 se puede ejecutar el comando documentado y obtener una lámina legible de los 32 patrones originales, con etiquetas y orientación correctas.
-- [ ] El cargador obtiene exactamente 32 patrones, cada uno con siete enteros entre 0 y 31, y produce las formas `(32,7,5)` y `(32,35)` con valores binarios.
-- [ ] Se ignoran los comentarios al leer la matriz, sin incorporar sus códigos hexadecimales como píxeles ni ejecutar contenido del archivo.
-- [ ] Entradas incompletas, cantidades incorrectas de filas o valores fuera de rango producen errores comprensibles.
-- [ ] Una comprobación pública con patrones asimétricos detecta reflejos o inversiones del orden; verificar solo las dimensiones no basta.
-- [ ] El archivo original conserva el hash registrado en el plan.
-- [ ] El README explica instalación y reproducción; las pruebas relevantes se ejecutan mediante un comando documentado y verifican la carga y el resultado observable.
+- [x] Desde el TP5 se puede ejecutar el comando documentado y obtener una lámina legible de los 32 patrones originales, con etiquetas y orientación correctas.
+- [x] El cargador obtiene exactamente 32 patrones, cada uno con siete enteros entre 0 y 31, y produce las formas `(32,7,5)` y `(32,35)` con valores binarios.
+- [x] Se ignoran los comentarios al leer la matriz, sin incorporar sus códigos hexadecimales como píxeles ni ejecutar contenido del archivo.
+- [x] Entradas incompletas, cantidades incorrectas de filas o valores fuera de rango producen errores comprensibles.
+- [x] Una comprobación pública con patrones asimétricos detecta reflejos o inversiones del orden; verificar solo las dimensiones no basta.
+- [x] El archivo original conserva el hash registrado en el plan.
+- [x] El README explica instalación y reproducción; las pruebas relevantes se ejecutan mediante un comando documentado y verifican la carga y el resultado observable.
 
 ## Blocked by
 
