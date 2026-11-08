@@ -116,3 +116,46 @@ interfaz pública, verifica etiquetas, archivos y hashes y repite la generación
 No exige una distribución particular ni considera la separación visual como
 prueba de reconstrucción o generalización. El comando se puede ejecutar sobre
 cualquier modelo válido guardado, sin repetir su entrenamiento.
+
+## Interpolación, grilla y revisión visual
+
+```powershell
+python -m src.explore --model results/pilot/model.npz --config configs/exploration.json --output results/candidates
+```
+
+La configuración especifica `pairs` como pares de códigos decimales 96–127,
+`steps` como cantidad de puntos por interpolación (incluye extremos), y
+`grid_size` como cantidad de puntos por eje de la grilla. Las dos resoluciones
+admiten enteros de 2 a 50. La grilla recorre el rectángulo ocupado por los
+códigos de los 32 patrones; todas las coordenadas permanecen en `[-1,1]`.
+Esta exploración de un modelo guardado no ejecuta entrenamiento.
+
+Se producen `interpolations.png`, `grid.png` y `candidates.json`. Cada imagen
+presenta un identificador y su distancia mínima de Hamming `d` respecto de los
+32 originales, tras binarizar con `>= 0.5`. `d=0` identifica una copia;
+`d>0` identifica un candidato nuevo. El JSON conserva coordenadas completas,
+salidas continuas y binarias, configuración, rango y SHA256 del modelo y dataset.
+Para regenerar un candidato: cargar ese modelo con `Autoencoder.load`, pasar
+sus coordenadas como matriz `(1,2)` a `decode` y aplicar el mismo umbral.
+
+La novedad no implica una letra reconocible. El resultado inicial conserva
+`review.status = "pending"`. Después de que el estudiante inspeccione las
+láminas, registrar su elección explícita (reemplazar el identificador y nota):
+
+```powershell
+python -m src.explore --model results/pilot/model.npz --review results/candidates/candidates.json --candidate 12 --note "El estudiante identifica este candidato como letra tras revisar la lámina"
+```
+
+Si no hay una letra adecuada, omitir `--candidate` y explicar el resultado con
+`--note`. Se registra `no_suitable_letter` y la demostración permanece pendiente;
+otra exploración requiere revisar el resultado y acordar la continuación.
+El registro de una selección verifica el hash del modelo, la regeneración y
+la novedad, y conserva el identificador, coordenadas, imagen y nota visual.
+La selección solamente vale para ese modelo. Si cambia el modelo final,
+regenerar las láminas y repetir la revisión con el estudiante.
+
+El espacio latente de este autoencoder no tiene estructura generativa
+garantizada: las interpolaciones o regiones intermedias pueden producir
+imágenes sin interpretación. Ni la distancia ni la apariencia de un candidato
+demuestran generalización. Las pruebas comprueban regeneración y novedad,
+incluidas una copia y una imagen distinta, sin clasificar automáticamente letras.

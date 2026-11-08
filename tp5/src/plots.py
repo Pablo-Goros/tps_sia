@@ -78,3 +78,20 @@ def plot_latent(result, output):
                 family='monospace')
     figure.savefig(output, dpi=140)
     plt.close(figure)
+
+
+def plot_candidates(candidates, columns, output, result):
+    import numpy as np
+    rows = (len(candidates) + columns - 1) // columns
+    figure, axes = plt.subplots(rows, columns, figsize=(max(8, columns*1.5), max(4, rows*2)), squeeze=False)
+    for axis, candidate in zip(axes.flat, candidates):
+        axis.imshow(np.asarray(candidate['binary']).reshape(7, 5), cmap='gray_r', vmin=0, vmax=1, interpolation='nearest')
+        x, y = candidate['coordinates']
+        axis.set_title(f"#{candidate['id']} d={candidate['min_hamming']}\n({x:.3f}, {y:.3f})", fontsize=9)
+    for axis in axes.flat:
+        axis.axis('off')
+    figure.suptitle('Candidatos: d=0 copia; d>0 nuevo, pendiente de revisión visual')
+    figure.tight_layout(rect=(0, 0.07, 1, 0.94))
+    figure.text(0.02, 0.02, 'Modelo SHA256: ' + result['model']['sha256'] + '\nDataset SHA256: ' + result['dataset']['sha256'], fontsize=7)
+    figure.savefig(output, dpi=140)
+    plt.close(figure)
