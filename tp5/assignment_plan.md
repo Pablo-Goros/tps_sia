@@ -148,3 +148,7 @@ Resultado: documentación final y pruebas relevantes aprobadas, con límites exp
 ## Continuación
 
 Una vez confirmado este plan, invocar `assignment-step` para ejecutar exactamente el paso 1. No comenzar automáticamente los pasos siguientes. Actualizar estado y evidencia al terminar cada paso, conservando decisiones y trabajo realizado.
+
+## Presupuesto piloto autorizado — 2026-11-08
+
+El usuario autorizó Adam, semilla 42, tasa 0.001, lote 32, máximo 10.000 épocas, evaluación cada 100 y parada cuando los 32 patrones tengan individualmente como máximo un error. Una corrida; máximo total 10.000 épocas. La comparación queda pendiente de revisar el piloto y acordar su protocolo.
