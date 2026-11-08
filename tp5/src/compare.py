@@ -148,7 +148,14 @@ def run_comparison(protocol_path, output, dataset_path=DEFAULT_DATASET, resume=F
             config['seed'] = seed
             previous = None
             archive = None
-            if resume and run.exists():
+            if resume and run.exists() and not (run/'manifest.json').exists():
+                status_path = run/'comparison-status.json'
+                if status_path.exists() and json.loads(status_path.read_text(encoding='utf-8')).get('status') == 'not_run':
+                    if set(path.name for path in run.iterdir()) != {'comparison-status.json'}:
+                        raise ValueError(f'Unstarted run has unexpected files: {run_id}')
+                    status_path.unlink()
+            unstarted = run.exists() and not any(run.iterdir())
+            if resume and run.exists() and not unstarted and run_id not in protocol.get('reuse_runs', {}):
                 manifest_path = run/'manifest.json'
                 manifest = json.loads(manifest_path.read_text(encoding='utf-8')) if manifest_path.exists() else {}
                 if manifest.get('stop_reason') in ['max_epochs', 'pixel_tolerance']:

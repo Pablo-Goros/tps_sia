@@ -48,6 +48,8 @@ class ComparisonTests(unittest.TestCase):
             self.assertTrue(Path(reused['selected']['model']['path']).is_file())
             self.assertEqual(reused['budget']['max_epochs_total'], 0)
             self.assertTrue(all(row['reused'] for row in reused['runs']))
+            resumed_reuse = run_comparison(config, root / 'reused', resume=True)
+            self.assertEqual(resumed_reuse['selected']['model'], reused['selected']['model'])
 
     def test_failed_runs_remain_visible_and_are_not_selected(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -69,6 +71,15 @@ class ComparisonTests(unittest.TestCase):
             retried = run_comparison(config, root / 'comparison', resume=True, retry_interrupted=True)
             self.assertEqual(retried['budget']['prior_interrupted_epoch_upper_bound'], 1)
             self.assertTrue(Path(retried['runs'][0]['retry_archive']).is_dir())
+            pending = root / 'pending'
+            pending.mkdir()
+            (pending / 'protocol.json').write_text(json.dumps(protocol), encoding='utf-8')
+            not_run = pending / 'bad-seed-1'
+            not_run.mkdir()
+            (not_run / 'comparison-status.json').write_text(json.dumps({'status': 'not_run'}), encoding='utf-8')
+            continued = run_comparison(config, pending, resume=True)
+            self.assertEqual(continued['runs'][0]['status'], 'failed')
+            self.assertEqual(continued['budget']['prior_interrupted_epoch_upper_bound'], 0)
 
 
 if __name__ == '__main__':
