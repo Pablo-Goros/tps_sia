@@ -1,0 +1,67 @@
+{
+  "stage": "architectures",
+  "approval": "User authorized staged comparison on 2026-11-08 after pilot review; 8 unique runs maximum, 24000 epochs total cap.",
+  "seeds": [
+    42,
+    43
+  ],
+  "selection": "max_mean_mse",
+  "variants": [
+    {
+      "name": "base",
+      "architecture": [
+        35,
+        20,
+        2,
+        20,
+        35
+      ],
+      "optimizer": {
+        "name": "adam",
+        "learning_rate": 0.001
+      },
+      "batch_size": 32,
+      "max_epochs": 3000,
+      "evaluate_every": 100,
+      "stop_on_tolerance": true
+    },
+    {
+      "name": "wide",
+      "architecture": [
+        35,
+        40,
+        2,
+        40,
+        35
+      ],
+      "optimizer": {
+        "name": "adam",
+        "learning_rate": 0.001
+      },
+      "batch_size": 32,
+      "max_epochs": 3000,
+      "evaluate_every": 100,
+      "stop_on_tolerance": true
+    },
+    {
+      "name": "deep",
+      "architecture": [
+        35,
+        30,
+        15,
+        2,
+        15,
+        30,
+        35
+      ],
+      "optimizer": {
+        "name": "adam",
+        "learning_rate": 0.001
+      },
+      "batch_size": 32,
+      "max_epochs": 3000,
+      "evaluate_every": 100,
+      "stop_on_tolerance": true
+    }
+  ]
+}
