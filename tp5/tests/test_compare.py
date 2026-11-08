@@ -21,6 +21,11 @@ class ComparisonTests(unittest.TestCase):
             summary = run_comparison(config, root / 'comparison')
             self.assertEqual(len(summary['runs']), 2)
             self.assertEqual(summary['budget']['max_epochs_total'], 2)
+            before = (root / 'comparison' / 'base-seed-1' / 'model.npz').read_bytes()
+            resumed = run_comparison(config, root / 'comparison', resume=True)
+            self.assertEqual(resumed['selected']['model'], summary['selected']['model'])
+            self.assertTrue(all(row['resumed_completed'] for row in resumed['runs']))
+            self.assertEqual((root / 'comparison' / 'base-seed-1' / 'model.npz').read_bytes(), before)
             group = summary['aggregates'][0]
             self.assertEqual(group['completed'], 2)
             self.assertEqual(group['failed'], 0)
@@ -55,6 +60,11 @@ class ComparisonTests(unittest.TestCase):
             self.assertIn('error', summary['runs'][0])
             self.assertEqual(summary['aggregates'][0]['failed'], 1)
             self.assertIsNone(summary['selected'])
+            with self.assertRaisesRegex(ValueError, 'No automatic rerun'):
+                run_comparison(config, root / 'comparison', resume=True)
+            retried = run_comparison(config, root / 'comparison', resume=True, retry_interrupted=True)
+            self.assertEqual(retried['budget']['prior_interrupted_epoch_upper_bound'], 1)
+            self.assertTrue(Path(retried['runs'][0]['retry_archive']).is_dir())
 
 
 if __name__ == '__main__':

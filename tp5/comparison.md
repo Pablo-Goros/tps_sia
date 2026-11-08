@@ -1,5 +1,44 @@
 # Comparación por etapas
 
+## Continuación nocturna
+
+La ejecución de primer plano fue detenida por pedido del usuario. Se conservan
+cuatro corridas completas: base con semillas 42/43 y ancha con semillas 42/43.
+La profunda con semilla 42 quedó interrumpida sin modelo utilizable; la profunda
+43 y la comparación de optimizadores todavía no se ejecutaron. No hay selección
+final ni demostración de nueva letra.
+
+Para continuar desde `tp5/` en una terminal y dejar el trabajo corriendo:
+
+```powershell
+python -m src.overnight --retry-interrupted
+```
+
+Este comando **autoriza expresamente un reintento completo** de la corrida
+interrumpida; archiva su intento original y conserva las cuatro corridas completas
+sin entrenarlas nuevamente. Carga sus configuraciones, comprueba dataset y hash de
+modelo y reutiliza sus métricas. El intento interrumpido se carga conservadoramente
+como 3000 épocas consumidas: el máximo acumulado pasa de 24000 a **27000 épocas**,
+incluyendo ese intento. No se ha ejecutado este reintento. Sin
+`--retry-interrupted`, el comando se detiene al encontrar la corrida incompleta y
+explica la decisión necesaria. Otros fallos futuros tampoco se repiten sin el
+indicador; cada reintento adicional suma su propio máximo y queda archivado.
+
+Después de completar las seis corridas de arquitectura, prepara automáticamente
+`configs/comparison-optimizers.json` con la ganadora, reutiliza sus corridas Adam
+y ejecuta únicamente las dos corridas Momentum pendientes. Si falta una corrida
+o falla, no selecciona sobre una comparación parcial ni avanza de etapa.
+Los procesos futuros guardan `checkpoint.npz` con pesos, estado del optimizador e
+historia en cada evaluación. Esta continuación conserva los checkpoints pero
+**reinicia** los intentos incompletos cuando se autoriza un reintento; no afirma
+reanudar desde la última época. Así la contabilidad del presupuesto es explícita.
+
+La terminal y `results/overnight.log` muestran evaluaciones y avance. Consultar
+también `results/overnight-status.json`, `progress.json`, `summary.json` y las
+tablas dentro de cada etapa. El comando termina con una selección rastreable o
+un motivo concreto de detención; no amplía la búsqueda, valida letras ni modifica
+la wiki. El modelo elegido debe revisarse después con el usuario.
+
 El protocolo de esta campaña fue autorizado por el usuario el 2026-11-08 después
 de revisar el piloto. Etapa 1: arquitecturas base `35→20→2→20→35`, ancha
 `35→40→2→40→35` y profunda `35→30→15→2→15→30→35`; Adam con tasa 0.001,

@@ -77,6 +77,11 @@ def run_training(config_path, output, dataset_path=DEFAULT_DATASET):
             epoch = model.history['epocas_corridas']
             metrics = reconstruction_metrics(dataset.vectors, model.reconstruct(dataset.vectors))
             evaluations.append({'epoch': epoch, **metrics})
+            # An evaluation checkpoint retains weights, optimizer and history without training again.
+            model.save(output/'checkpoint.npz')
+            manifest.update(epochs_completed=epoch, checkpoint=model_identity(output/'checkpoint.npz'))
+            write_json(output/'manifest.json', manifest)
+            print(f'Evaluation epoch={epoch} max_errors={metrics["max_pixel_errors"]} within={metrics["within_tolerance_fraction"]:.3f}', flush=True)
             if config['stop_on_tolerance'] and metrics['all_within_tolerance']:
                 reason = 'pixel_tolerance'
                 break
