@@ -32,11 +32,15 @@ class ComparisonTests(unittest.TestCase):
             self.assertIn(chosen['run_id'], [row['run_id'] for row in summary['runs']])
             for name in ['runs.csv', 'aggregates.csv', 'comparison.png', 'summary.json', 'protocol.json']:
                 self.assertTrue((root / 'comparison' / name).is_file(), name)
-            protocol['reuse_runs'] = {row['run_id']: str(root / 'comparison' / row['run_id'])
+            (root / 'comparison').rename(root / 'moved-comparison')
+            protocol['reuse_runs'] = {row['run_id']: str(root / 'moved-comparison' / row['run_id'])
                                       for row in summary['runs']}
             config.write_text(json.dumps(protocol), encoding='utf-8')
             reused = run_comparison(config, root / 'reused')
-            self.assertEqual(reused['selected']['model'], chosen['model'])
+            self.assertEqual(reused['selected']['model']['sha256'], chosen['model']['sha256'])
+            self.assertEqual(Path(reused['selected']['model']['path']),
+                             root / 'moved-comparison' / chosen['run_id'] / 'model.npz')
+            self.assertTrue(Path(reused['selected']['model']['path']).is_file())
             self.assertEqual(reused['budget']['max_epochs_total'], 0)
             self.assertTrue(all(row['reused'] for row in reused['runs']))
 

@@ -41,6 +41,9 @@ def visualize_latent(model_path, output, dataset_path=DEFAULT_DATASET):
 
 def explore_candidates(model_path, output, config, dataset_path=DEFAULT_DATASET):
     """Decode configured interpolations and a grid over the occupied code range."""
+    output = Path(output)
+    if (output / 'candidates.json').exists():
+        raise ValueError('candidates.json already exists; use a new output directory to preserve visual reviews')
     if set(config) != {'pairs', 'steps', 'grid_size'}:
         raise ValueError('Exploration config requires pairs, steps and grid_size')
     for key in ('steps', 'grid_size'):
@@ -79,7 +82,6 @@ def explore_candidates(model_path, output, config, dataset_path=DEFAULT_DATASET)
               'dataset': {'path': dataset.path, 'sha256': dataset.sha256},
               'config': config, 'range': {'min': low.tolist(), 'max': high.tolist()},
               'candidates': candidates, 'review': {'status': 'pending', 'selected_id': None}}
-    output = Path(output)
     output.mkdir(parents=True, exist_ok=True)
     write_json(output / 'candidates.json', result)
     plot_candidates(candidates[:split], config['steps'], output / 'interpolations.png', result)
@@ -87,7 +89,7 @@ def explore_candidates(model_path, output, config, dataset_path=DEFAULT_DATASET)
     return result
 
 
-def record_review(candidates_path, model_path, selected_id, note):
+def record_review(candidates_path, model_path, selected_id, note, dataset_path=DEFAULT_DATASET):
     """Record the student's explicit visual decision for this exact model."""
     if not isinstance(note, str) or not note.strip():
         raise ValueError('A visual review note is required')
@@ -95,6 +97,9 @@ def record_review(candidates_path, model_path, selected_id, note):
     identity = model_identity(model_path)
     if identity['sha256'] != result['model']['sha256']:
         raise ValueError('Review model does not match candidate model')
+    dataset = load_dataset(dataset_path)
+    if dataset.sha256 != result['dataset']['sha256']:
+        raise ValueError('Review dataset does not match candidate dataset')
     review = {'status': 'no_suitable_letter', 'selected_id': None,
               'model_sha256': identity['sha256'], 'note': note.strip()}
     if selected_id is not None:
@@ -103,9 +108,6 @@ def record_review(candidates_path, model_path, selected_id, note):
         candidate = next((p for p in result['candidates'] if p['id'] == selected_id), None)
         if candidate is None:
             raise ValueError('Unknown candidate id')
-        dataset = load_dataset(result['dataset']['path'])
-        if dataset.sha256 != result['dataset']['sha256']:
-            raise ValueError('Review dataset does not match candidate dataset')
         prediction = Autoencoder.load(model_path).decode(np.array([candidate['coordinates']]))
         if candidate_distances(prediction, dataset.vectors)[0] == 0:
             raise ValueError('A training copy cannot be selected as a new letter')
@@ -132,7 +134,7 @@ def main():
         if args.review:
             if args.config:
                 raise ValueError('--review and --config cannot be combined')
-            record_review(args.review, args.model, args.candidate, args.note)
+            record_review(args.review, args.model, args.candidate, args.note, args.dataset)
         elif args.config:
             explore_candidates(args.model, args.output, json.loads(args.config.read_text(encoding='utf-8')), args.dataset)
         else:

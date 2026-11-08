@@ -11,22 +11,25 @@ from tp3.shared.mlp import MLP
 from tp3.shared.optimizers import construir_optimizador
 
 
+def validate_architecture(architecture):
+    """Shared contract for trainable and persisted TP5 architectures."""
+    if (not isinstance(architecture, list) or len(architecture) < 3
+            or len(architecture) % 2 != 1
+            or any(type(width) is not int or width < 1 for width in architecture)
+            or architecture[0] != 35 or architecture[-1] != 35
+            or architecture[len(architecture)//2] != 2):
+        raise ValueError('Architecture must have positive integer widths, 35 inputs/outputs and a central two-unit code')
+
+
 class Autoencoder:
     def __init__(self, architecture=None, seed=42, learning_rate=0.001,
                  batch_size=32, optimizer=None):
         architecture = [35, 20, 2, 20, 35] if architecture is None else architecture
-        self._validate_architecture(architecture)
+        validate_architecture(architecture)
         config = optimizer or {'name': 'adam', 'learning_rate': learning_rate}
         self._mlp = MLP(architecture, activacion='tanh', salida='logistica',
                         semilla=seed, tamano_lote=batch_size,
                         optimizador=construir_optimizador(config))
-
-    @staticmethod
-    def _validate_architecture(architecture):
-        if (len(architecture) < 3 or len(architecture) % 2 != 1
-                or architecture[0] != 35 or architecture[-1] != 35
-                or architecture[len(architecture)//2] != 2):
-            raise ValueError('Architecture must have 35 inputs/outputs and a central two-unit code')
 
     @staticmethod
     def _input(values, width):
@@ -77,7 +80,7 @@ class Autoencoder:
     def load(cls, path):
         model = cls.__new__(cls)
         model._mlp = MLP.cargar(path)
-        cls._validate_architecture(model._mlp.arquitectura)
+        validate_architecture(model._mlp.arquitectura)
         if model._mlp.activacion.nombre != 'tanh' or model._mlp.salida != 'logistica' or model._mlp.batch_norm:
             raise ValueError('Expected a tanh/logistic autoencoder without batch normalization')
         return model

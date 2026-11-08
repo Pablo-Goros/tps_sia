@@ -5,7 +5,7 @@ import tempfile
 import unittest
 import numpy as np
 from src.autoencoder import Autoencoder
-from src.dataset import load_dataset
+from src.dataset import load_dataset, DEFAULT_DATASET
 from src.explore import visualize_latent, candidate_distances, explore_candidates, record_review
 
 
@@ -41,14 +41,28 @@ class LatentTests(unittest.TestCase):
             self.assertEqual(review['status'], 'no_suitable_letter')
             self.assertIsNone(review['selected_id'])
             selected = next(p for p in result['candidates'] if p['min_hamming'] > 0)
-            review = record_review(record_path, model_path, selected['id'], 'Revisión sintética del flujo, no evidencia académica')
+            moved_record = json.loads(record_path.read_text(encoding='utf-8'))
+            moved_record['dataset']['path'] = str(folder / 'obsolete' / 'font.h')
+            record_path.write_text(json.dumps(moved_record), encoding='utf-8')
+            review = record_review(record_path, model_path, selected['id'],
+                                   'Revisión sintética del flujo, no evidencia académica',
+                                   dataset_path=DEFAULT_DATASET)
             self.assertEqual(review['coordinates'], selected['coordinates'])
             self.assertEqual(review['model_sha256'], result['model']['sha256'])
             self.assertEqual(review['selected_id'], selected['id'])
+            recorded = record_path.read_bytes()
+            with self.assertRaisesRegex(ValueError, 'already exists'):
+                explore_candidates(model_path, folder / 'candidates', config)
+            self.assertEqual(record_path.read_bytes(), recorded)
             other_model = folder / 'other.npz'
             Autoencoder(seed=20).save(other_model)
             with self.assertRaisesRegex(ValueError, 'model'):
                 record_review(record_path, other_model, selected['id'], 'No corresponde al modelo')
+            invalid_dataset = json.loads(record_path.read_text(encoding='utf-8'))
+            invalid_dataset['dataset']['sha256'] = '0' * 64
+            record_path.write_text(json.dumps(invalid_dataset), encoding='utf-8')
+            with self.assertRaisesRegex(ValueError, 'dataset'):
+                record_review(record_path, model_path, None, 'Dataset diferente', DEFAULT_DATASET)
 
     def test_candidate_novelty_uses_all_original_patterns_and_inclusive_threshold(self):
         dataset = load_dataset()
