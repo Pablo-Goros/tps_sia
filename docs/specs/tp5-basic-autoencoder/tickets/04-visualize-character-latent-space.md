@@ -1,7 +1,7 @@
 # 04: Visualizar los 32 caracteres en el espacio latente
 
 **Spec:** [TP5 — Autoencoder básico para caracteres](../spec.md)
-**Status:** ready-for-agent
+**Status:** in-progress
 
 ## What to build
 
