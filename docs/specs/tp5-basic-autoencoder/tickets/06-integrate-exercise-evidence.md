@@ -1,7 +1,7 @@
 # 06: Integrar la evidencia del ejercicio 1.a
 
 **Spec:** [TP5 — Autoencoder básico para caracteres](../spec.md)
-**Status:** ready-for-agent
+**Status:** in-progress
 
 ## What to build
 

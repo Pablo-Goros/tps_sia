@@ -9,6 +9,7 @@ import time
 
 import numpy as np
 from .dataset import DEFAULT_DATASET, load_dataset
+from .autoencoder import validate_architecture
 from .train import run_training, write_json, model_identity
 
 
@@ -38,12 +39,7 @@ def _protocol(path):
         name = variant['name']
         if not isinstance(name, str) or not re.fullmatch(r'[a-z0-9]+(?:-[a-z0-9]+)*', name):
             raise ValueError('Variant names must be lowercase kebab-case')
-        architecture = variant['architecture']
-        if (not isinstance(architecture, list) or len(architecture) < 3
-                or len(architecture) % 2 != 1 or any(type(n) is not int or n < 1 for n in architecture)
-                or architecture[0] != 35 or architecture[-1] != 35
-                or architecture[len(architecture)//2] != 2):
-            raise ValueError('Variants require 35 inputs/outputs and a two-dimensional central code')
+        validate_architecture(variant['architecture'])
         for key in ['batch_size', 'max_epochs', 'evaluate_every']:
             if type(variant[key]) is not int or variant[key] < 1:
                 raise ValueError(f'{key} must be a positive integer')
@@ -95,7 +91,10 @@ def _summarize(protocol, rows, output):
     if chosen:
         source = Path(chosen['source_run'])
         manifest = json.loads((source / 'manifest.json').read_text(encoding='utf-8'))
-        selected = {'run_id': chosen['run_id'], 'model': manifest['model'],
+        identity = model_identity(source/'model.npz')
+        if identity['sha256'] != manifest['model']['sha256']:
+            raise ValueError('Selected model artifact hash does not match manifest')
+        selected = {'run_id': chosen['run_id'], 'model': identity,
                     'config': str((source/'config.json').resolve()),
                     'seed': chosen['seed'], 'criterion': protocol['selection'],
                     'all_within_tolerance': chosen['all_within_tolerance']}
@@ -193,9 +192,10 @@ def run_comparison(protocol_path, output, dataset_path=DEFAULT_DATASET, resume=F
                                 or manifest['dataset']['sha256'] != load_dataset(dataset_path).sha256):
                             raise ValueError('Reused run must match the exact configuration and dataset')
                         result = {'manifest': manifest, 'metrics': json.loads((source/'metrics.json').read_text(encoding='utf-8'))}
-                        if not Path(manifest['model']['path']).is_file():
+                        model_path = source/'model.npz'
+                        if not model_path.is_file():
                             raise ValueError('Reused model artifact is missing')
-                        if model_identity(manifest['model']['path'])['sha256'] != manifest['model']['sha256']:
+                        if model_identity(model_path)['sha256'] != manifest['model']['sha256']:
                             raise ValueError('Reused model artifact hash does not match manifest')
                         row.update(source_run=str(source), reused=True)
                     else:
