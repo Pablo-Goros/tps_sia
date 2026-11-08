@@ -1,5 +1,7 @@
 # TP5: autoencoder básico de caracteres
 
+El [informe de resultados y pendientes](results/report.md) relaciona los cuatro puntos del apartado 1.a con la evidencia disponible.
+
 La comparación reproducible y su protocolo autorizado se describen en [comparison.md](comparison.md).
 
 Ejercicio 1.a. Todos los comandos siguientes se ejecutan desde `tp5/`, con Python 3.10 o posterior.
