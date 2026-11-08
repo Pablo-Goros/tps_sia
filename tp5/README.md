@@ -1,5 +1,7 @@
 # TP5: autoencoder básico de caracteres
 
+La comparación reproducible y su protocolo autorizado se describen en [comparison.md](comparison.md).
+
 Ejercicio 1.a. Todos los comandos siguientes se ejecutan desde `tp5/`, con Python 3.10 o posterior.
 
 ## Instalación
