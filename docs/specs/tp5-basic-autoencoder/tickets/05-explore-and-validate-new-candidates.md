@@ -1,7 +1,7 @@
 # 05: Explorar y validar candidatos nuevos
 
 **Spec:** [TP5 — Autoencoder básico para caracteres](../spec.md)
-**Status:** ready-for-agent
+**Status:** in-progress
 
 ## What to build
 

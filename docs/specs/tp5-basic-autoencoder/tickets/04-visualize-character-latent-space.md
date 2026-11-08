@@ -1,7 +1,7 @@
 # 04: Visualizar los 32 caracteres en el espacio latente
 
 **Spec:** [TP5 — Autoencoder básico para caracteres](../spec.md)
-**Status:** in-progress
+**Status:** done
 
 ## What to build
 
@@ -15,13 +15,13 @@ Contexto: [plan confirmado, visualización del paso 6](../../../../tp5/assignmen
 
 ## Acceptance criteria
 
-- [ ] El comando documentado consume un modelo guardado y el dataset original y genera el gráfico sin ejecutar entrenamiento.
-- [ ] Aparecen los 32 patrones en dos dimensiones con etiquetas que permiten identificarlos; no se pierden patrones por coincidencia de coordenadas ni por etiquetas de símbolos vacías.
-- [ ] Se guardan exactamente 32 pares de coordenadas y su asociación inequívoca con los patrones.
-- [ ] Las coordenadas guardadas coinciden con la codificación pública del mismo modelo y se corresponden con los puntos representados.
-- [ ] Figura y metadatos identifican el modelo y dataset utilizados y pueden regenerarse desde los artefactos persistidos.
-- [ ] Una prueba del flujo público comprueba las coordenadas, etiquetas y archivos producidos sin inspeccionar detalles internos del MLP ni exigir una distribución particular de los códigos.
-- [ ] El README explica cómo visualizar otro modelo guardado, incluido el que resulte de la comparación.
+- [x] El comando documentado consume un modelo guardado y el dataset original y genera el gráfico sin ejecutar entrenamiento.
+- [x] Aparecen los 32 patrones en dos dimensiones con etiquetas que permiten identificarlos; no se pierden patrones por coincidencia de coordenadas ni por etiquetas de símbolos vacías.
+- [x] Se guardan exactamente 32 pares de coordenadas y su asociación inequívoca con los patrones.
+- [x] Las coordenadas guardadas coinciden con la codificación pública del mismo modelo y se corresponden con los puntos representados.
+- [x] Figura y metadatos identifican el modelo y dataset utilizados y pueden regenerarse desde los artefactos persistidos.
+- [x] Una prueba del flujo público comprueba las coordenadas, etiquetas y archivos producidos sin inspeccionar detalles internos del MLP ni exigir una distribución particular de los códigos.
+- [x] El README explica cómo visualizar otro modelo guardado, incluido el que resulte de la comparación.
 
 ## Blocked by
 
