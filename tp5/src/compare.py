@@ -155,7 +155,7 @@ def run_comparison(protocol_path, output, dataset_path=DEFAULT_DATASET, resume=F
                     if manifest.get('config') != config:
                         raise ValueError(f'Existing run configuration differs: {run_id}')
                     if (manifest['dataset']['sha256'] != load_dataset(dataset_path).sha256
-                            or model_identity(manifest['model']['path'])['sha256'] != manifest['model']['sha256']):
+                            or model_identity(run/'model.npz')['sha256'] != manifest['model']['sha256']):
                         raise ValueError(f'Existing run identity differs: {run_id}')
                     previous = {'manifest': manifest, 'metrics': json.loads((run/'metrics.json').read_text(encoding='utf-8'))}
                 else:
