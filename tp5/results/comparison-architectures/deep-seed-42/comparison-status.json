@@ -1,0 +1,9 @@
+{
+  "run_id": "deep-seed-42",
+  "variant": "deep",
+  "seed": 42,
+  "status": "interrupted",
+  "source_run": "C:\\Users\\Mateo\\Documents\\Projects\\facultad\\sistemas-de-inteligencia-artificial\\tps_sia\\tp5\\results\\comparison-architectures\\deep-seed-42",
+  "duration_seconds": 0,
+  "error": "Stopped by user request; no persisted model; exact completed epochs unknown, <=3000"
+}
