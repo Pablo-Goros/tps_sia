@@ -39,4 +39,54 @@ python -m unittest discover -s tests -p "test_*.py" -v
 
 Las pruebas del flujo público verifican contenido y orientación asimétrica,
 identidad del original, rechazo de datos mal formados y generación de la lámina
-con su manifiesto. No entrenan modelos ni afirman que los patrones se aprendieron.
+con su manifiesto. También cubren un entrenamiento corto y persistencia, sin
+exigir convergencia del experimento.
+
+## Entrenamiento y evaluación
+
+```powershell
+python -m src.train train --config configs/pilot.json --output results/pilot
+python -m src.train evaluate --model results/pilot/model.npz --output results/pilot-evaluation
+```
+
+El directorio de entrenamiento debe estar vacío para conservar las corridas
+anteriores. Para repetir el piloto, usar por ejemplo `--output results/pilot-repeat`.
+La evaluación carga el modelo guardado sin entrenar. Ambos comandos admiten
+`--dataset ruta/font.h`; siempre se validan los 32 patrones.
+
+`configs/pilot.json` registra el presupuesto autorizado: arquitectura
+`35→20→2→20→35`, tanh interna (incluido el código), salida logística, Adam,
+semilla 42, tasa 0.001, lote 32, máximo 10.000 épocas y evaluación cada 100.
+Se detiene si en una evaluación todos los patrones tienen como máximo un error.
+El umbral binario es `>= 0.5`. La evaluación periódica conserva los pesos, el
+generador aleatorio y los momentos de Adam. La interfaz `Autoencoder` encapsula
+el MLP de `tp3.shared` sin duplicar su entrenamiento ni retropropagación.
+
+Los campos JSON obligatorios son `architecture`, `seed`, `optimizer`,
+`batch_size`, `max_epochs`, `evaluate_every` y `stop_on_tolerance`. La arquitectura
+tiene 35 entradas y salidas y dos unidades en la capa central; las capas ocultas
+usan tanh. `optimizer` utiliza la configuración pública del TP3, por ejemplo
+`{"name": "adam", "learning_rate": 0.001}`. Cambiar una configuración para un
+experimento exige acordar su presupuesto antes de ejecutarlo.
+
+Cada corrida conserva `config.json`, `manifest.json` (identidad del dataset y
+modelo, versiones, duración, épocas y motivo de parada), `model.npz`,
+`history.json`, `metrics.json`, `predictions.npz`, `curves.png` y
+`reconstructions.png`. Las rutas absolutas de los manifiestos documentan el
+entorno de ejecución original; los artefactos se trasladan juntos y los hashes
+permiten comprobar su identidad. La evaluación admite la nueva ruta del modelo.
+
+Las métricas incluyen errores individuales, máximo y promedio, fracción exacta
+y fracción dentro de tolerancia. `all_within_tolerance` exige que **cada uno**
+de los 32 patrones tenga como máximo un píxel erróneo. `mse_per_pixel` promedia
+los 1120 píxeles; `training_loss` es `0.5 * mean(sum(error², axis=1))`, es decir,
+17.5 veces el MSE por píxel. Las curvas usan MSE y máximo error por patrón;
+las láminas muestran original a la izquierda y reconstrucción binaria a la
+derecha con sus errores. Una pérdida pequeña no sustituye la tolerancia.
+
+Los 32 patrones son a la vez entradas y objetivos. Estos resultados miden
+reconstrucción del entrenamiento; no estiman generalización a letras nuevas.
+El registro del piloto está en [results/pilot/README.md](results/pilot/README.md).
+La comparación de arquitecturas y optimizadores requiere revisar esta evidencia
+y acordar otro presupuesto. Un piloto fallido no demuestra imposibilidad ni
+autoriza reducir el dataset.
