@@ -2,6 +2,7 @@
 import argparse
 import csv
 import json
+import os
 from pathlib import Path
 import re
 import time
@@ -128,6 +129,8 @@ def run_comparison(protocol_path, output, dataset_path=DEFAULT_DATASET):
         raise ValueError('Comparison output must be empty to preserve previous runs')
     output.mkdir(parents=True, exist_ok=True)
     write_json(output/'protocol.json', protocol)
+    write_json(output/'environment.json', {'OPENBLAS_NUM_THREADS': os.environ.get('OPENBLAS_NUM_THREADS'),
+                                         'OMP_NUM_THREADS': os.environ.get('OMP_NUM_THREADS')})
     rows = []
     interrupted = False
     for variant in protocol['variants']:
@@ -160,6 +163,10 @@ def run_comparison(protocol_path, output, dataset_path=DEFAULT_DATASET):
                         row.update(source_run=str(source), reused=True)
                     else:
                         result = run_training(config_path, run, dataset_path)
+                        result['manifest']['thread_environment'] = {
+                            'OPENBLAS_NUM_THREADS': os.environ.get('OPENBLAS_NUM_THREADS'),
+                            'OMP_NUM_THREADS': os.environ.get('OMP_NUM_THREADS')}
+                        write_json(run/'manifest.json', result['manifest'])
                     reason = result['manifest']['stop_reason']
                     row.update(result['metrics'], epochs_completed=result['manifest']['epochs_completed'],
                                duration_seconds=result['manifest']['duration_seconds'], stop_reason=reason)
