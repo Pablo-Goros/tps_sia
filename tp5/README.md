@@ -139,6 +139,9 @@ presenta un identificador y su distancia mínima de Hamming `d` respecto de los
 32 originales, tras binarizar con `>= 0.5`. `d=0` identifica una copia;
 `d>0` identifica un candidato nuevo. El JSON conserva coordenadas completas,
 salidas continuas y binarias, configuración, rango y SHA256 del modelo y dataset.
+Si ya existe `candidates.json`, el comando rechaza la generación para conservar
+las decisiones visuales previas. Usar un directorio nuevo con `--output` para
+regenerar las láminas o explorar otra configuración.
 Para regenerar un candidato: cargar ese modelo con `Autoencoder.load`, pasar
 sus coordenadas como matriz `(1,2)` a `decode` y aplicar el mismo umbral.
 
@@ -157,6 +160,9 @@ El registro de una selección verifica el hash del modelo, la regeneración y
 la novedad, y conserva el identificador, coordenadas, imagen y nota visual.
 La selección solamente vale para ese modelo. Si cambia el modelo final,
 regenerar las láminas y repetir la revisión con el estudiante.
+Después de trasladar los artefactos, `--dataset ruta/font.h` permite indicar
+el original disponible para la revisión; se verifica su SHA256 guardado en el
+registro, sin depender de la ruta absoluta del entorno anterior.
 
 El espacio latente de este autoencoder no tiene estructura generativa
 garantizada: las interpolaciones o regiones intermedias pueden producir
