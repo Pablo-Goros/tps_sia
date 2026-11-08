@@ -80,6 +80,8 @@ def _summarize(protocol, rows, output):
         aggregates.append(aggregate)
     # An incomplete variant is not eligible to win an across-seed comparison.
     comparable = [group for group in aggregates if group['completed'] == group['runs']]
+    if len(comparable) != len(aggregates):
+        comparable = []
     winner = min(comparable, key=lambda group: (group['max_pixel_errors_mean'],
                  group['mean_pixel_errors_mean'], group['mse_per_pixel_mean'], group['variant'])) if comparable else None
     eligible = [row for row in rows if winner and row['variant'] == winner['variant']]
@@ -96,10 +98,13 @@ def _summarize(protocol, rows, output):
                     'config': str((source/'config.json').resolve()),
                     'seed': chosen['seed'], 'criterion': protocol['selection'],
                     'all_within_tolerance': chosen['all_within_tolerance']}
+    retry_charge = sum(json.loads(path.read_text(encoding='utf-8')).get('consumed_epoch_upper_bound', 0)
+                       for path in (output/'interrupted').glob('*/manifest.json'))
     summary = {'stage': protocol['stage'], 'approval': protocol['approval'],
                'budget': {'runs': len(rows), 'max_epochs_total': sum(
                    v['max_epochs'] for v in protocol['variants'] for seed in protocol['seeds']
-                   if f"{v['name']}-seed-{seed}" not in protocol.get('reuse_runs', {}))},
+                   if f"{v['name']}-seed-{seed}" not in protocol.get('reuse_runs', {})),
+                          'prior_interrupted_epoch_upper_bound': retry_charge},
                'runs': rows, 'aggregates': aggregates, 'selected': selected,
                'selected_variant': winner['variant'] if winner else None}
     write_json(output/'summary.json', summary)
@@ -120,12 +125,15 @@ def _summarize(protocol, rows, output):
     return summary
 
 
-def run_comparison(protocol_path, output, dataset_path=DEFAULT_DATASET):
+def run_comparison(protocol_path, output, dataset_path=DEFAULT_DATASET, resume=False, retry_interrupted=False):
     """Run only the explicit variants/seeds in one stage; never expand its budget."""
     protocol = _protocol(protocol_path)
     output = Path(output)
-    if output.exists() and any(output.iterdir()):
+    if output.exists() and any(output.iterdir()) and not resume:
         raise ValueError('Comparison output must be empty to preserve previous runs')
+    if resume and (output/'protocol.json').exists():
+        if json.loads((output/'protocol.json').read_text(encoding='utf-8')) != protocol:
+            raise ValueError('Resume requires the exact original protocol')
     output.mkdir(parents=True, exist_ok=True)
     write_json(output/'protocol.json', protocol)
     write_json(output/'environment.json', {'OPENBLAS_NUM_THREADS': os.environ.get('OPENBLAS_NUM_THREADS'),
@@ -136,19 +144,48 @@ def run_comparison(protocol_path, output, dataset_path=DEFAULT_DATASET):
         for seed in protocol['seeds']:
             run_id = f"{variant['name']}-seed-{seed}"
             run = output / run_id
-            run.mkdir()
             config = {key: value for key, value in variant.items() if key != 'name'}
             config['seed'] = seed
+            previous = None
+            archive = None
+            if resume and run.exists():
+                manifest_path = run/'manifest.json'
+                manifest = json.loads(manifest_path.read_text(encoding='utf-8')) if manifest_path.exists() else {}
+                if manifest.get('stop_reason') in ['max_epochs', 'pixel_tolerance']:
+                    if manifest.get('config') != config:
+                        raise ValueError(f'Existing run configuration differs: {run_id}')
+                    if (manifest['dataset']['sha256'] != load_dataset(dataset_path).sha256
+                            or model_identity(run/'model.npz')['sha256'] != manifest['model']['sha256']):
+                        raise ValueError(f'Existing run identity differs: {run_id}')
+                    previous = {'manifest': manifest, 'metrics': json.loads((run/'metrics.json').read_text(encoding='utf-8'))}
+                else:
+                    if not retry_interrupted:
+                        raise ValueError(f'{run_id} is incomplete. No automatic rerun: use --retry-interrupted to explicitly authorize a full retry; this adds up to {config["max_epochs"]} epochs beyond the original budget.')
+                    archive = output/'interrupted'/f'{run_id}-{time.time_ns()}'
+                    archive.parent.mkdir(exist_ok=True)
+                    if not run.resolve().is_relative_to(output.resolve()) or not archive.resolve().is_relative_to(output.resolve()):
+                        raise ValueError('Retry archive must stay inside comparison output')
+                    manifest.update(stop_reason='interrupted', consumed_epoch_upper_bound=config['max_epochs'],
+                                    retry_note='No usable final checkpoint; original attempt charged its full cap conservatively')
+                    write_json(run/'manifest.json', manifest)
+                    run.rename(archive)
+            run.mkdir(exist_ok=True)
             config_path = output / f'{run_id}.json'
             write_json(config_path, config)
             row = {'run_id': run_id, 'variant': variant['name'], 'seed': seed,
                    'config': str(config_path.resolve()), 'status': 'not_run',
                    'source_run': str(run.resolve()), 'reused': False}
+            if archive:
+                row['retry_archive'] = str(archive.resolve())
+                row['additional_epoch_cap'] = config['max_epochs']
             started = time.perf_counter()
             if not interrupted:
                 try:
                     reuse = protocol.get('reuse_runs', {}).get(run_id)
-                    if reuse:
+                    if previous:
+                        result = previous
+                        row['resumed_completed'] = True
+                    elif reuse:
                         source = Path(reuse).resolve()
                         manifest = json.loads((source/'manifest.json').read_text(encoding='utf-8'))
                         if (manifest['config'] != config
@@ -179,6 +216,7 @@ def run_comparison(protocol_path, output, dataset_path=DEFAULT_DATASET):
                     row.update(status='failed', error=f'{type(error).__name__}: {error}')
             row.setdefault('duration_seconds', time.perf_counter()-started)
             write_json(run/'comparison-status.json', row)
+            print(f"{run_id}: {row['status']} max_errors={row.get('max_pixel_errors')} source={row['source_run']}", flush=True)
             rows.append(row)
             # Preserve progress after each attempt, including failures and interrupted runs.
             write_json(output/'progress.json', rows)
@@ -190,9 +228,11 @@ def main():
     parser.add_argument('--protocol', type=Path, required=True)
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--dataset', type=Path, default=DEFAULT_DATASET)
+    parser.add_argument('--resume', action='store_true')
+    parser.add_argument('--retry-interrupted', action='store_true')
     args = parser.parse_args()
     try:
-        result = run_comparison(args.protocol, args.output, args.dataset)
+        result = run_comparison(args.protocol, args.output, args.dataset, args.resume, args.retry_interrupted)
     except (ValueError, OSError) as error:
         parser.error(str(error))
     print(json.dumps(result['selected']))

@@ -91,6 +91,32 @@ no estima generalización a letras desconocidas.
 
 ## Comparación y continuación
 
+Ejecución detenida por pedido del estudiante: cuatro corridas completas
+(base42, base43, ancha42, ancha43), profunda42 interrumpida sin modelo utilizable,
+profunda43 y etapa de optimizadores pendientes. La evidencia parcial está en
+[comparison-architectures/summary.json](comparison-architectures/summary.json) y
+[runs.csv](comparison-architectures/runs.csv). Los máximos de error de las cuatro
+corridas completas son respectivamente 6, 5, 5 y 5; ninguna aprende el conjunto
+completo dentro de tolerancia. No se ha elegido un modelo sobre esta etapa incompleta.
+
+Para ejecutar la continuación nocturna desde `tp5/`:
+
+```powershell
+python -m src.overnight --retry-interrupted
+```
+
+El indicador autoriza un **reintento completo**, conservando el intento detenido
+en un archivo. Se cargan conservadoramente 3000 épocas al intento interrumpido:
+el máximo acumulado de esta campaña pasa de 24000 a **27000 épocas** al ejecutar
+este comando. El reintento no se ha ejecutado. Sin el indicador, la continuación
+se detiene antes de repetir una corrida incompleta. Las corridas completas se
+validan y omiten; los nuevos checkpoints guardan pesos, optimizador e historia
+cada 100 épocas, pero la estrategia documentada de reintento reinicia la corrida.
+Se registra avance en `results/overnight.log` y `results/overnight-status.json`.
+La etapa de optimizadores se prepara solo cuando todas las arquitecturas y
+semillas están completas, reutilizando Adam. No se reentrena automáticamente
+ninguna corrida terminada ni se amplía el presupuesto sin un indicador explícito.
+
 El [protocolo autorizado](../comparison.md) compara primero base, ancha y profunda
 con Adam y semillas 42 y 43; luego compara Adam con Momentum sobre la arquitectura
 seleccionada, reutilizando sus corridas Adam. Cada corrida tiene como máximo
