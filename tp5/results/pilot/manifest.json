@@ -1,0 +1,62 @@
+{
+  "config": {
+    "architecture": [
+      35,
+      20,
+      2,
+      20,
+      35
+    ],
+    "seed": 42,
+    "optimizer": {
+      "name": "adam",
+      "learning_rate": 0.001
+    },
+    "batch_size": 32,
+    "max_epochs": 10000,
+    "evaluate_every": 100,
+    "stop_on_tolerance": true
+  },
+  "dataset": {
+    "path": "C:\\Users\\Mateo\\Documents\\Projects\\facultad\\sistemas-de-inteligencia-artificial\\tmp\\tp5-ticket-02\\tp5\\data\\font.h",
+    "sha256": "095b431bdfa2d228eeaa337fb45cd963088cc13380c189e01436e446767502f8"
+  },
+  "versions": {
+    "python": "3.13.7",
+    "numpy": "2.5.1",
+    "matplotlib": "3.11.2"
+  },
+  "training_loss_normalization": "0.5 * mean(sum((prediction-target)^2, axis=1))",
+  "threshold": 0.5,
+  "stop_reason": "max_epochs",
+  "epochs_completed": 10000,
+  "duration_seconds": 1770.119673899957,
+  "model": {
+    "path": "C:\\Users\\Mateo\\Documents\\Projects\\facultad\\sistemas-de-inteligencia-artificial\\tmp\\tp5-ticket-02\\tp5\\results\\pilot\\model.npz",
+    "sha256": "949a833c83b1d4b6597e81269acc6a3e349f60e3d3d309bf035102a8651eaedb"
+  },
+  "effective_model": {
+    "architecture": [
+      35,
+      20,
+      2,
+      20,
+      35
+    ],
+    "activation": "tanh",
+    "output": "logistica",
+    "beta": 1.0,
+    "batch_size": 32,
+    "optimizer": {
+      "name": "adam",
+      "learning_rate": 0.001,
+      "beta1": 0.9,
+      "beta2": 0.999,
+      "optimizer_epsilon": 1e-08
+    },
+    "initialization": "auto",
+    "l2": 0.0,
+    "augmentation": null,
+    "batch_norm": null
+  }
+}
