@@ -1,0 +1,56 @@
+{
+  "stage": "optimizers",
+  "approval": "User authorized staged comparison on 2026-11-08 after pilot review; 8 unique runs maximum, 24000 epochs total cap.",
+  "seeds": [
+    42,
+    43
+  ],
+  "selection": "max_mean_mse",
+  "variants": [
+    {
+      "name": "adam",
+      "architecture": [
+        35,
+        30,
+        15,
+        2,
+        15,
+        30,
+        35
+      ],
+      "optimizer": {
+        "name": "adam",
+        "learning_rate": 0.001
+      },
+      "batch_size": 32,
+      "max_epochs": 3000,
+      "evaluate_every": 100,
+      "stop_on_tolerance": true
+    },
+    {
+      "name": "momentum",
+      "architecture": [
+        35,
+        30,
+        15,
+        2,
+        15,
+        30,
+        35
+      ],
+      "optimizer": {
+        "name": "momentum",
+        "learning_rate": 0.05,
+        "momentum": 0.9
+      },
+      "batch_size": 32,
+      "max_epochs": 3000,
+      "evaluate_every": 100,
+      "stop_on_tolerance": true
+    }
+  ],
+  "reuse_runs": {
+    "adam-seed-42": "C:\\Users\\Mateo\\Documents\\Projects\\facultad\\sistemas-de-inteligencia-artificial\\tps_sia\\tp5\\results\\comparison-architectures\\deep-seed-42",
+    "adam-seed-43": "C:\\Users\\Mateo\\Documents\\Projects\\facultad\\sistemas-de-inteligencia-artificial\\tps_sia\\tp5\\results\\comparison-architectures\\deep-seed-43"
+  }
+}

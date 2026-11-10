@@ -24,3 +24,7 @@ tp3/ej3/continuation.md
 tp3/ej3/presentation-draft.md
 tp3/presentation-content.md
 tp3/presentation-plan.md
+docs/*
+
+# Local TP5 experiment artifacts
+/tp5/results/

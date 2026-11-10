@@ -1,0 +1,1179 @@
+{
+  "stage": "broad-factorial",
+  "approval": "User explicitly authorized broad search on 2026-11-08; 5 architectures x 4 optimizers x 3 rates x 3 seeds; 3000 epochs max per run, stop on tolerance.",
+  "seeds": [
+    42,
+    43,
+    44
+  ],
+  "selection": "max_mean_mse",
+  "variants": [
+    {
+      "name": "base-adam-0p0005",
+      "architecture": [
+        35,
+        20,
+        2,
+        20,
+        35
+      ],
+      "optimizer": {
+        "name": "adam",
+        "learning_rate": 0.0005
+      },
+      "batch_size": 32,
+      "max_epochs": 3000,
+      "evaluate_every": 100,
+      "stop_on_tolerance": true
+    },
+    {
+      "name": "base-adam-0p001",
+      "architecture": [
+        35,
+        20,
+        2,
+        20,
+        35
+      ],
+      "optimizer": {
+        "name": "adam",
+        "learning_rate": 0.001
+      },
+      "batch_size": 32,
+      "max_epochs": 3000,
+      "evaluate_every": 100,
+      "stop_on_tolerance": true
+    },
+    {
+      "name": "base-adam-0p002",
+      "architecture": [
+        35,
+        20,
+        2,
+        20,
+        35
+      ],
+      "optimizer": {
+        "name": "adam",
+        "learning_rate": 0.002
+      },
+      "batch_size": 32,
+      "max_epochs": 3000,
+      "evaluate_every": 100,
+      "stop_on_tolerance": true
+    },
+    {
+      "name": "base-momentum-0p02",
+      "architecture": [
+        35,
+        20,
+        2,
+        20,
+        35
+      ],
+      "optimizer": {
+        "name": "momentum",
+        "learning_rate": 0.02,
+        "momentum": 0.9
+      },
+      "batch_size": 32,
+      "max_epochs": 3000,
+      "evaluate_every": 100,
+      "stop_on_tolerance": true
+    },
+    {
+      "name": "base-momentum-0p05",
+      "architecture": [
+        35,
+        20,
+        2,
+        20,
+        35
+      ],
+      "optimizer": {
+        "name": "momentum",
+        "learning_rate": 0.05,
+        "momentum": 0.9
+      },
+      "batch_size": 32,
+      "max_epochs": 3000,
+      "evaluate_every": 100,
+      "stop_on_tolerance": true
+    },
+    {
+      "name": "base-momentum-0p1",
+      "architecture": [
+        35,
+        20,
+        2,
+        20,
+        35
+      ],
+      "optimizer": {
+        "name": "momentum",
+        "learning_rate": 0.1,
+        "momentum": 0.9
+      },
+      "batch_size": 32,
+      "max_epochs": 3000,
+      "evaluate_every": 100,
+      "stop_on_tolerance": true
+    },
+    {
+      "name": "base-rmsprop-0p0005",
+      "architecture": [
+        35,
+        20,
+        2,
+        20,
+        35
+      ],
+      "optimizer": {
+        "name": "rmsprop",
+        "learning_rate": 0.0005
+      },
+      "batch_size": 32,
+      "max_epochs": 3000,
+      "evaluate_every": 100,
+      "stop_on_tolerance": true
+    },
+    {
+      "name": "base-rmsprop-0p001",
+      "architecture": [
+        35,
+        20,
+        2,
+        20,
+        35
+      ],
+      "optimizer": {
+        "name": "rmsprop",
+        "learning_rate": 0.001
+      },
+      "batch_size": 32,
+      "max_epochs": 3000,
+      "evaluate_every": 100,
+      "stop_on_tolerance": true
+    },
+    {
+      "name": "base-rmsprop-0p002",
+      "architecture": [
+        35,
+        20,
+        2,
+        20,
+        35
+      ],
+      "optimizer": {
+        "name": "rmsprop",
+        "learning_rate": 0.002
+      },
+      "batch_size": 32,
+      "max_epochs": 3000,
+      "evaluate_every": 100,
+      "stop_on_tolerance": true
+    },
+    {
+      "name": "base-sgd-0p01",
+      "architecture": [
+        35,
+        20,
+        2,
+        20,
+        35
+      ],
+      "optimizer": {
+        "name": "sgd",
+        "learning_rate": 0.01
+      },
+      "batch_size": 32,
+      "max_epochs": 3000,
+      "evaluate_every": 100,
+      "stop_on_tolerance": true
+    },
+    {
+      "name": "base-sgd-0p03",
+      "architecture": [
+        35,
+        20,
+        2,
+        20,
+        35
+      ],
+      "optimizer": {
+        "name": "sgd",
+        "learning_rate": 0.03
+      },
+      "batch_size": 32,
+      "max_epochs": 3000,
+      "evaluate_every": 100,
+      "stop_on_tolerance": true
+    },
+    {
+      "name": "base-sgd-0p05",
+      "architecture": [
+        35,
+        20,
+        2,
+        20,
+        35
+      ],
+      "optimizer": {
+        "name": "sgd",
+        "learning_rate": 0.05
+      },
+      "batch_size": 32,
+      "max_epochs": 3000,
+      "evaluate_every": 100,
+      "stop_on_tolerance": true
+    },
+    {
+      "name": "wide-adam-0p0005",
+      "architecture": [
+        35,
+        40,
+        2,
+        40,
+        35
+      ],
+      "optimizer": {
+        "name": "adam",
+        "learning_rate": 0.0005
+      },
+      "batch_size": 32,
+      "max_epochs": 3000,
+      "evaluate_every": 100,
+      "stop_on_tolerance": true
+    },
+    {
+      "name": "wide-adam-0p001",
+      "architecture": [
+        35,
+        40,
+        2,
+        40,
+        35
+      ],
+      "optimizer": {
+        "name": "adam",
+        "learning_rate": 0.001
+      },
+      "batch_size": 32,
+      "max_epochs": 3000,
+      "evaluate_every": 100,
+      "stop_on_tolerance": true
+    },
+    {
+      "name": "wide-adam-0p002",
+      "architecture": [
+        35,
+        40,
+        2,
+        40,
+        35
+      ],
+      "optimizer": {
+        "name": "adam",
+        "learning_rate": 0.002
+      },
+      "batch_size": 32,
+      "max_epochs": 3000,
+      "evaluate_every": 100,
+      "stop_on_tolerance": true
+    },
+    {
+      "name": "wide-momentum-0p02",
+      "architecture": [
+        35,
+        40,
+        2,
+        40,
+        35
+      ],
+      "optimizer": {
+        "name": "momentum",
+        "learning_rate": 0.02,
+        "momentum": 0.9
+      },
+      "batch_size": 32,
+      "max_epochs": 3000,
+      "evaluate_every": 100,
+      "stop_on_tolerance": true
+    },
+    {
+      "name": "wide-momentum-0p05",
+      "architecture": [
+        35,
+        40,
+        2,
+        40,
+        35
+      ],
+      "optimizer": {
+        "name": "momentum",
+        "learning_rate": 0.05,
+        "momentum": 0.9
+      },
+      "batch_size": 32,
+      "max_epochs": 3000,
+      "evaluate_every": 100,
+      "stop_on_tolerance": true
+    },
+    {
+      "name": "wide-momentum-0p1",
+      "architecture": [
+        35,
+        40,
+        2,
+        40,
+        35
+      ],
+      "optimizer": {
+        "name": "momentum",
+        "learning_rate": 0.1,
+        "momentum": 0.9
+      },
+      "batch_size": 32,
+      "max_epochs": 3000,
+      "evaluate_every": 100,
+      "stop_on_tolerance": true
+    },
+    {
+      "name": "wide-rmsprop-0p0005",
+      "architecture": [
+        35,
+        40,
+        2,
+        40,
+        35
+      ],
+      "optimizer": {
+        "name": "rmsprop",
+        "learning_rate": 0.0005
+      },
+      "batch_size": 32,
+      "max_epochs": 3000,
+      "evaluate_every": 100,
+      "stop_on_tolerance": true
+    },
+    {
+      "name": "wide-rmsprop-0p001",
+      "architecture": [
+        35,
+        40,
+        2,
+        40,
+        35
+      ],
+      "optimizer": {
+        "name": "rmsprop",
+        "learning_rate": 0.001
+      },
+      "batch_size": 32,
+      "max_epochs": 3000,
+      "evaluate_every": 100,
+      "stop_on_tolerance": true
+    },
+    {
+      "name": "wide-rmsprop-0p002",
+      "architecture": [
+        35,
+        40,
+        2,
+        40,
+        35
+      ],
+      "optimizer": {
+        "name": "rmsprop",
+        "learning_rate": 0.002
+      },
+      "batch_size": 32,
+      "max_epochs": 3000,
+      "evaluate_every": 100,
+      "stop_on_tolerance": true
+    },
+    {
+      "name": "wide-sgd-0p01",
+      "architecture": [
+        35,
+        40,
+        2,
+        40,
+        35
+      ],
+      "optimizer": {
+        "name": "sgd",
+        "learning_rate": 0.01
+      },
+      "batch_size": 32,
+      "max_epochs": 3000,
+      "evaluate_every": 100,
+      "stop_on_tolerance": true
+    },
+    {
+      "name": "wide-sgd-0p03",
+      "architecture": [
+        35,
+        40,
+        2,
+        40,
+        35
+      ],
+      "optimizer": {
+        "name": "sgd",
+        "learning_rate": 0.03
+      },
+      "batch_size": 32,
+      "max_epochs": 3000,
+      "evaluate_every": 100,
+      "stop_on_tolerance": true
+    },
+    {
+      "name": "wide-sgd-0p05",
+      "architecture": [
+        35,
+        40,
+        2,
+        40,
+        35
+      ],
+      "optimizer": {
+        "name": "sgd",
+        "learning_rate": 0.05
+      },
+      "batch_size": 32,
+      "max_epochs": 3000,
+      "evaluate_every": 100,
+      "stop_on_tolerance": true
+    },
+    {
+      "name": "wider-adam-0p0005",
+      "architecture": [
+        35,
+        60,
+        2,
+        60,
+        35
+      ],
+      "optimizer": {
+        "name": "adam",
+        "learning_rate": 0.0005
+      },
+      "batch_size": 32,
+      "max_epochs": 3000,
+      "evaluate_every": 100,
+      "stop_on_tolerance": true
+    },
+    {
+      "name": "wider-adam-0p001",
+      "architecture": [
+        35,
+        60,
+        2,
+        60,
+        35
+      ],
+      "optimizer": {
+        "name": "adam",
+        "learning_rate": 0.001
+      },
+      "batch_size": 32,
+      "max_epochs": 3000,
+      "evaluate_every": 100,
+      "stop_on_tolerance": true
+    },
+    {
+      "name": "wider-adam-0p002",
+      "architecture": [
+        35,
+        60,
+        2,
+        60,
+        35
+      ],
+      "optimizer": {
+        "name": "adam",
+        "learning_rate": 0.002
+      },
+      "batch_size": 32,
+      "max_epochs": 3000,
+      "evaluate_every": 100,
+      "stop_on_tolerance": true
+    },
+    {
+      "name": "wider-momentum-0p02",
+      "architecture": [
+        35,
+        60,
+        2,
+        60,
+        35
+      ],
+      "optimizer": {
+        "name": "momentum",
+        "learning_rate": 0.02,
+        "momentum": 0.9
+      },
+      "batch_size": 32,
+      "max_epochs": 3000,
+      "evaluate_every": 100,
+      "stop_on_tolerance": true
+    },
+    {
+      "name": "wider-momentum-0p05",
+      "architecture": [
+        35,
+        60,
+        2,
+        60,
+        35
+      ],
+      "optimizer": {
+        "name": "momentum",
+        "learning_rate": 0.05,
+        "momentum": 0.9
+      },
+      "batch_size": 32,
+      "max_epochs": 3000,
+      "evaluate_every": 100,
+      "stop_on_tolerance": true
+    },
+    {
+      "name": "wider-momentum-0p1",
+      "architecture": [
+        35,
+        60,
+        2,
+        60,
+        35
+      ],
+      "optimizer": {
+        "name": "momentum",
+        "learning_rate": 0.1,
+        "momentum": 0.9
+      },
+      "batch_size": 32,
+      "max_epochs": 3000,
+      "evaluate_every": 100,
+      "stop_on_tolerance": true
+    },
+    {
+      "name": "wider-rmsprop-0p0005",
+      "architecture": [
+        35,
+        60,
+        2,
+        60,
+        35
+      ],
+      "optimizer": {
+        "name": "rmsprop",
+        "learning_rate": 0.0005
+      },
+      "batch_size": 32,
+      "max_epochs": 3000,
+      "evaluate_every": 100,
+      "stop_on_tolerance": true
+    },
+    {
+      "name": "wider-rmsprop-0p001",
+      "architecture": [
+        35,
+        60,
+        2,
+        60,
+        35
+      ],
+      "optimizer": {
+        "name": "rmsprop",
+        "learning_rate": 0.001
+      },
+      "batch_size": 32,
+      "max_epochs": 3000,
+      "evaluate_every": 100,
+      "stop_on_tolerance": true
+    },
+    {
+      "name": "wider-rmsprop-0p002",
+      "architecture": [
+        35,
+        60,
+        2,
+        60,
+        35
+      ],
+      "optimizer": {
+        "name": "rmsprop",
+        "learning_rate": 0.002
+      },
+      "batch_size": 32,
+      "max_epochs": 3000,
+      "evaluate_every": 100,
+      "stop_on_tolerance": true
+    },
+    {
+      "name": "wider-sgd-0p01",
+      "architecture": [
+        35,
+        60,
+        2,
+        60,
+        35
+      ],
+      "optimizer": {
+        "name": "sgd",
+        "learning_rate": 0.01
+      },
+      "batch_size": 32,
+      "max_epochs": 3000,
+      "evaluate_every": 100,
+      "stop_on_tolerance": true
+    },
+    {
+      "name": "wider-sgd-0p03",
+      "architecture": [
+        35,
+        60,
+        2,
+        60,
+        35
+      ],
+      "optimizer": {
+        "name": "sgd",
+        "learning_rate": 0.03
+      },
+      "batch_size": 32,
+      "max_epochs": 3000,
+      "evaluate_every": 100,
+      "stop_on_tolerance": true
+    },
+    {
+      "name": "wider-sgd-0p05",
+      "architecture": [
+        35,
+        60,
+        2,
+        60,
+        35
+      ],
+      "optimizer": {
+        "name": "sgd",
+        "learning_rate": 0.05
+      },
+      "batch_size": 32,
+      "max_epochs": 3000,
+      "evaluate_every": 100,
+      "stop_on_tolerance": true
+    },
+    {
+      "name": "deep-adam-0p0005",
+      "architecture": [
+        35,
+        30,
+        15,
+        2,
+        15,
+        30,
+        35
+      ],
+      "optimizer": {
+        "name": "adam",
+        "learning_rate": 0.0005
+      },
+      "batch_size": 32,
+      "max_epochs": 3000,
+      "evaluate_every": 100,
+      "stop_on_tolerance": true
+    },
+    {
+      "name": "deep-adam-0p001",
+      "architecture": [
+        35,
+        30,
+        15,
+        2,
+        15,
+        30,
+        35
+      ],
+      "optimizer": {
+        "name": "adam",
+        "learning_rate": 0.001
+      },
+      "batch_size": 32,
+      "max_epochs": 3000,
+      "evaluate_every": 100,
+      "stop_on_tolerance": true
+    },
+    {
+      "name": "deep-adam-0p002",
+      "architecture": [
+        35,
+        30,
+        15,
+        2,
+        15,
+        30,
+        35
+      ],
+      "optimizer": {
+        "name": "adam",
+        "learning_rate": 0.002
+      },
+      "batch_size": 32,
+      "max_epochs": 3000,
+      "evaluate_every": 100,
+      "stop_on_tolerance": true
+    },
+    {
+      "name": "deep-momentum-0p02",
+      "architecture": [
+        35,
+        30,
+        15,
+        2,
+        15,
+        30,
+        35
+      ],
+      "optimizer": {
+        "name": "momentum",
+        "learning_rate": 0.02,
+        "momentum": 0.9
+      },
+      "batch_size": 32,
+      "max_epochs": 3000,
+      "evaluate_every": 100,
+      "stop_on_tolerance": true
+    },
+    {
+      "name": "deep-momentum-0p05",
+      "architecture": [
+        35,
+        30,
+        15,
+        2,
+        15,
+        30,
+        35
+      ],
+      "optimizer": {
+        "name": "momentum",
+        "learning_rate": 0.05,
+        "momentum": 0.9
+      },
+      "batch_size": 32,
+      "max_epochs": 3000,
+      "evaluate_every": 100,
+      "stop_on_tolerance": true
+    },
+    {
+      "name": "deep-momentum-0p1",
+      "architecture": [
+        35,
+        30,
+        15,
+        2,
+        15,
+        30,
+        35
+      ],
+      "optimizer": {
+        "name": "momentum",
+        "learning_rate": 0.1,
+        "momentum": 0.9
+      },
+      "batch_size": 32,
+      "max_epochs": 3000,
+      "evaluate_every": 100,
+      "stop_on_tolerance": true
+    },
+    {
+      "name": "deep-rmsprop-0p0005",
+      "architecture": [
+        35,
+        30,
+        15,
+        2,
+        15,
+        30,
+        35
+      ],
+      "optimizer": {
+        "name": "rmsprop",
+        "learning_rate": 0.0005
+      },
+      "batch_size": 32,
+      "max_epochs": 3000,
+      "evaluate_every": 100,
+      "stop_on_tolerance": true
+    },
+    {
+      "name": "deep-rmsprop-0p001",
+      "architecture": [
+        35,
+        30,
+        15,
+        2,
+        15,
+        30,
+        35
+      ],
+      "optimizer": {
+        "name": "rmsprop",
+        "learning_rate": 0.001
+      },
+      "batch_size": 32,
+      "max_epochs": 3000,
+      "evaluate_every": 100,
+      "stop_on_tolerance": true
+    },
+    {
+      "name": "deep-rmsprop-0p002",
+      "architecture": [
+        35,
+        30,
+        15,
+        2,
+        15,
+        30,
+        35
+      ],
+      "optimizer": {
+        "name": "rmsprop",
+        "learning_rate": 0.002
+      },
+      "batch_size": 32,
+      "max_epochs": 3000,
+      "evaluate_every": 100,
+      "stop_on_tolerance": true
+    },
+    {
+      "name": "deep-sgd-0p01",
+      "architecture": [
+        35,
+        30,
+        15,
+        2,
+        15,
+        30,
+        35
+      ],
+      "optimizer": {
+        "name": "sgd",
+        "learning_rate": 0.01
+      },
+      "batch_size": 32,
+      "max_epochs": 3000,
+      "evaluate_every": 100,
+      "stop_on_tolerance": true
+    },
+    {
+      "name": "deep-sgd-0p03",
+      "architecture": [
+        35,
+        30,
+        15,
+        2,
+        15,
+        30,
+        35
+      ],
+      "optimizer": {
+        "name": "sgd",
+        "learning_rate": 0.03
+      },
+      "batch_size": 32,
+      "max_epochs": 3000,
+      "evaluate_every": 100,
+      "stop_on_tolerance": true
+    },
+    {
+      "name": "deep-sgd-0p05",
+      "architecture": [
+        35,
+        30,
+        15,
+        2,
+        15,
+        30,
+        35
+      ],
+      "optimizer": {
+        "name": "sgd",
+        "learning_rate": 0.05
+      },
+      "batch_size": 32,
+      "max_epochs": 3000,
+      "evaluate_every": 100,
+      "stop_on_tolerance": true
+    },
+    {
+      "name": "deeper-adam-0p0005",
+      "architecture": [
+        35,
+        40,
+        20,
+        10,
+        2,
+        10,
+        20,
+        40,
+        35
+      ],
+      "optimizer": {
+        "name": "adam",
+        "learning_rate": 0.0005
+      },
+      "batch_size": 32,
+      "max_epochs": 3000,
+      "evaluate_every": 100,
+      "stop_on_tolerance": true
+    },
+    {
+      "name": "deeper-adam-0p001",
+      "architecture": [
+        35,
+        40,
+        20,
+        10,
+        2,
+        10,
+        20,
+        40,
+        35
+      ],
+      "optimizer": {
+        "name": "adam",
+        "learning_rate": 0.001
+      },
+      "batch_size": 32,
+      "max_epochs": 3000,
+      "evaluate_every": 100,
+      "stop_on_tolerance": true
+    },
+    {
+      "name": "deeper-adam-0p002",
+      "architecture": [
+        35,
+        40,
+        20,
+        10,
+        2,
+        10,
+        20,
+        40,
+        35
+      ],
+      "optimizer": {
+        "name": "adam",
+        "learning_rate": 0.002
+      },
+      "batch_size": 32,
+      "max_epochs": 3000,
+      "evaluate_every": 100,
+      "stop_on_tolerance": true
+    },
+    {
+      "name": "deeper-momentum-0p02",
+      "architecture": [
+        35,
+        40,
+        20,
+        10,
+        2,
+        10,
+        20,
+        40,
+        35
+      ],
+      "optimizer": {
+        "name": "momentum",
+        "learning_rate": 0.02,
+        "momentum": 0.9
+      },
+      "batch_size": 32,
+      "max_epochs": 3000,
+      "evaluate_every": 100,
+      "stop_on_tolerance": true
+    },
+    {
+      "name": "deeper-momentum-0p05",
+      "architecture": [
+        35,
+        40,
+        20,
+        10,
+        2,
+        10,
+        20,
+        40,
+        35
+      ],
+      "optimizer": {
+        "name": "momentum",
+        "learning_rate": 0.05,
+        "momentum": 0.9
+      },
+      "batch_size": 32,
+      "max_epochs": 3000,
+      "evaluate_every": 100,
+      "stop_on_tolerance": true
+    },
+    {
+      "name": "deeper-momentum-0p1",
+      "architecture": [
+        35,
+        40,
+        20,
+        10,
+        2,
+        10,
+        20,
+        40,
+        35
+      ],
+      "optimizer": {
+        "name": "momentum",
+        "learning_rate": 0.1,
+        "momentum": 0.9
+      },
+      "batch_size": 32,
+      "max_epochs": 3000,
+      "evaluate_every": 100,
+      "stop_on_tolerance": true
+    },
+    {
+      "name": "deeper-rmsprop-0p0005",
+      "architecture": [
+        35,
+        40,
+        20,
+        10,
+        2,
+        10,
+        20,
+        40,
+        35
+      ],
+      "optimizer": {
+        "name": "rmsprop",
+        "learning_rate": 0.0005
+      },
+      "batch_size": 32,
+      "max_epochs": 3000,
+      "evaluate_every": 100,
+      "stop_on_tolerance": true
+    },
+    {
+      "name": "deeper-rmsprop-0p001",
+      "architecture": [
+        35,
+        40,
+        20,
+        10,
+        2,
+        10,
+        20,
+        40,
+        35
+      ],
+      "optimizer": {
+        "name": "rmsprop",
+        "learning_rate": 0.001
+      },
+      "batch_size": 32,
+      "max_epochs": 3000,
+      "evaluate_every": 100,
+      "stop_on_tolerance": true
+    },
+    {
+      "name": "deeper-rmsprop-0p002",
+      "architecture": [
+        35,
+        40,
+        20,
+        10,
+        2,
+        10,
+        20,
+        40,
+        35
+      ],
+      "optimizer": {
+        "name": "rmsprop",
+        "learning_rate": 0.002
+      },
+      "batch_size": 32,
+      "max_epochs": 3000,
+      "evaluate_every": 100,
+      "stop_on_tolerance": true
+    },
+    {
+      "name": "deeper-sgd-0p01",
+      "architecture": [
+        35,
+        40,
+        20,
+        10,
+        2,
+        10,
+        20,
+        40,
+        35
+      ],
+      "optimizer": {
+        "name": "sgd",
+        "learning_rate": 0.01
+      },
+      "batch_size": 32,
+      "max_epochs": 3000,
+      "evaluate_every": 100,
+      "stop_on_tolerance": true
+    },
+    {
+      "name": "deeper-sgd-0p03",
+      "architecture": [
+        35,
+        40,
+        20,
+        10,
+        2,
+        10,
+        20,
+        40,
+        35
+      ],
+      "optimizer": {
+        "name": "sgd",
+        "learning_rate": 0.03
+      },
+      "batch_size": 32,
+      "max_epochs": 3000,
+      "evaluate_every": 100,
+      "stop_on_tolerance": true
+    },
+    {
+      "name": "deeper-sgd-0p05",
+      "architecture": [
+        35,
+        40,
+        20,
+        10,
+        2,
+        10,
+        20,
+        40,
+        35
+      ],
+      "optimizer": {
+        "name": "sgd",
+        "learning_rate": 0.05
+      },
+      "batch_size": 32,
+      "max_epochs": 3000,
+      "evaluate_every": 100,
+      "stop_on_tolerance": true
+    }
+  ]
+}
