@@ -1,4 +1,4 @@
 variant,runs,completed,failed,interrupted,not_run,success_fraction,max_pixel_errors_mean,max_pixel_errors_std,mean_pixel_errors_mean,mean_pixel_errors_std,mse_per_pixel_mean,mse_per_pixel_std,exact_fraction_mean,exact_fraction_std,within_tolerance_fraction_mean,within_tolerance_fraction_std,epochs_completed_mean,epochs_completed_std,duration_seconds_mean,duration_seconds_std
 base,2,2,0,0,0,0.0,5.5,0.5,1.578125,0.046875,0.04854267237749991,0.0011212433486982934,0.34375,0.03125,0.5625,0.0625,3000.0,0.0,54.217994250007905,0.24598875001538545
 wide,2,2,0,0,0,0.0,5.0,0.0,1.578125,0.046875,0.04918208033142536,0.00014472265282049548,0.3125,0.0625,0.546875,0.015625,3000.0,0.0,62.96302874997491,0.5816422500065528
-deep,2,0,0,1,1,0.0,,,,,,,,,,,,,,
+deep,2,2,0,0,0,0.0,3.0,0.0,0.640625,0.046875,0.018999798470785572,0.0013394542439685644,0.5625,0.03125,0.84375,0.0,3000.0,0.0,37.2481278499763,12.036405849998118

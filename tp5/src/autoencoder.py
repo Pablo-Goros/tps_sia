@@ -60,6 +60,15 @@ class Autoencoder:
         x = self._input(x, 35)
         return self._mlp.entrenar(x, x, epocas=epochs, epsilon=0)
 
+    def set_learning_rate(self, learning_rate):
+        """Change the next update's rate without rebuilding optimizer state."""
+        optimizer = self._mlp.optimizador
+        config = optimizer.configuracion()
+        key = 'eta' if 'nombre' in config else 'learning_rate'
+        config[key] = learning_rate
+        construir_optimizador(config)  # Validate before mutating the live optimizer.
+        setattr(optimizer, key, learning_rate)
+
     @property
     def configuration(self):
         return {'architecture': list(self._mlp.arquitectura),

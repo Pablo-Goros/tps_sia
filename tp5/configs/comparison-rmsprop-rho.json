@@ -1,0 +1,85 @@
+{
+  "stage": "rmsprop-rho",
+  "approval": "User approved rho=0.85 and rho=0.95 at fixed learning_rate=0.002 on 2026-11-10; seeds 42/43/44 from scratch, 3000 epochs max per run, six new runs and 18000 new epochs maximum; reuse the three original rho=0.9 runs; preserve prior results and final selection. No subsequent experiments authorized.",
+  "seeds": [
+    42,
+    43,
+    44
+  ],
+  "selection": "max_mean_mse",
+  "variants": [
+    {
+      "architecture": [
+        35,
+        40,
+        20,
+        10,
+        2,
+        10,
+        20,
+        40,
+        35
+      ],
+      "optimizer": {
+        "name": "rmsprop",
+        "learning_rate": 0.002,
+        "rho": 0.85
+      },
+      "batch_size": 32,
+      "max_epochs": 3000,
+      "evaluate_every": 100,
+      "stop_on_tolerance": true,
+      "name": "deeper-rmsprop-0p002-rho-0p85"
+    },
+    {
+      "architecture": [
+        35,
+        40,
+        20,
+        10,
+        2,
+        10,
+        20,
+        40,
+        35
+      ],
+      "optimizer": {
+        "name": "rmsprop",
+        "learning_rate": 0.002
+      },
+      "batch_size": 32,
+      "max_epochs": 3000,
+      "evaluate_every": 100,
+      "stop_on_tolerance": true,
+      "name": "deeper-rmsprop-0p002"
+    },
+    {
+      "architecture": [
+        35,
+        40,
+        20,
+        10,
+        2,
+        10,
+        20,
+        40,
+        35
+      ],
+      "optimizer": {
+        "name": "rmsprop",
+        "learning_rate": 0.002,
+        "rho": 0.95
+      },
+      "batch_size": 32,
+      "max_epochs": 3000,
+      "evaluate_every": 100,
+      "stop_on_tolerance": true,
+      "name": "deeper-rmsprop-0p002-rho-0p95"
+    }
+  ],
+  "reuse_runs": {
+    "deeper-rmsprop-0p002-seed-42": "results/comparison-broad/deeper-rmsprop-0p002-seed-42",
+    "deeper-rmsprop-0p002-seed-43": "results/comparison-broad/deeper-rmsprop-0p002-seed-43",
+    "deeper-rmsprop-0p002-seed-44": "results/comparison-broad/deeper-rmsprop-0p002-seed-44"
+  }
+}

@@ -164,6 +164,68 @@ Después de trasladar los artefactos, `--dataset ruta/font.h` permite indicar
 el original disponible para la revisión; se verifica su SHA256 guardado en el
 registro, sin depender de la ruta absoluta del entorno anterior.
 
+### Comparación de rho de RMSProp
+
+`configs/comparison-rmsprop-rho.json` compara rho=0.85 y 0.95, con tasa fija
+0.002 y semillas 42/43/44 desde cero. Mantiene el resto de la configuración
+ganadora: máximo 3000 épocas por corrida, evaluación cada 100 y parada al
+cumplir los 32 patrones. Son seis corridas nuevas, hasta 18000 épocas; las
+tres referencias originales de rho=0.9 se reutilizan sin entrenamiento.
+
+```bash
+python -m src.compare --protocol configs/comparison-rmsprop-rho.json --output results/comparison-rmsprop-rho-reproduction
+```
+
+La salida debe estar vacía y los artefactos originales de
+`results/comparison-broad/` deben estar disponibles. Repetir el comando consume
+un nuevo presupuesto. Las variables BLAS/OMP se mantienen sin fijar, como en
+los manifiestos originales efectivos; no comparar velocidades. Los resultados
+y las verificaciones se documentan en [comparison.md](comparison.md), sin
+reemplazar la selección vigente de `results/final/selection.json`.
+
+### Comparación local de tasas RMSProp
+
+`configs/comparison-rmsprop-local.json` prueba tasas fijas 0.0015 y 0.0025
+desde cero con semillas 42/43/44. Mantiene la arquitectura deeper y el resto
+del protocolo factorial: lote 32, máximo 3000 épocas, evaluación cada 100 y
+parada al cumplir la tolerancia. Son seis entrenamientos nuevos, hasta 18000
+épocas; las tres corridas originales de 0.002 se reutilizan sin entrenarlas.
+
+```bash
+python -m src.compare --protocol configs/comparison-rmsprop-local.json --output results/comparison-rmsprop-local-reproduction
+```
+
+Se necesitan los artefactos originales de `results/comparison-broad/` y una
+salida vacía. La ejecución documentada mantuvo las variables BLAS/OMP sin fijar,
+como constan en los manifiestos originales; las duraciones no sustentan una
+comparación de velocidad. Repetir este comando consume un nuevo presupuesto.
+La selección de esta comparación queda en su propio resumen y no reemplaza
+`results/final/selection.json`. Resultados y límites en
+[comparison.md](comparison.md).
+
+### Continuación controlada de RMSProp
+
+El protocolo aprobado del 2026-11-10 está en
+`configs/continuation-rmsprop.json`. Compara las semillas 42 y 43 desde sus
+modelos archivados a época 3000, conservando pesos, momentos RMSProp, RNG e
+historia: tasa 0.002 contra 0.001, hasta 1000 épocas adicionales por rama.
+El límite compartido es 4000 épocas adicionales y 600 segundos; se comprueba
+el tiempo antes de cada época y se completa el guardado de evidencia al cerrar.
+No ejecuta otras campañas ni cambia la selección final.
+
+```bash
+OPENBLAS_NUM_THREADS=1 python -m src.continue_training --protocol configs/continuation-rmsprop.json --output results/continuation-rmsprop-reproduction
+```
+
+Usar una salida vacía y disponer de los artefactos originales de
+`results/comparison-broad/` (ignorados por Git). El comando valida su hash,
+dataset, métricas al recargar y estado persistido antes de entrenar; guarda
+protocolo, preflight, historias, modelos, métricas y resumen en la salida nueva.
+Las épocas de las historias son acumuladas; `additional_epochs_completed`
+identifica el consumo de este experimento. Repetir el comando implica un nuevo
+presupuesto de entrenamiento. Los resultados ejecutados y sus límites se
+documentan en [comparison.md](comparison.md).
+
 El espacio latente de este autoencoder no tiene estructura generativa
 garantizada: las interpolaciones o regiones intermedias pueden producir
 imágenes sin interpretación. Ni la distancia ni la apariencia de un candidato

@@ -1,0 +1,9 @@
+{
+  "approval": "User approved the paired continuation experiment on 2026-11-10; no subsequent experiments authorized.",
+  "source_root": "results/comparison-broad",
+  "seeds": [42, 43],
+  "learning_rates": [0.002, 0.001],
+  "additional_epochs": 1000,
+  "evaluate_every": 100,
+  "max_seconds": 600
+}

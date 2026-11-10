@@ -6,6 +6,174 @@ no describen necesariamente el estado actual de este worktree.
 
 ## Ejercicio 1.a: autoencoder básico (plan previo)
 
+## Extensión autorizada: rho de RMSProp (2026-11-10)
+
+Estado: completed. El usuario aprobó la propuesta de comparar rho=0.85 y 0.95
+a tasa fija 0.002, semillas 42/43/44 desde cero, frente a las tres referencias
+originales de rho=0.9. Máximo seis corridas nuevas y 18000 épocas; no autoriza
+experimentos posteriores ni reemplazar la selección final.
+
+Objetivo: comprobar si cambiar la memoria del promedio móvil de gradientes
+cuadráticos mejora la proporción de semillas que cumplen. Mantener arquitectura
+deeper, tanh en código bidimensional, salida logística, umbral 0.5, lote 32,
+epsilon=1e-8 y ausencia de L2, augmentation y batch normalization.
+
+Entradas: `configs/comparison-rmsprop-rho.json`, `data/font.h`, modelos originales
+`results/comparison-broad/deeper-rmsprop-0p002-seed-{42,43,44}/`.
+Referencias: PA-004 p. 1, 1.a.2; OFF-013 pp. 8–10; wiki autoencoders,
+Funcionamiento; `tp3/shared/optimizers.py`, RMSProp (ruta desde `tps_sia/`);
+`src/compare.py`, `src/train.py` y `comparison.md`.
+
+Procedimiento:
+
+1. Validar protocolo con `src.compare._protocol` y construcción de optimizadores;
+   verificar seis corridas nuevas, tres reutilizadas y cap de 18000 épocas.
+   Comprobar hashes, dataset y métricas recargadas de las referencias. Registrar
+   hashes de los archivos de `comparison-broad/`, `final/`, la continuación y
+   la comparación local de tasas para comprobar su conservación al terminar.
+2. Usar Python Windows 3.13.7, NumPy 2.5.1 y Matplotlib 3.11.2, con variables
+   BLAS/OMP sin fijar como en los manifiestos originales. No comparar velocidad.
+3. Desde `tp5/`, ejecutar una sola vez
+   `python -m src.compare --protocol configs/comparison-rmsprop-rho.json --output results/comparison-rmsprop-rho-2026-11-10`.
+   Cada corrida nueva tiene máximo 3000 épocas, evaluación cada 100 y parada
+   al cumplir los 32 patrones. Reutilizar las tres referencias de rho=0.9 a
+   su presupuesto original, sin entrenarlas ni extenderlas. Sin reintentos.
+4. Recargar los nueve modelos y comprobar métricas, predicciones, códigos,
+   historias, actualizaciones, épocas, motivos de parada y configuraciones
+   efectivas: solo debe variar rho. Verificar presupuesto y hashes originales.
+5. Documentar resultados por corrida y agregados por rho: éxitos (objetivo
+   exploratorio: superar 1/3), máximo error medio, error medio y MSE. Mantener
+   también el criterio agregado histórico y explicar cualquier discrepancia.
+   No extrapolar tres semillas ya usadas a robustez con semillas nuevas.
+   Conservar `final/selection.json` y detener el trabajo experimental.
+
+Salidas: protocolo, comparación de nueve filas con seis entrenamientos nuevos,
+modelos/historias/métricas nuevos, verificaciones y documentación en
+`comparison.md`. Aceptación: presupuesto respetado, seis corridas completas o
+interrupción documentada, métricas reproducibles al recargar y archivos previos
+intactos. No requiere cambios de código ni nuevas pruebas que dupliquen JSON.
+
+Resultado: seis corridas nuevas completas, 18000 de 18000 épocas máximas,
+412.22 s sumando las duraciones de esas corridas. Ambos rho nuevos obtuvieron
+0/3 éxitos y máximo error 2 en todas las semillas. Rho=0.85 redujo error medio
+y MSE agregados, pero no resolvió los patrones fuera de tolerancia. La referencia
+rho=0.9 mantiene 1/3 y gana en máximo error medio (1.6667 frente a 2.0).
+Se verificaron por recarga nueve modelos, variación exclusiva de rho en sus
+configuraciones efectivas y 2123 archivos anteriores intactos por SHA256.
+`final/` conserva la semilla 44 original. No se ejecutaron otros experimentos.
+
+## Extensión autorizada: tasas RMSProp cercanas (2026-11-10)
+
+Estado: completed. El usuario pidió continuar con la siguiente propuesta ya
+presentada: tasas fijas 0.0015 y 0.0025 desde cero, tres semillas por tasa,
+máximo 18000 épocas nuevas. Este paso no autoriza otros experimentos.
+
+Objetivo e hipótesis: comprobar si una tasa cercana a 0.002 mejora la trayectoria
+completa y la proporción de semillas que cumplen, frente a la continuación tardía
+que no resolvió los patrones pendientes. Mantener arquitectura deeper, tanh en
+código de dos dimensiones, salida logística, umbral 0.5, lote 32, rho=0.9,
+epsilon=1e-8 y ausencia de L2, augmentation y batch normalization.
+
+Entradas: `configs/comparison-rmsprop-local.json`, `data/font.h`, modelos y
+configuraciones `results/comparison-broad/deeper-rmsprop-0p002-seed-{42,43,44}/`.
+Referencias: PA-004 p. 1, 1.a.2; OFF-013 pp. 7–10; wiki autoencoders,
+Funcionamiento; `comparison.md`; contratos de `src/compare.py` y `src/train.py`.
+
+Procedimiento:
+
+1. Validar el protocolo con `src.compare._protocol`, verificar el modelo/dataset
+   y métricas recargadas de las tres referencias y registrar hashes de todos los
+   archivos de `comparison-broad/`, `final/` y la continuación anterior.
+   Comprobar seis corridas nuevas, tres reutilizadas y máximo 18000 épocas nuevas.
+2. Usar el Python Windows 3.13.7, NumPy 2.5.1 y Matplotlib 3.11.2 originales.
+   Mantener las variables de hilos BLAS/OMP sin fijar, como constan efectivamente
+   en los manifiestos originales. No extraer conclusiones de las duraciones.
+3. Desde `tp5/`, ejecutar una sola vez
+   `python -m src.compare --protocol configs/comparison-rmsprop-local.json --output results/comparison-rmsprop-local-2026-11-10`.
+   Cada tasa nueva usa semillas 42/43/44, máximo 3000 épocas por corrida,
+   evaluación cada 100 y parada al cumplir la tolerancia. Reutilizar las tres
+   corridas originales de 0.002 a su presupuesto original, sin continuar ni
+   repetirlas. Sin reintentos automáticos.
+4. Recargar los seis modelos nuevos y comprobar métricas, historias, épocas,
+   actualizaciones, tasas y configuraciones efectivas. Verificar presupuesto y
+   hashes de todos los archivos anteriores.
+5. Documentar tabla por corrida y agregados por tasa: proporción de éxitos,
+   máximo error medio, error medio, MSE y épocas. Mantener el criterio histórico
+   de selección por medias, describiendo cualquier divergencia con la proporción
+   de éxitos. Tres semillas ya usadas sirven para exploración; no demuestran
+   robustez sobre semillas nuevas. Mantener intacta `final/selection.json`.
+
+Salidas: protocolo, nueve filas de comparación (seis entrenadas y tres
+reutilizadas), modelos/historias nuevos, resumen, comprobación de recarga y
+preservación, informe en `comparison.md`. Aceptación: seis corridas completas o
+interrupción documentada, no superar 18000 épocas nuevas, métricas reproducibles
+al recargar y originales intactos. No requiere modificar código ni agregar
+pruebas que repliquen el esquema JSON; se valida contra el comparador existente.
+
+Resultado: seis corridas nuevas completas, 17500 de 18000 épocas máximas,
+411.64 s sumando las duraciones de las seis corridas. La tasa 0.0015 obtuvo
+0/3 éxitos; 0.0025 obtuvo 1/3, con semilla 44 exitosa a época 2500. La referencia
+0.002 reutilizada mantiene 1/3 y gana según el orden agregado histórico:
+máximo error medio 1.6667, error medio 0.45833 y MSE medio 0.01328958. No hubo
+mejora de consistencia entre estas semillas. Se verificaron por recarga los
+nueve modelos y 2041 archivos anteriores intactos por SHA256. `final/` conserva
+su selección original. No se ejecutaron experimentos posteriores.
+
+## Extensión autorizada: continuación RMSProp (2026-11-10)
+
+Estado: completed. Este paso independiente sigue al experimento factorial ya
+completado; no altera los estados históricos de los pasos originales ni autoriza
+campañas posteriores. El usuario aprobó el protocolo propuesto en conversación.
+
+Objetivo: comparar, para las semillas 42 y 43 pendientes, continuar a tasa 0.002
+contra reducirla a 0.001 desde sus modelos a época 3000. La semilla 44 ya cumple
+y no se vuelve a entrenar. Hipótesis: una reducción tardía puede corregir los
+últimos píxeles; el control distingue ese efecto del presupuesto adicional.
+
+Entradas: `results/comparison-broad/deeper-rmsprop-0p002-seed-{42,43}/`,
+`results/final/selection.json`, `configs/continuation-rmsprop.json`, `data/font.h`.
+Fundamentos: PA-004 p. 1, 1.a.2; wiki autoencoders, Funcionamiento;
+OFF-013 pp. 7–10, ajuste de tasa y RMSProp; `comparison.md`.
+
+Procedimiento:
+
+1. Exponer cambio de tasa conservando el optimizador y un comando separado de
+   continuación. Verificar hash, dataset, métricas originales, momentos,
+   contador, RNG e historia antes de actualizar parámetros.
+2. Comprobar equivalencia entre continuación en memoria y tras recarga, tasa
+   reducida, conservación del origen, rechazo de sobrescritura y presupuesto
+   vencido con `python -m unittest discover -s tests -p "test_continuation.py"`.
+   Ejecutar también `python -m unittest discover -s tests` desde `tp5/`.
+3. Desde `tp5/`, con OPENBLAS_NUM_THREADS=1, ejecutar
+   `python -m src.continue_training --protocol configs/continuation-rmsprop.json --output results/continuation-rmsprop-2026-11-10`.
+   Usar Python 3.13.7 / NumPy 2.5.1 / Matplotlib 3.11.2 disponibles en Windows,
+   iguales a las versiones registradas en la campaña original.
+4. Ejecutar dos semillas por dos tasas, hasta 1000 épocas adicionales por rama:
+   máximo 4000 épocas adicionales y 600 segundos compartidos de ejecución,
+   comprobando tiempo antes de cada época. Evaluar cada 100 épocas y detener
+   cada rama al cumplir todos los patrones. Sin reintentos automáticos. El
+   cierre y guardado de evidencia se completan aun si vence el tiempo.
+5. Comparar éxito por semilla y tasa, épocas hasta éxito y errores por patrón;
+   informar también medias de máximo error, error medio y MSE según el criterio
+   anterior. No atribuir una mejora exclusiva de MSE a cumplimiento binario.
+6. Documentar resultados, comprobar hashes de los archivos originales y detener
+   el trabajo experimental. Mantener `final/` y su selección vigente intactos.
+
+Salidas: código y pruebas de continuación, protocolo, preflight, cuatro ramas
+con modelo/historia/métricas/procedencia y resumen en directorio nuevo; informe
+en `comparison.md`. Aceptación: presupuesto respetado o interrupción documentada,
+resultados reproducibles al recargar, originales intactos y conclusión limitada
+a las semillas ensayadas. Validación con semillas nuevas requiere otro acuerdo.
+
+Resultado: cuatro continuaciones completas, 4000 épocas adicionales en 88.34 s;
+0/2 éxitos por tasa. Los máximos siguen en 2; semillas 42 y 43 mantienen 30/32
+y 31/32 patrones en tolerancia. La reducción a 0.001 mejora métricas secundarias
+sin mejorar consistencia. Pasaron 14 pruebas y la recarga de cuatro modelos;
+se verificaron 1999 archivos originales intactos. `final/` conserva la semilla
+44 exitosa. La variable de hilos BLAS no llegó desde WSL a Python Windows;
+detalle documentado en `comparison.md`, sin repetir corridas. Próximo trabajo
+experimental: pendiente de un nuevo acuerdo con el usuario.
+
 Estado del plan: confirmado por el usuario el 2026-11-08. La implementación comienza al invocar `assignment-step`; el presupuesto experimental se resolverá en el paso 3.
 
 ## Identidad y alcance

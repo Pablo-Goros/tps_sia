@@ -1,0 +1,83 @@
+{
+  "stage": "rmsprop-local-rate",
+  "approval": "User requested the next previously proposed experiment on 2026-11-10: fixed RMSProp rates 0.0015 and 0.0025, seeds 42/43/44, max 3000 epochs each (6 new runs, 18000 epochs maximum); reuse the three original 0.002 runs, preserve all prior results and final selection. No subsequent experiments authorized.",
+  "seeds": [
+    42,
+    43,
+    44
+  ],
+  "selection": "max_mean_mse",
+  "variants": [
+    {
+      "architecture": [
+        35,
+        40,
+        20,
+        10,
+        2,
+        10,
+        20,
+        40,
+        35
+      ],
+      "optimizer": {
+        "name": "rmsprop",
+        "learning_rate": 0.0015
+      },
+      "batch_size": 32,
+      "max_epochs": 3000,
+      "evaluate_every": 100,
+      "stop_on_tolerance": true,
+      "name": "deeper-rmsprop-0p0015"
+    },
+    {
+      "architecture": [
+        35,
+        40,
+        20,
+        10,
+        2,
+        10,
+        20,
+        40,
+        35
+      ],
+      "optimizer": {
+        "name": "rmsprop",
+        "learning_rate": 0.002
+      },
+      "batch_size": 32,
+      "max_epochs": 3000,
+      "evaluate_every": 100,
+      "stop_on_tolerance": true,
+      "name": "deeper-rmsprop-0p002"
+    },
+    {
+      "architecture": [
+        35,
+        40,
+        20,
+        10,
+        2,
+        10,
+        20,
+        40,
+        35
+      ],
+      "optimizer": {
+        "name": "rmsprop",
+        "learning_rate": 0.0025
+      },
+      "batch_size": 32,
+      "max_epochs": 3000,
+      "evaluate_every": 100,
+      "stop_on_tolerance": true,
+      "name": "deeper-rmsprop-0p0025"
+    }
+  ],
+  "reuse_runs": {
+    "deeper-rmsprop-0p002-seed-42": "results/comparison-broad/deeper-rmsprop-0p002-seed-42",
+    "deeper-rmsprop-0p002-seed-43": "results/comparison-broad/deeper-rmsprop-0p002-seed-43",
+    "deeper-rmsprop-0p002-seed-44": "results/comparison-broad/deeper-rmsprop-0p002-seed-44"
+  }
+}
