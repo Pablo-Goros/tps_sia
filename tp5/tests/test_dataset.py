@@ -1,5 +1,6 @@
 """Public dataset behavior agreed in the TP5 specification."""
 import unittest
+import hashlib
 from pathlib import Path
 import tempfile
 import subprocess
@@ -7,7 +8,7 @@ import sys
 
 import numpy as np
 
-from src.dataset import load_dataset
+from src.dataset import load_dataset, DEFAULT_DATASET
 
 
 class DatasetTests(unittest.TestCase):
@@ -70,7 +71,11 @@ class DatasetTests(unittest.TestCase):
         np.testing.assert_array_equal(dataset.vectors, dataset.images.reshape(32, 35))
         self.assertEqual(dataset.labels[0], '0x60 `')
         self.assertEqual(dataset.labels[-1], '0x7f DEL')
-        self.assertEqual(dataset.sha256, '095b431bdfa2d228eeaa337fb45cd963088cc13380c189e01436e446767502f8')
+        raw = DEFAULT_DATASET.read_bytes()
+        self.assertEqual(dataset.sha256, hashlib.sha256(raw).hexdigest())
+        # Git checkouts may use CRLF; validate the known content independently.
+        self.assertEqual(hashlib.sha256(raw.replace(b'\r\n', b'\n')).hexdigest(),
+                         '095b431bdfa2d228eeaa337fb45cd963088cc13380c189e01436e446767502f8')
 
 
 if __name__ == '__main__':

@@ -1,5 +1,35 @@
 # TP5: autoencoder básico de caracteres
 
+La selección vigente y la comparación confirmatoria están en
+[presentation-results.md](presentation-results.md). Configuración reproducible:
+[configs/presentation-selected.json](configs/presentation-selected.json).
+El modelo usa BCE, Adam 0.002 constante, arquitectura deeper y latente tanh;
+la semilla seleccionada reconstruye los 32 caracteres sin errores.
+
+### Opciones de la campaña de la presentación
+
+Las configuraciones de entrenamiento admiten `loss` (`half_squared_error` o
+`bce`), `latent_activation` (`tanh` o `linear`) y `lr_scheduler` (`null` o
+`{"name": "cosine", "total_epochs": 3000, "min_lr": 0.0}`). Los valores
+predeterminados preservan el comportamiento anterior. BCE se calcula desde
+logits y conserva la suma sobre píxeles/media sobre muestras. `history.costo`
+registra la pérdida optimizada; `metrics.training_loss` conserva el medio error
+cuadrático para compatibilidad. El latente lineal se explora dentro del rango
+ocupado por los códigos, sin exigir [-1,1].
+
+Para entrenar la configuración seleccionada en una salida nueva:
+
+```bash
+python -m src.train train --config configs/presentation-selected.json --output results/presentation-selected-reproduction
+```
+
+`src.presentation_campaign --output <directorio-vacio>` reproduce el árbol
+completo del [plan](experiment_plan.md), incluidas las referencias desde cero,
+con un máximo de 43 corridas y 321000 épocas. Registra las decisiones, congela
+el finalista antes de usar semillas nuevas y verifica cada modelo al recargar.
+Ese comando genera evidencia y no publica una selección final por sí solo.
+Una reproducción consume un nuevo presupuesto de entrenamiento.
+
 El [informe de resultados y pendientes](results/report.md) relaciona los cuatro puntos del apartado 1.a con la evidencia disponible.
 
 La comparación reproducible y su protocolo autorizado se describen en [comparison.md](comparison.md).

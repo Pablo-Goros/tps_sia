@@ -47,7 +47,7 @@ def run_training(config_path, output, dataset_path=DEFAULT_DATASET):
     config = json.loads(Path(config_path).read_text(encoding='utf-8'))
     required = {'architecture', 'seed', 'optimizer', 'batch_size', 'max_epochs',
                 'evaluate_every', 'stop_on_tolerance'}
-    if set(config) != required:
+    if set(config) - {'loss', 'latent_activation', 'lr_scheduler'} != required:
         raise ValueError(f'Configuration must contain exactly {sorted(required)}')
     for key in ['max_epochs', 'evaluate_every', 'batch_size']:
         if type(config[key]) is not int or config[key] <= 0:
@@ -59,7 +59,8 @@ def run_training(config_path, output, dataset_path=DEFAULT_DATASET):
         raise ValueError('Output directory must be empty to preserve previous runs')
     dataset = load_dataset(dataset_path)
     model = Autoencoder(architecture=config['architecture'], seed=config['seed'],
-                        optimizer=config['optimizer'], batch_size=config['batch_size'])
+                        optimizer=config['optimizer'], batch_size=config['batch_size'],
+                        **{key: config[key] for key in ('loss', 'latent_activation', 'lr_scheduler') if key in config})
     output.mkdir(parents=True, exist_ok=True)
     write_json(output/'config.json', config)
     start = time.perf_counter()
@@ -67,7 +68,9 @@ def run_training(config_path, output, dataset_path=DEFAULT_DATASET):
                 'dataset': {'path': dataset.path, 'sha256': dataset.sha256},
                 'versions': {'python': platform.python_version(), 'numpy': np.__version__,
                              'matplotlib': matplotlib.__version__},
-                'training_loss_normalization': '0.5 * mean(sum((prediction-target)^2, axis=1))',
+                'training_loss_normalization': ('mean(sum(logaddexp(0, logits)-target*logits, axis=1)); logits=2*beta*preactivation'
+                    if model.configuration['loss'] == 'bce' else '0.5 * mean(sum((prediction-target)^2, axis=1))'),
+                'metrics_training_loss_note': 'metrics.training_loss always reports half squared error for backward compatibility; history.costo reports the optimized objective',
                 'threshold': 0.5, 'stop_reason': 'running'}
     write_json(output/'manifest.json', manifest)
     evaluations = []

@@ -23,13 +23,18 @@ def validate_architecture(architecture):
 
 class Autoencoder:
     def __init__(self, architecture=None, seed=42, learning_rate=0.001,
-                 batch_size=32, optimizer=None):
+                 batch_size=32, optimizer=None, loss='half_squared_error',
+                 latent_activation='tanh', lr_scheduler=None):
         architecture = [35, 20, 2, 20, 35] if architecture is None else architecture
         validate_architecture(architecture)
+        if latent_activation not in ('tanh', 'linear'):
+            raise ValueError('Latent activation must be tanh or linear')
         config = optimizer or {'name': 'adam', 'learning_rate': learning_rate}
         self._mlp = MLP(architecture, activacion='tanh', salida='logistica',
                         semilla=seed, tamano_lote=batch_size,
-                        optimizador=construir_optimizador(config))
+                        optimizador=construir_optimizador(config), loss=loss,
+                        linear_hidden_layer=len(architecture)//2-1 if latent_activation == 'linear' else None,
+                        lr_scheduler=lr_scheduler)
 
     @staticmethod
     def _input(values, width):
@@ -40,8 +45,8 @@ class Autoencoder:
 
     def encode(self, x):
         values = self._input(x, 35)
-        for w, b in list(zip(self._mlp.pesos, self._mlp.biases))[:len(self._mlp.pesos)//2]:
-            values = self._mlp.activacion.theta(values @ w + b)
+        for index, (w, b) in enumerate(list(zip(self._mlp.pesos, self._mlp.biases))[:len(self._mlp.pesos)//2]):
+            values = self._mlp.hidden_activation(index).theta(values @ w + b)
         return values
 
     def decode(self, z):
@@ -49,7 +54,7 @@ class Autoencoder:
         layers = list(zip(self._mlp.pesos, self._mlp.biases))
         for index in range(len(layers)//2, len(layers)):
             w, b = layers[index]
-            activation = self._mlp.activacion_salida if index == len(layers)-1 else self._mlp.activacion
+            activation = self._mlp.activacion_salida if index == len(layers)-1 else self._mlp.hidden_activation(index)
             values = activation.theta(values @ w + b)
         return values
 
@@ -73,6 +78,9 @@ class Autoencoder:
     def configuration(self):
         return {'architecture': list(self._mlp.arquitectura),
                 'activation': self._mlp.activacion.nombre, 'output': self._mlp.salida,
+                'loss': self._mlp.loss,
+                'latent_activation': 'linear' if self._mlp.linear_hidden_layer is not None else 'tanh',
+                'lr_scheduler': self._mlp.lr_scheduler,
                 'beta': self._mlp.beta, 'batch_size': self._mlp.tamano_lote,
                 'optimizer': self._mlp.optimizador.configuracion(),
                 'initialization': self._mlp.inicializacion, 'l2': self._mlp.l2,
@@ -90,6 +98,8 @@ class Autoencoder:
         model = cls.__new__(cls)
         model._mlp = MLP.cargar(path)
         validate_architecture(model._mlp.arquitectura)
+        if model._mlp.linear_hidden_layer not in (None, len(model._mlp.arquitectura)//2-1):
+            raise ValueError('Only the code layer may be linear')
         if model._mlp.activacion.nombre != 'tanh' or model._mlp.salida != 'logistica' or model._mlp.batch_norm:
             raise ValueError('Expected a tanh/logistic autoencoder without batch normalization')
         return model

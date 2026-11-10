@@ -1,6 +1,20 @@
 # Comparación de arquitecturas y optimizadores
 
-Estado actualizado al 2026-11-10: campaña factorial completa, 180/180 corridas
+## Selección vigente — campaña de la presentación (2026-11-10)
+
+La campaña posterior descrita en [presentation-results.md](presentation-results.md)
+completó 43 corridas y 54300 épocas. BCE y Adam 0.002 constante, con arquitectura
+deeper y latente tanh, cumplieron en 5/5 semillas nuevas frente a 0/5 de la
+referencia reconstruida. Se seleccionó `confirmation-finalist-seed-49`: los
+32 caracteres se reconstruyen sin errores a época 600. La procedencia está en
+`results/final/selection.json`; la revisión visual de letras nuevas sigue pendiente.
+
+Los modelos históricos broad/final no estaban disponibles en este checkout;
+se reconstruyeron los controles con autorización del usuario en el entorno
+actual. Las secciones siguientes conservan el registro de las campañas previas
+y sus selecciones históricas; no describen la selección vigente.
+
+Estado histórico al 2026-11-10: campaña factorial completa, 180/180 corridas
 terminadas. Modelo seleccionado: `deeper-rmsprop-0p002-seed-44`.
 La reconstrucción de los 32 patrones cumple la tolerancia; la revisión visual
 de una nueva letra sigue pendiente.

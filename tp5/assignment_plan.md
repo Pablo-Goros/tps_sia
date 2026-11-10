@@ -1,5 +1,12 @@
 # TP5 — Planes de autoencoders
 
+Campaña posterior del ejercicio 1.a: [plan completado](experiment_plan.md) y
+[resultados](presentation-results.md). Se probaron pérdida, latente, optimizador,
+tasa, scheduler, arquitectura y presupuesto; 43 corridas, 54300 épocas.
+La combinación BCE/Adam 0.002, deeper y tanh confirmó 5/5 éxitos frente a 0/5
+de la referencia reconstruida. La selección final es la semilla 49, exacta
+en los 32 patrones. No se ejecutaron experimentos de denoising ni VAE.
+
 El plan vigente de denoising está en [Ejercicio 1.b](#ejercicio-1b--denoising-autoencoder).
 La sección de 1.a se conserva como registro previo: sus estados y rutas históricos
 no describen necesariamente el estado actual de este worktree.

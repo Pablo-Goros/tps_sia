@@ -23,7 +23,7 @@ def _protocol(path):
         raise ValueError('Protocol requires stage, approval, seeds, selection and variants')
     if not isinstance(protocol['approval'], str) or not protocol['approval'].strip():
         raise ValueError('Record the user decision authorizing this exact protocol in approval')
-    if protocol['selection'] != 'max_mean_mse':
+    if protocol['selection'] not in ('max_mean_mse', 'success_max_mean_mse'):
         raise ValueError('Supported selection: max_mean_mse (then deterministic run ID tie break)')
     seeds = protocol['seeds']
     if not seeds or any(type(seed) is not int for seed in seeds) or len(set(seeds)) != len(seeds):
@@ -33,7 +33,7 @@ def _protocol(path):
         raise ValueError('At least one variant is required')
     names = []
     for variant in variants:
-        if set(variant) != {'name', 'architecture', 'optimizer', 'batch_size', 'max_epochs',
+        if set(variant) - {'loss', 'latent_activation', 'lr_scheduler'} != {'name', 'architecture', 'optimizer', 'batch_size', 'max_epochs',
                             'evaluate_every', 'stop_on_tolerance'}:
             raise ValueError('Each variant requires name and all training settings except seed')
         name = variant['name']
@@ -82,8 +82,12 @@ def _summarize(protocol, rows, output):
     comparable = [group for group in aggregates if group['completed'] == group['runs']]
     if len(comparable) != len(aggregates):
         comparable = []
-    winner = min(comparable, key=lambda group: (group['max_pixel_errors_mean'],
-                 group['mean_pixel_errors_mean'], group['mse_per_pixel_mean'], group['variant'])) if comparable else None
+    def rank(group):
+        primary = (-group['success_fraction'],) if protocol['selection'] == 'success_max_mean_mse' else ()
+        # Stable min preserves the incumbent (first variant) on a complete tie.
+        tie = () if primary else (group['variant'],)
+        return primary + (group['max_pixel_errors_mean'], group['mean_pixel_errors_mean'], group['mse_per_pixel_mean']) + tie
+    winner = min(comparable, key=rank) if comparable else None
     eligible = [row for row in rows if winner and row['variant'] == winner['variant']]
     chosen = min(eligible, key=lambda row: (row['max_pixel_errors'], row['mean_pixel_errors'],
                                           row['mse_per_pixel'], row['run_id'])) if eligible else None
@@ -215,12 +219,13 @@ def run_comparison(protocol_path, output, dataset_path=DEFAULT_DATASET, resume=F
                     row.update(result['metrics'], epochs_completed=result['manifest']['epochs_completed'],
                                duration_seconds=result['manifest']['duration_seconds'], stop_reason=reason)
                     row['status'] = 'interrupted' if reason == 'interrupted' else ('failed' if reason == 'numerical_failure' else 'completed')
-                    interrupted = row['status'] == 'interrupted'
+                    interrupted = row['status'] in ('interrupted', 'failed')
                 except KeyboardInterrupt:
                     row.update(status='interrupted', error='KeyboardInterrupt')
                     interrupted = True
                 except Exception as error:
                     row.update(status='failed', error=f'{type(error).__name__}: {error}')
+                    interrupted = True
             row.setdefault('duration_seconds', time.perf_counter()-started)
             write_json(run/'comparison-status.json', row)
             print(f"{run_id}: {row['status']} max_errors={row.get('max_pixel_errors')} source={row['source_run']}", flush=True)

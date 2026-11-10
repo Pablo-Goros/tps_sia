@@ -70,7 +70,7 @@ def explore_candidates(model_path, output, config, dataset_path=DEFAULT_DATASET)
             coordinates.append([x, y])
             kinds.append({'kind': 'grid'})
     coordinates = np.asarray(coordinates)
-    if np.any(np.abs(coordinates) > 1 + 1e-12):
+    if model.configuration['latent_activation'] == 'tanh' and np.any(np.abs(coordinates) > 1 + 1e-12):
         raise ValueError('Exploration requires tanh codes within [-1,1]')
     predictions = model.decode(coordinates)
     distances = candidate_distances(predictions, dataset.vectors)
