@@ -1,4 +1,10 @@
-# TP5 — Ejercicio 1.a: autoencoder básico
+# TP5 — Planes de autoencoders
+
+El plan vigente de denoising está en [Ejercicio 1.b](#ejercicio-1b--denoising-autoencoder).
+La sección de 1.a se conserva como registro previo: sus estados y rutas históricos
+no describen necesariamente el estado actual de este worktree.
+
+## Ejercicio 1.a: autoencoder básico (plan previo)
 
 Estado del plan: confirmado por el usuario el 2026-11-08. La implementación comienza al invocar `assignment-step`; el presupuesto experimental se resolverá en el paso 3.
 
@@ -161,3 +167,253 @@ Una vez confirmado este plan, invocar `assignment-step` para ejecutar exactament
 ## Presupuesto piloto autorizado — 2026-11-08
 
 El usuario autorizó Adam, semilla 42, tasa 0.001, lote 32, máximo 10.000 épocas, evaluación cada 100 y parada cuando los 32 patrones tengan individualmente como máximo un error. Una corrida; máximo total 10.000 épocas. La comparación queda pendiente de revisar el piloto y acordar su protocolo.
+
+---
+
+# Ejercicio 1.b — Denoising Autoencoder
+
+Fecha: 2026-11-10. Estado: confirmado por el usuario en la revisión final.
+La planificación no inicia implementación ni entrenamiento; continuar con
+`assignment-step` para ejecutar un paso.
+
+## Alcance y autoridad
+
+- PA-004, p. 1, apartado 1.b.1–2: proponer y justificar una arquitectura de DAE
+  sobre el mismo dataset y estudiar la eliminación de ruido a distintos niveles.
+- Workspace: `tps_sia/tp5`, rama `feat/tp5`.
+  Los comandos de este apartado parten de este directorio, salvo indicación.
+- Fuentes académicas, relativas al repositorio del curso:
+  `sources/extracted/PA-004.md`; original `sources/practical-assignment/SIATP5.pdf`;
+  `wiki/topics/autoencoders.md`, Funcionamiento y Variantes y usos;
+  `sources/extracted/OFF-022.md`, pp. 20–22, especialmente p. 22.
+- El par de entrenamiento es entrada contaminada / objetivo limpio, según
+  OFF-022 p. 22. Los niveles, presupuesto y procedimientos siguientes son
+  acuerdos experimentales, no exigencias textuales de la consigna.
+- Incluye código, campaña, evaluación, gráficos y documentación de 1.b.
+  Excluye VAE, letras desconocidas, nueva búsqueda de 1.a y modificaciones de wiki
+  u originales. Mantener los 32 caracteres de `data/font.h`.
+
+## Acuerdos de comportamiento
+
+1. **Referencia actualizable a 1.a.** La configuración no contiene una copia fija
+   de las capas, nombre de optimizador ni tasa ganadores. Expone
+   `source_selection`, inicialmente `results/final/selection.json`,
+   resuelta respecto del directorio TP5. Leer allí las rutas de modelo y
+   configuración respecto del TP5 de origen, según `paths_relative_to`.
+   Al preparar una campaña nueva, resolver y validar la selección vigente,
+   cotejar modelo/configuración/dataset y hashes, y conservar copias identificadas
+   dentro de la campaña. Entrenamiento y evaluación posteriores usan esas copias.
+   Cambios posteriores de 1.a solo afectan campañas nuevas; nunca mezclar dos
+   selecciones en una campaña ni reemplazar su referencia al evaluar.
+   No codificar la arquitectura ni el optimizador que tenía 1.a durante esta charla.
+2. **Dos variantes.** `winner` usa las capas de esa selección; `latent-10` deriva
+   las mismas capas sustituyendo solamente la central por 10. Ambas toman
+   optimizador y tasa de la configuración fuente; conservan tanh interna y salida
+   logística del contrato actual. Rechazar fuentes incompatibles con un mensaje
+   explicativo, sin adaptar silenciosamente arquitectura o activaciones. Si ambas
+   variantes resultan idénticas, detener preparación y revisar el protocolo.
+3. **Pesos nuevos.** Entrenar todos los DAE desde cero. Los pesos de 1.a solo
+   sirven para la referencia de evaluación, sin ajuste adicional.
+4. **Ruido.** Invertir cada bit independientemente con probabilidad `p`. En cada
+   época generar una entrada ruidosa por carácter, sorteando para cada imagen
+   uniformemente un nivel entre `[0, 0.05, 0.10, 0.20]`. Los objetivos son siempre
+   los originales. Regenerar niveles y máscaras en cada época; no confundir la
+   probabilidad con una cantidad exacta de píxeles ni usar augmentation geométrica.
+5. **Colecciones independientes.** Generar validación y evaluación final con
+   semillas distintas (`20261110` y `20261111`) e independientes del entrenamiento.
+   Cada colección contiene 100 versiones por carácter para cada nivel positivo
+   de `[0.05, 0.10, 0.20, 0.30]`, y una versión por carácter en `p=0`:
+   12.832 ejemplos por colección. Compartirlas entre variantes, semillas y
+   referencias. Guardar entradas, objetivos o índices del original, niveles,
+   semillas, versiones y hashes. Generación independiente no garantiza ausencia
+   de coincidencias casuales; no deduplicar ni cambiar la distribución.
+6. **Presupuesto.** Dos variantes × semillas `[42,43,44]`: seis corridas únicas,
+   lote 32, 3000 épocas cada una, máximo total 18.000 épocas. Evaluar cada 100 y
+   al inicio. Completar el presupuesto; no parar por tolerancia ni ampliar,
+   reiniciar o repetir corridas automáticamente. Una interrupción debe registrarse.
+   Esta aprobación define el plan; no autoriza entrenar durante su elaboración.
+7. **Selección.** Para cada corrida, guardar el checkpoint que minimice el error
+   binario medio en validación, promediando por igual `p=0.05,0.10,0.20`;
+   desempatar por MSE medio en esos niveles y luego por época más temprana.
+   Comparar variantes por el promedio de los mejores checkpoints de sus tres
+   semillas usando error binario y luego MSE. Elegir una corrida representativa
+   de la variante ganadora por esos mismos criterios y luego menor semilla.
+   Conservar resultados de todas las semillas; no declarar ganadora una variante
+   incompleta. `p=0` es diagnóstico y `p=0.30` queda para evaluación final, fuera
+   del rango entrenado; ninguno participa en selección.
+8. **Evaluación.** Tras fijar la selección, evaluar los seis mejores checkpoints
+   y el modelo congelado de 1.a sobre la colección final. Comparar con la entrada
+   ruidosa sin procesar. Para cada nivel y carácter: errores de píxeles de entrada
+   y salida, reducción media de errores, fracción exacta, fracción con ≤1 error,
+   máximo error y MSE. Registrar además fracciones de ejemplos que mejoran,
+   empeoran o quedan iguales. Binarizar con `>=0.5`. No imponer éxito universal
+   ni usar el peor ejemplo como regla de selección. Mostrar variación entre semillas
+   y resultados individuales; no interpretar esto como generalización a otras letras.
+9. **Entrega.** Configuraciones JSON y comandos Python reproducibles, modelos,
+   manifiestos, métricas JSON/CSV, curvas por nivel y láminas original / ruido /
+   AE de 1.a / DAE. Ejemplos visuales elegidos por índices fijos de la colección,
+   sin seleccionar únicamente casos favorables. Informar límites y degradación
+   con ruido alto, incluidos resultados negativos.
+
+No se crea ADR: estas elecciones experimentales son locales y reversibles.
+Vocabulario acordado en `../GLOSSARY.md`.
+
+## Hechos de la implementación disponible
+
+- `src/dataset.py` conserva los 32 patrones y su hash; `src/metrics.py` admite
+  matrices `(N,35)` y ya implementa las métricas básicas.
+- `src/autoencoder.py`: `validate_architecture` y `decode` restringen el código
+  a 2; `train(x, epochs)` fuerza objetivo igual a entrada. Ajustar esos contratos.
+- `../tp3/shared/mlp.py`, `MLP.entrenar(X,y,epocas=...)`, admite objetivos separados
+  y épocas adicionales conservando pesos, RNG, historia y estado del optimizador.
+  Se puede llamar una vez por época con nuevos pares; no duplicar backpropagation.
+- `src/train.py` valida un esquema exacto de siete claves de 1.a. Crear flujo y
+  esquema propios de denoising, preservando los comandos y configuraciones de 1.a.
+- `src/explore.py` produce visualizaciones bidimensionales: conservar esa restricción
+  explícita en exploración, aunque el modelo genérico admita otro ancho central.
+- La referencia final de 1.a está en `results/final/` de este workspace.
+  Su disponibilidad y consistencia se verifican al preparar la campaña.
+- En esta shell hay `python3`, sin NumPy, y no hay `python` ni `.venv` local.
+  Preparar el entorno antes de verificar código. No se ejecutaron pruebas al planificar.
+
+## Pasos ejecutables después de confirmar el plan
+
+Todos pendientes. Los nombres de comandos nuevos siguientes son interfaces
+propuestas que deben implementarse, no comandos ya disponibles.
+
+### B1. Referencia a la ganadora y configuración de campaña
+
+Estado: pending. Prerrequisito: confirmación final. Entradas: selección de 1.a,
+su modelo, configuración y `data/font.h`.
+
+- Crear `configs/denoising.json` con referencia y acuerdos anteriores, y el módulo
+  `src/denoise.py` con subcomando `prepare`. Validar esquema, rutas y compatibilidad
+  antes de crear artefactos. Reutilizar carga de dataset y persistencia existentes.
+- Preparar un directorio nuevo `results/denoising/`, congelar la referencia en
+  `reference/`, derivar ambas variantes y registrar hashes y configuración resuelta.
+  No sobrescribir campañas. Una nueva selección requiere un directorio nuevo.
+- Verificar con dos selecciones sintéticas de distintas capas/optimizadores que
+  se resuelve la referencia sin valores ganadores codificados, y que cambiar la
+  fuente no cambia una campaña preparada. Rechazar hashes o dimensiones incompatibles.
+
+Resultado: configuración, resolución y manifiesto reproducibles. Aceptación:
+preparación coherente, variante derivada solo por ancho central, fuente intacta.
+Comando propuesto: `python -m src.denoise prepare --config configs/denoising.json --output results/denoising`.
+Referencias: PA-004 1.b.1; `src/dataset.py`, `src/autoencoder.py`, selección y
+configuración referenciadas; acuerdos 1–3. Prueba: `python -m unittest discover -s tests -p "test_denoise_reference.py" -v`.
+
+### B2. Corrupción y colecciones reproducibles
+
+Estado: pending. Depende de B1. Entradas: dataset identificado y configuración resuelta.
+
+- Crear `src/noise.py`, con validación de matrices binarias, probabilidades y
+  semillas. Generar niveles por imagen y máscaras por píxel. Usar un generador
+  separado del MLP; derivar el de entrenamiento de semilla de corrida y número
+  absoluto de época para reproducir la secuencia sin depender de evaluaciones.
+- Incorporar a `prepare` la generación y guardado de las dos colecciones del
+  acuerdo 5. Conservar orden de caracteres e índices de realización. No ofrecer
+  datos finales al selector ni a la historia de validación.
+- Probar extremos `p=0` y `p=1`, reproducibilidad, objetivos intactos, formas,
+  niveles admitidos, semillas independientes y asignación de originales. No usar
+  tests aleatorios frágiles que exijan un porcentaje exacto de inversiones.
+
+Resultado: colecciones NPZ y manifiestos; generador dinámico de entrenamiento.
+Aceptación: 12.832 ejemplos por colección, correspondencia exacta con originales,
+reproducción por configuración y hashes. Referencias: OFF-022 p. 22; PA-004 1.b.2;
+`src/dataset.py`; acuerdos 4–5. Prueba: `python -m unittest discover -s tests -p "test_noise.py" -v`.
+
+### B3. Interfaz del modelo y entrenamiento con objetivos limpios
+
+Estado: pending. Depende de B2. Entradas: interfaz existente y variantes resueltas.
+
+- Generalizar validación/carga/codificación/decodificación al ancho central
+  especificado por la arquitectura; conservar el default y llamadas de 1.a.
+  Permitir objetivos explícitos en entrenamiento con parámetro opcional, sin
+  cambiar el significado de las llamadas existentes. Validar formas y finitud.
+- Mantener peso y optimizador en un mismo MLP entre épocas; alimentar una nueva
+  realización de ruido por época con el mismo objetivo limpio. No tocar TP3 si
+  la interfaz existente basta. Evitar la pérdida de entrenamiento como sustituto
+  de validación y documentar su normalización respecto de MSE.
+- Guardar por separado último estado y mejor modelo, historia de validación,
+  configuración y épocas. Registrar interrupciones y rechazar destinos ocupados
+  al iniciar corridas; no prometer reanudación automática como parte de este alcance.
+- Mantener exploración de 1.a limitada a código 2 con error claro para otro ancho.
+- Probar rutas encode/decode/reconstruct y persistencia para dos anchos, objetivos
+  separados, continuidad del optimizador y compatibilidad del entrenamiento limpio.
+  Un flujo corto debe conservar artefactos coherentes sin exigir convergencia.
+
+Resultado: interfaz reutilizable y entrenamiento de DAE verificable.
+Referencias: OFF-022 pp. 3–6 y 22; `src/autoencoder.py`, `src/train.py`,
+`src/explore.py`, `../tp3/shared/mlp.py`, `../tp3/shared/optimizers.py`; acuerdos 2–7.
+Pruebas: `python -m unittest discover -s tests -p "test_autoencoder.py" -v` y
+`python -m unittest discover -s tests -p "test_denoise_train.py" -v`.
+
+### B4. Campaña y selección por validación
+
+Estado: pending. Depende de B3 y sus pruebas aprobadas. Entradas: campaña preparada.
+
+- Implementar subcomando `train` para las seis corridas acordadas, presupuestos
+  y checkpoints cada 100 épocas. Añadir selección según acuerdo 7 y manifiestos
+  de modelo/dataset/configuración, épocas, tiempo y motivo de parada.
+- Probar ranking con métricas conocidas y campañas incompletas antes de entrenar.
+  Ejecutar la campaña y conservar todas las corridas. Registrar cualquier fallo;
+  detenerse para revisar antes de autorizar repeticiones o mayor presupuesto.
+- Guardar `selection.json`, tablas y curvas de validación sin inspeccionar las
+  métricas finales para tomar decisiones. No cambiar protocolo por resultados pobres.
+
+Comando propuesto: `python -m src.denoise train --campaign results/denoising`.
+Resultado: seis corridas de 3000 épocas, mejores checkpoints y selección trazable,
+o interrupción explícita sin selección definitiva. Referencias: PA-004 1.b.1–2;
+OFF-022 p. 22; acuerdos 6–7; módulos de B1–B3.
+Prueba previa: `python -m unittest discover -s tests -p "test_denoise_selection.py" -v`.
+
+### B5. Evaluación final, referencias y figuras
+
+Estado: pending. Depende de B4 completo y selección congelada.
+
+- Implementar subcomando `evaluate`; cargar los mejores checkpoints y la copia
+  de 1.a sin entrenar. Aplicar todos a las mismas entradas finales y originales.
+- Extender `src/metrics.py` o un módulo específico con reducción de errores y
+  comparación por ejemplo; agrupar por nivel y carácter, conservando datos
+  individuales. El promedio sobre niveles debe ser explícito, sin sobrerrepresentar
+  niveles con más ejemplos ni confundir variación entre semillas con entre imágenes.
+- Generar JSON/CSV, curvas de errores y recuperación por nivel y láminas comparables
+  usando índices fijos, incluido ruido cero y 30 %. Guardar índices y hashes.
+- Probar métricas con casos exactos, mejora y empeoramiento conocidos, incluidos
+  umbral 0.5 y ruido cero. Recalcular desde modelos guardados y verificar consistencia.
+
+Comando propuesto: `python -m src.denoise evaluate --campaign results/denoising`.
+Resultado: métricas y figuras reproducibles sin entrenamiento. Aceptación: tres
+referencias comparables, todas las semillas informadas y nivel 30 % identificado
+como fuera del rango entrenado. Ninguna exigencia inventada de éxito numérico.
+Referencias: PA-004 1.b.2; OFF-022 pp. 21–22; `src/metrics.py`, `src/plots.py`;
+acuerdos 5, 7–9. Prueba: `python -m unittest discover -s tests -p "test_denoise_evaluation.py" -v`.
+
+### B6. Informe, reproducción y verificación
+
+Estado: pending. Depende de B5.
+
+- Ampliar README para 1.b sin borrar instrucciones de 1.a y escribir
+  `results/denoising/report.md`: procedencia dinámica de arquitectura y optimizador,
+  justificación, protocolo, resultados, referencias comparativas, variación entre
+  semillas y límites. Distinguir requisitos de la consigna, acuerdos y evidencia.
+- Documentar preparación de entorno con `requirements.txt` y comandos efectivos.
+  Los ejemplos usan `python` una vez activado un entorno; en esta shell puede
+  crearse uno con `python3 -m venv .venv`. Instalar dependencias solo al implementar,
+  con los permisos del entorno cuando sean necesarios.
+- Ejecutar `python -m unittest discover -s tests -p "test_*.py" -v` y comprobar
+  número positivo de pruebas. Repetir evaluación desde persistencia, sin repetir
+  entrenamientos costosos. Si fue imprescindible modificar TP3, ejecutar además
+  `python -m unittest discover -s shared/tests -v` desde `../tp3`.
+- Verificar que PA-004 1.b.1 y 1.b.2 tengan evidencia enlazada, que originales
+  conserven hashes y que resultados de 1.a no hayan sido sobrescritos. Informar
+  problemas de convergencia como resultados, sin llamarlos pruebas de imposibilidad.
+
+Aceptación: documentación y evidencia verificables, pruebas relevantes aprobadas.
+Referencias: PA-004 1.b completo; OFF-022 pp. 20–22; acuerdos y artefactos B1–B5.
+
+## Continuación de 1.b
+
+Plan confirmado por el usuario el 2026-11-10. `assignment-step` puede ejecutar
+exactamente B1 y actualizar su estado, sin iniciar B2 ni entrenar.
+Conservar estados de esta sección separados del plan histórico de 1.a.
