@@ -261,3 +261,28 @@ garantizada: las interpolaciones o regiones intermedias pueden producir
 imágenes sin interpretación. Ni la distancia ni la apariencia de un candidato
 demuestran generalización. Las pruebas comprueban regeneración y novedad,
 incluidas una copia y una imagen distinta, sin clasificar automáticamente letras.
+
+## Ejercicio 1.b: preparar la referencia de denoising
+
+El paso B1 del [plan](assignment_plan.md#b1-referencia-a-la-ganadora-y-configuración-de-campaña)
+expone la preparación de campaña, sin generar ruido ni entrenar:
+
+```bash
+python -m src.denoise prepare --config configs/denoising.json --output results/denoising
+```
+
+La salida debe ser un directorio nuevo. `source_selection` se resuelve desde
+TP5. Las rutas de modelo y configuración de la selección se resuelven desde
+`paths_relative_to`, relativo al TP5 de origen; si falta, se usa `.` por
+compatibilidad con las selecciones existentes. Se requiere `manifest.json`
+junto a la configuración fuente para cotejar el dataset, modelo y configuración
+efectiva. No se usan las rutas absolutas históricas del manifiesto.
+
+`reference/` conserva copias de selección, configuración, manifiesto, modelo y
+`font.h`; `manifest.json` registra sus hashes y rutas relativas a la campaña.
+Las variantes `winner` y `latent-10` derivan sus capas, optimizador, tasa y pérdida
+de esa referencia, cambiando solo el ancho central en la segunda. Los DAE se
+entrenarán desde cero en pasos posteriores. La fuente debe usar latente tanh,
+salida logística, tasa constante y carecer de regularización adicional.
+Cambiar la selección solo afecta preparaciones nuevas. Una evaluación posterior
+debe usar las copias de la campaña. B2–B6 siguen pendientes.

@@ -1,0 +1,18 @@
+{
+  "source_selection": "results/final/selection.json",
+  "seeds": [42, 43, 44],
+  "batch_size": 32,
+  "max_epochs": 3000,
+  "evaluate_every": 100,
+  "stop_on_tolerance": false,
+  "noise": {
+    "type": "bit_flip",
+    "training_levels": [0, 0.05, 0.10, 0.20],
+    "evaluation_levels": [0, 0.05, 0.10, 0.20, 0.30],
+    "selection_levels": [0.05, 0.10, 0.20],
+    "validation_seed": 20261110,
+    "evaluation_seed": 20261111,
+    "realizations_per_character": 100,
+    "clean_realizations_per_character": 1
+  }
+}

@@ -453,12 +453,12 @@ Vocabulario acordado en `../GLOSSARY.md`.
 
 ## Pasos ejecutables después de confirmar el plan
 
-Todos pendientes. Los nombres de comandos nuevos siguientes son interfaces
-propuestas que deben implementarse, no comandos ya disponibles.
+B1 completado el 2026-11-11; B2–B6 pendientes. Solo el subcomando `prepare`
+está disponible; las demás interfaces siguen propuestas.
 
 ### B1. Referencia a la ganadora y configuración de campaña
 
-Estado: pending. Prerrequisito: confirmación final. Entradas: selección de 1.a,
+Estado: done. Verificado el 2026-11-11. Entradas: selección de 1.a,
 su modelo, configuración y `data/font.h`.
 
 - Crear `configs/denoising.json` con referencia y acuerdos anteriores, y el módulo
@@ -476,6 +476,21 @@ preparación coherente, variante derivada solo por ancho central, fuente intacta
 Comando propuesto: `python -m src.denoise prepare --config configs/denoising.json --output results/denoising`.
 Referencias: PA-004 1.b.1; `src/dataset.py`, `src/autoencoder.py`, selección y
 configuración referenciadas; acuerdos 1–3. Prueba: `python -m unittest discover -s tests -p "test_denoise_reference.py" -v`.
+
+Resultado B1 (2026-11-11): `src.denoise prepare` y `configs/denoising.json`
+implementados. Campaña local en `results/denoising/`, con referencia semilla 49,
+BCE/Adam 0.002 y variantes derivadas de la selección vigente. No se entrenó.
+
+- [x] Configuración y manifiesto resueltos; seis corridas/18000 épocas como límite,
+  cero épocas ejecutadas. Validación contra contrato independiente del JSON.
+- [x] Variantes diferenciadas únicamente por ancho central; referencia congelada.
+- [x] Cinco archivos copiados cotejados byte a byte con sus originales y hashes.
+- [x] Cinco pruebas de referencia y 23 pruebas totales de TP5 aprobadas con Python
+  3.14.4 / NumPy 2.4.4 / Matplotlib 3.11.1. Compilación de sintaxis aprobada;
+  TP5 no configura un verificador estático de tipos.
+- [x] Revisión de estándares y especificación sin hallazgos pendientes.
+
+B2–B6 permanecen pendientes; no se generaron colecciones ni se modificó TP3.
 
 ### B2. Corrupción y colecciones reproducibles
 
@@ -589,6 +604,6 @@ Referencias: PA-004 1.b completo; OFF-022 pp. 20–22; acuerdos y artefactos B1�
 
 ## Continuación de 1.b
 
-Plan confirmado por el usuario el 2026-11-10. `assignment-step` puede ejecutar
-exactamente B1 y actualizar su estado, sin iniciar B2 ni entrenar.
+Plan confirmado por el usuario el 2026-11-10. B1 ejecutado mediante `implement`
+el 2026-11-11. El siguiente paso es B2; no se inició ni se entrenó.
 Conservar estados de esta sección separados del plan histórico de 1.a.
