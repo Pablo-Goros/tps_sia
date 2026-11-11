@@ -265,7 +265,7 @@ incluidas una copia y una imagen distinta, sin clasificar automáticamente letra
 ## Ejercicio 1.b: preparar la referencia de denoising
 
 El paso B1 del [plan](assignment_plan.md#b1-referencia-a-la-ganadora-y-configuración-de-campaña)
-expone la preparación de campaña, sin generar ruido ni entrenar:
+expone la preparación de campaña y sus colecciones fijas, sin entrenar:
 
 ```bash
 python -m src.denoise prepare --config configs/denoising.json --output results/denoising
@@ -285,4 +285,18 @@ de esa referencia, cambiando solo el ancho central en la segunda. Los DAE se
 entrenarán desde cero en pasos posteriores. La fuente debe usar latente tanh,
 salida logística, tasa constante y carecer de regularización adicional.
 Cambiar la selección solo afecta preparaciones nuevas. Una evaluación posterior
-debe usar las copias de la campaña. B2–B6 siguen pendientes.
+debe usar las copias de la campaña.
+
+Entrenamiento y evaluación numérica de 1.b:
+
+```bash
+python -m src.denoise collections --campaign results/denoising
+python -m src.denoise train --campaign results/denoising
+python -m src.denoise evaluate --campaign results/denoising
+```
+
+`collections` permite completar campañas preparadas antes de B2. `train` ejecuta
+una sola vez seis corridas de 3000 épocas. `evaluate` carga los mejores modelos
+sin entrenar y produce NPZ/JSON/CSV. No genera gráficos ni informe por pedido
+del usuario. Los comandos, esquemas y recetas para generar figuras después
+están en [denoising-data.md](denoising-data.md).

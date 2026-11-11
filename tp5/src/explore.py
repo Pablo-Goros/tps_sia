@@ -25,6 +25,8 @@ def visualize_latent(model_path, output, dataset_path=DEFAULT_DATASET):
     """Save the 32 labeled codes and their figure using a persisted model."""
     dataset = load_dataset(dataset_path)
     model = Autoencoder.load(model_path)
+    if model.configuration['architecture'][len(model.configuration['architecture'])//2] != 2:
+        raise ValueError('Exploration requires a two-dimensional code')
     coordinates = model.encode(dataset.vectors)
     result = {
         'model': model_identity(model_path),
@@ -57,6 +59,8 @@ def explore_candidates(model_path, output, config, dataset_path=DEFAULT_DATASET)
         raise ValueError('pairs must contain 1–32 pairs of original codes 96–127')
     dataset = load_dataset(dataset_path)
     model = Autoencoder.load(model_path)
+    if model.configuration['architecture'][len(model.configuration['architecture'])//2] != 2:
+        raise ValueError('Exploration requires a two-dimensional code')
     codes = model.encode(dataset.vectors)
     low, high = codes.min(axis=0), codes.max(axis=0)
     coordinates, kinds = [], []

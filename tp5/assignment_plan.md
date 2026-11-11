@@ -5,7 +5,8 @@ Campaña posterior del ejercicio 1.a: [plan completado](experiment_plan.md) y
 tasa, scheduler, arquitectura y presupuesto; 43 corridas, 54300 épocas.
 La combinación BCE/Adam 0.002, deeper y tanh confirmó 5/5 éxitos frente a 0/5
 de la referencia reconstruida. La selección final es la semilla 49, exacta
-en los 32 patrones. No se ejecutaron experimentos de denoising ni VAE.
+en los 32 patrones. Esa campaña no incluyó denoising ni VAE. El trabajo de 1.b está completado
+hasta B5, sin gráficos ni informe por pedido del usuario; VAE sigue fuera.
 
 El plan vigente de denoising está en [Ejercicio 1.b](#ejercicio-1b--denoising-autoencoder).
 La sección de 1.a se conserva como registro previo: sus estados y rutas históricos
@@ -453,8 +454,9 @@ Vocabulario acordado en `../GLOSSARY.md`.
 
 ## Pasos ejecutables después de confirmar el plan
 
-B1 completado el 2026-11-11; B2–B6 pendientes. Solo el subcomando `prepare`
-está disponible; las demás interfaces siguen propuestas.
+B1–B5 completados el 2026-11-11. Los subcomandos `prepare`, `collections`,
+`train` y `evaluate` están disponibles. B5 conserva datos para figuras; el usuario
+excluyó expresamente la generación de gráficos e informe y el cierre B6.
 
 ### B1. Referencia a la ganadora y configuración de campaña
 
@@ -490,11 +492,12 @@ BCE/Adam 0.002 y variantes derivadas de la selección vigente. No se entrenó.
   TP5 no configura un verificador estático de tipos.
 - [x] Revisión de estándares y especificación sin hallazgos pendientes.
 
-B2–B6 permanecen pendientes; no se generaron colecciones ni se modificó TP3.
+Al cerrar B1, B2–B6 permanecían pendientes. La ejecución posterior de B2–B5
+se registra al final de este documento. No se modificó TP3.
 
 ### B2. Corrupción y colecciones reproducibles
 
-Estado: pending. Depende de B1. Entradas: dataset identificado y configuración resuelta.
+Estado: done. Depende de B1 (done). Verificado el 2026-11-11. Entradas: dataset identificado y configuración resuelta.
 
 - Crear `src/noise.py`, con validación de matrices binarias, probabilidades y
   semillas. Generar niveles por imagen y máscaras por píxel. Usar un generador
@@ -514,7 +517,7 @@ reproducción por configuración y hashes. Referencias: OFF-022 p. 22; PA-004 1.
 
 ### B3. Interfaz del modelo y entrenamiento con objetivos limpios
 
-Estado: pending. Depende de B2. Entradas: interfaz existente y variantes resueltas.
+Estado: done. Depende de B2 (done). Verificado el 2026-11-11. Entradas: interfaz existente y variantes resueltas.
 
 - Generalizar validación/carga/codificación/decodificación al ancho central
   especificado por la arquitectura; conservar el default y llamadas de 1.a.
@@ -540,7 +543,7 @@ Pruebas: `python -m unittest discover -s tests -p "test_autoencoder.py" -v` y
 
 ### B4. Campaña y selección por validación
 
-Estado: pending. Depende de B3 y sus pruebas aprobadas. Entradas: campaña preparada.
+Estado: done. Depende de B3 y sus pruebas aprobadas. Verificado el 2026-11-11. Entradas: campaña preparada.
 
 - Implementar subcomando `train` para las seis corridas acordadas, presupuestos
   y checkpoints cada 100 épocas. Añadir selección según acuerdo 7 y manifiestos
@@ -557,9 +560,10 @@ o interrupción explícita sin selección definitiva. Referencias: PA-004 1.b.1�
 OFF-022 p. 22; acuerdos 6–7; módulos de B1–B3.
 Prueba previa: `python -m unittest discover -s tests -p "test_denoise_selection.py" -v`.
 
-### B5. Evaluación final, referencias y figuras
+### B5. Evaluación final, referencias y datos para figuras
 
-Estado: pending. Depende de B4 completo y selección congelada.
+Estado: done. Depende de B4 completo y selección congelada. Verificado el 2026-11-11.
+Alcance actualizado por el usuario: no producir figuras; conservar sus datos e índices.
 
 - Implementar subcomando `evaluate`; cargar los mejores checkpoints y la copia
   de 1.a sin entrenar. Aplicar todos a las mismas entradas finales y originales.
@@ -581,7 +585,7 @@ acuerdos 5, 7–9. Prueba: `python -m unittest discover -s tests -p "test_denois
 
 ### B6. Informe, reproducción y verificación
 
-Estado: pending. Depende de B5.
+Estado: pending (fuera del alcance solicitado). Depende de B5.
 
 - Ampliar README para 1.b sin borrar instrucciones de 1.a y escribir
   `results/denoising/report.md`: procedencia dinámica de arquitectura y optimizador,
@@ -605,5 +609,41 @@ Referencias: PA-004 1.b completo; OFF-022 pp. 20–22; acuerdos y artefactos B1�
 ## Continuación de 1.b
 
 Plan confirmado por el usuario el 2026-11-10. B1 ejecutado mediante `implement`
-el 2026-11-11. El siguiente paso es B2; no se inició ni se entrenó.
+el 2026-11-11. Después, el usuario autorizó B2–B5 y el entrenamiento de corrido;
+la ejecución está completada, con figuras e informe excluidos por instrucción expresa.
 Conservar estados de esta sección separados del plan histórico de 1.a.
+
+## Ejecución autorizada 2026-11-11
+
+El usuario autorizó completar B2–B5 de corrido, incluyendo las seis corridas
+y 18000 épocas máximas. Excluyó expresamente gráficos e informe. Guardar
+todos los datos y documentar contratos para generarlos después; B6 queda fuera.
+
+## Verificación de ejecución B2–B5 (2026-11-11)
+
+- [x] B2: `src/noise.py`, colecciones fijas independientes de 12832 ejemplos,
+  máscaras y objetivos trazables por nivel/carácter/realización, hashes verificados.
+- [x] B3: ancho central configurable, objetivos explícitos opcionales y continuidad
+  del optimizador; checkpoint último separado del mejor, interrupciones registradas.
+  Compatibilidad de llamadas limpias y exploración de 1.a verificada.
+- [x] B4: seis corridas completas de 3000 épocas, exactamente 18000 épocas nuevas;
+  sin reintentos. Selección congelada en `results/denoising/selection.json` antes
+  de evaluar: `latent-10`, representante semilla 44. No se modificó la selección de 1.a.
+- [x] B5: evaluación de seis checkpoints, AE original y entrada ruidosa sobre la
+  misma colección final. NPZ con predicciones, códigos y errores individuales;
+  JSON/CSV por nivel, carácter y semillas; índices fijos para futuras láminas.
+  No se generaron figuras ni informe, conforme al cambio de alcance del usuario.
+- [x] 29 pruebas totales de TP5 aprobadas; sintaxis compilada. No hay verificador
+  estático de tipos configurado. Revisión de estándares y especificación sin
+  hallazgos pendientes tras corregir clasificación de interrupciones.
+- [x] Recarga independiente de seis mejores modelos y últimos estados; scores de
+  validación recalculados. Dos evaluaciones desde persistencia coinciden en
+  sus métricas, CSV y 55 arrays. Se preservaron por SHA256 659 archivos previos,
+  incluidos originales y evidencia de 1.a.
+
+Evidencia local: `results/denoising/training.json`, `selection.json`,
+`validation-summary.csv`, `evaluation/`, `evaluation-reloaded/` y `verification.json`.
+Las rutas operativas son relativas a la campaña. Los artefactos están ignorados
+por Git; los comandos y contratos duraderos están en [denoising-data.md](denoising-data.md).
+Este registro acredita ejecución y aceptación; B6 y la producción de figuras e
+informe permanecen fuera del alcance actual. No hubo cambios en wiki ni fuentes.

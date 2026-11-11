@@ -16,9 +16,8 @@ def validate_architecture(architecture):
     if (not isinstance(architecture, list) or len(architecture) < 3
             or len(architecture) % 2 != 1
             or any(type(width) is not int or width < 1 for width in architecture)
-            or architecture[0] != 35 or architecture[-1] != 35
-            or architecture[len(architecture)//2] != 2):
-        raise ValueError('Architecture must have positive integer widths, 35 inputs/outputs and a central two-unit code')
+            or architecture[0] != 35 or architecture[-1] != 35):
+        raise ValueError('Architecture must have positive integer widths, 35 inputs/outputs and a central code')
 
 
 class Autoencoder:
@@ -50,7 +49,7 @@ class Autoencoder:
         return values
 
     def decode(self, z):
-        values = self._input(z, 2)
+        values = self._input(z, self.configuration['architecture'][len(self._mlp.arquitectura)//2])
         layers = list(zip(self._mlp.pesos, self._mlp.biases))
         for index in range(len(layers)//2, len(layers)):
             w, b = layers[index]
@@ -61,9 +60,12 @@ class Autoencoder:
     def reconstruct(self, x):
         return self._mlp.predecir(self._input(x, 35))
 
-    def train(self, x, epochs):
+    def train(self, x, epochs, targets=None):
         x = self._input(x, 35)
-        return self._mlp.entrenar(x, x, epocas=epochs, epsilon=0)
+        targets = x if targets is None else self._input(targets, 35)
+        if targets.shape != x.shape:
+            raise ValueError('Targets must match input shape')
+        return self._mlp.entrenar(x, targets, epocas=epochs, epsilon=0)
 
     def set_learning_rate(self, learning_rate):
         """Change the next update's rate without rebuilding optimizer state."""

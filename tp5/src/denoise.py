@@ -93,6 +93,8 @@ def prepare_campaign(config_path, output, dataset_path=DEFAULT_DATASET, *, tp5_r
             or effective['l2'] != 0 or effective['augmentation'] is not None
             or effective['batch_norm'] is not None or effective['beta'] != 1):
         raise ValueError('Source incompatible: require tanh code, constant rate and no extra regularization')
+    if effective['architecture'][len(effective['architecture'])//2] != 2:
+        raise ValueError('Source winner must have a two-dimensional code')
     winner = {key: source_config[key] for key in ('architecture', 'optimizer')}
     winner.update(loss=effective['loss'], latent_activation='tanh', lr_scheduler=None,
                   batch_size=config['batch_size'])
@@ -116,6 +118,8 @@ def prepare_campaign(config_path, output, dataset_path=DEFAULT_DATASET, *, tp5_r
             (staging/'reference'/name).write_bytes(raw)
         write_json(staging/'config.json', config)
         write_json(staging/'manifest.json', result)
+        from .denoise_campaign import prepare_collections
+        prepare_collections(staging)
         if output.exists():
             raise ValueError('Campaign output appeared during preparation')
         staging.rename(output)
@@ -132,9 +136,23 @@ def main():
     prepare.add_argument('--config', required=True, type=Path)
     prepare.add_argument('--output', required=True, type=Path)
     prepare.add_argument('--dataset', default=DEFAULT_DATASET, type=Path)
+    for name in ('collections', 'train', 'evaluate'):
+        command = sub.add_parser(name)
+        command.add_argument('--campaign', required=True, type=Path)
+        if name == 'evaluate':
+            command.add_argument('--output', type=Path)
     args = parser.parse_args()
     try:
-        result = prepare_campaign(args.config, args.output, args.dataset)
+        if args.command == 'prepare':
+            result = prepare_campaign(args.config, args.output, args.dataset)
+        else:
+            from .denoise_campaign import prepare_collections, train_campaign, evaluate_campaign
+            if args.command == 'collections':
+                result = prepare_collections(args.campaign)
+            elif args.command == 'train':
+                result = train_campaign(args.campaign)
+            else:
+                result = evaluate_campaign(args.campaign, args.output)
     except (ValueError, OSError, KeyError, TypeError) as error:
         parser.error(str(error))
     print(json.dumps(result, ensure_ascii=False, allow_nan=False))
