@@ -1,0 +1,10 @@
+{
+  "datasets": ["digits", "more_digits"],
+  "encoder": [784, 256, 64],
+  "latent": 2,
+  "optimizer": {"name": "adam", "learning_rate": 0.001},
+  "batch_size": 64,
+  "epochs": 50,
+  "kl_weights": [0, 0.1, 1],
+  "seeds": [42, 43, 44]
+}
