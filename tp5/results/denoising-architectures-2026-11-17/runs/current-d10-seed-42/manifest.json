@@ -1,0 +1,71 @@
+{
+  "run_id": "current-d10-seed-42",
+  "variant": "current-d10",
+  "seed": 42,
+  "status": "completed",
+  "epochs_completed": 3000,
+  "best": {
+    "score": [
+      1.2538541666666667,
+      0.028414231058554163
+    ],
+    "epoch": 3000,
+    "model": {
+      "path": "runs/current-d10-seed-42/best_model.npz",
+      "sha256": "976548828b0c0aa4895bddf47f2886108b19520edd4cbb81a9009b974831451a"
+    }
+  },
+  "effective_model": {
+    "architecture": [
+      35,
+      40,
+      20,
+      10,
+      10,
+      10,
+      20,
+      40,
+      35
+    ],
+    "activation": "tanh",
+    "output": "logistica",
+    "loss": "bce",
+    "latent_activation": "tanh",
+    "lr_scheduler": null,
+    "beta": 1.0,
+    "batch_size": 32,
+    "optimizer": {
+      "name": "adam",
+      "learning_rate": 0.002,
+      "beta1": 0.9,
+      "beta2": 0.999,
+      "optimizer_epsilon": 1e-08
+    },
+    "initialization": "auto",
+    "l2": 0.0,
+    "augmentation": null,
+    "batch_norm": null
+  },
+  "duration_seconds": 56.99397489999683,
+  "last_model": {
+    "path": "runs/current-d10-seed-42/last_model.npz",
+    "sha256": "976548828b0c0aa4895bddf47f2886108b19520edd4cbb81a9009b974831451a"
+  },
+  "reused": true,
+  "provenance": {
+    "source_directory": "runs/latent-10-seed-42",
+    "original_variant": "latent-10",
+    "validation_recomputed": [
+      1.2538541666666667,
+      0.028414231058554163
+    ],
+    "files": {
+      "best_model.npz": "976548828b0c0aa4895bddf47f2886108b19520edd4cbb81a9009b974831451a",
+      "config.json": "acd15f04e98ebc8568c2ba74a1c705ad6761ee76096ff83509d2021be0e1db03",
+      "history.json": "0a851dfd2563c9bbfd63c3fdb811e212b79af88f7631fd44c78c3d6420e4a0d3",
+      "last_model.npz": "976548828b0c0aa4895bddf47f2886108b19520edd4cbb81a9009b974831451a",
+      "manifest.json": "79be763743b232e601c292e07cabcf5eceb02f6bb3c0efa9daeb7118847830c7"
+    }
+  },
+  "new_epochs_completed": 0
+}

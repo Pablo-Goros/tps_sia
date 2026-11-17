@@ -1,0 +1,43 @@
+{
+  "status": "passed",
+  "arrays_identical": 19,
+  "csv_files_identical": 3,
+  "metrics_equal": true,
+  "model_level_rows": 190,
+  "first_metrics_sha256": "ebdabcd6d2f621dd7bc085bb873a272dbffa2be0b818e5b04e63c904af6378e2",
+  "reloaded_metrics_sha256": "ebdabcd6d2f621dd7bc085bb873a272dbffa2be0b818e5b04e63c904af6378e2",
+  "files": {
+    "ae-reference.npz": {
+      "original_sha256": "4c93954a838302aa420f49bd85d3f2d5f76ffdf2bfa8c03a2a11738edbd21d77",
+      "reloaded_sha256": "4c93954a838302aa420f49bd85d3f2d5f76ffdf2bfa8c03a2a11738edbd21d77"
+    },
+    "collection.npz": {
+      "original_sha256": "71e7b1af85fde012431bb6bdf0eaa9cef2d70478aa7dcac4a677cbf5f85f57d3",
+      "reloaded_sha256": "71e7b1af85fde012431bb6bdf0eaa9cef2d70478aa7dcac4a677cbf5f85f57d3"
+    },
+    "current-d10-seed-42.npz": {
+      "original_sha256": "64f06162c41cd23a8387c14c6fbfb37851956e8c0a65c0aaa8630f479031a157",
+      "reloaded_sha256": "64f06162c41cd23a8387c14c6fbfb37851956e8c0a65c0aaa8630f479031a157"
+    },
+    "current-d10-seed-43.npz": {
+      "original_sha256": "ef2d06590afd9398632ce7b849f8d5cbdfa2d44c75c9a7750a854a41b12f7766",
+      "reloaded_sha256": "ef2d06590afd9398632ce7b849f8d5cbdfa2d44c75c9a7750a854a41b12f7766"
+    },
+    "current-d10-seed-44.npz": {
+      "original_sha256": "ccb0de1bdb1e0d0260a74a1ce675d623265b9160ce7152a52d2fc93c28887dee",
+      "reloaded_sha256": "ccb0de1bdb1e0d0260a74a1ce675d623265b9160ce7152a52d2fc93c28887dee"
+    },
+    "simple-d20-seed-42.npz": {
+      "original_sha256": "0cb6415e418099cd9ad8f652d8abb5446e82cda79bafb9e2cdf2953550ffd5c9",
+      "reloaded_sha256": "0cb6415e418099cd9ad8f652d8abb5446e82cda79bafb9e2cdf2953550ffd5c9"
+    },
+    "simple-d20-seed-43.npz": {
+      "original_sha256": "5f76e06e1464f52d2483eb234606d77f3a401a7082716690e43d02a1624d7da3",
+      "reloaded_sha256": "5f76e06e1464f52d2483eb234606d77f3a401a7082716690e43d02a1624d7da3"
+    },
+    "simple-d20-seed-44.npz": {
+      "original_sha256": "5f2ef9cdba994e7b463d3c8995a64ead412e8cc3f1312acd107968c35f7ef451",
+      "reloaded_sha256": "5f2ef9cdba994e7b463d3c8995a64ead412e8cc3f1312acd107968c35f7ef451"
+    }
+  }
+}

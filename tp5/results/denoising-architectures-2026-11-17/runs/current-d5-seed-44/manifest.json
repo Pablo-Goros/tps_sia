@@ -1,0 +1,56 @@
+{
+  "run_id": "current-d5-seed-44",
+  "variant": "current-d5",
+  "seed": 44,
+  "status": "completed",
+  "epochs_completed": 3000,
+  "best": {
+    "score": [
+      1.2911458333333334,
+      0.029385369386035688
+    ],
+    "epoch": 2800,
+    "model": {
+      "path": "runs/current-d5-seed-44/best_model.npz",
+      "sha256": "8eb87ebed0233dfbb023a34f44af8bdaed65a4d4fe481cec804f5e477fe35cf2"
+    }
+  },
+  "effective_model": {
+    "architecture": [
+      35,
+      40,
+      20,
+      10,
+      5,
+      10,
+      20,
+      40,
+      35
+    ],
+    "activation": "tanh",
+    "output": "logistica",
+    "loss": "bce",
+    "latent_activation": "tanh",
+    "lr_scheduler": null,
+    "beta": 1.0,
+    "batch_size": 32,
+    "optimizer": {
+      "name": "adam",
+      "learning_rate": 0.002,
+      "beta1": 0.9,
+      "beta2": 0.999,
+      "optimizer_epsilon": 1e-08
+    },
+    "initialization": "auto",
+    "l2": 0.0,
+    "augmentation": null,
+    "batch_norm": null
+  },
+  "duration_seconds": 57.29020569999966,
+  "last_model": {
+    "path": "runs/current-d5-seed-44/last_model.npz",
+    "sha256": "9146e71ceb96dc3c7cfb2669db78d08982df84f5156d9c22ebf50826c1f659f8"
+  },
+  "reused": false,
+  "new_epochs_completed": 3000
+}

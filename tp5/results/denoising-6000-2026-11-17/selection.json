@@ -1,0 +1,279 @@
+{
+  "variant": "simple-d20",
+  "run_id": "simple-d20-seed-44",
+  "runs": [
+    {
+      "run_id": "simple-d20-seed-42",
+      "variant": "simple-d20",
+      "seed": 42,
+      "status": "completed",
+      "initial_epoch": 3000,
+      "target_epoch": 6000,
+      "epochs_completed": 6000,
+      "additional_epochs_completed": 3000,
+      "best": {
+        "epoch": 6000,
+        "score": [
+          0.8768750000000001,
+          0.01974129213049403
+        ],
+        "model": {
+          "path": "best_model.npz",
+          "sha256": "69e1061d9df213478c815becb703cd8b997d847ebc20df76852dec415c8e53e9"
+        }
+      },
+      "initial_best": {
+        "score": [
+          1.0288541666666668,
+          0.023270767700993913
+        ],
+        "epoch": 2900,
+        "model": {
+          "path": "runs/simple-d20-seed-42/best_model.npz",
+          "sha256": "cee300c8949b3e10fdbc8b6ce56626170d388dc16639f315311f4aa5e60c4468"
+        }
+      },
+      "initial_adam_state": {
+        "updates": 3000,
+        "epoch": 3000,
+        "first_moment_tensors": 12,
+        "second_moment_tensors": 12,
+        "rng": {
+          "bit_generator": "PCG64",
+          "state": {
+            "state": 81535446119282227309282258842068326435,
+            "inc": 332724090758049132448979897138935081983
+          },
+          "has_uint32": 0,
+          "uinteger": 3007875699
+        }
+      },
+      "effective_model": {
+        "architecture": [
+          35,
+          40,
+          20,
+          20,
+          20,
+          40,
+          35
+        ],
+        "activation": "tanh",
+        "output": "logistica",
+        "loss": "bce",
+        "latent_activation": "tanh",
+        "lr_scheduler": null,
+        "beta": 1.0,
+        "batch_size": 32,
+        "optimizer": {
+          "name": "adam",
+          "learning_rate": 0.002,
+          "beta1": 0.9,
+          "beta2": 0.999,
+          "optimizer_epsilon": 1e-08
+        },
+        "initialization": "auto",
+        "l2": 0.0,
+        "augmentation": null,
+        "batch_norm": null
+      },
+      "source_files": {
+        "best_model.npz": "cee300c8949b3e10fdbc8b6ce56626170d388dc16639f315311f4aa5e60c4468",
+        "config.json": "0db5b05db2baff285e7e00dbc5fa63beb4a815f5e2f50cb8041f48adb31ab0a3",
+        "history.json": "e102f0ef930037d8e41b7f70842bd514360e8c4108d0273366fd703d39023102",
+        "last_model.npz": "ae71c8e75694ca489acca39038e45068ee7625f9d6a99e309b355b8d3eec2cac",
+        "manifest.json": "fe6f902472f587fe2492d1a00e65c31fa2c0a1631e44276a7c5ece1fd02afbc3"
+      },
+      "duration_seconds": 216.93089959999998,
+      "last_model": {
+        "path": "last_model.npz",
+        "sha256": "69e1061d9df213478c815becb703cd8b997d847ebc20df76852dec415c8e53e9"
+      }
+    },
+    {
+      "run_id": "simple-d20-seed-43",
+      "variant": "simple-d20",
+      "seed": 43,
+      "status": "completed",
+      "initial_epoch": 3000,
+      "target_epoch": 6000,
+      "epochs_completed": 6000,
+      "additional_epochs_completed": 3000,
+      "best": {
+        "epoch": 5700,
+        "score": [
+          0.8806250000000001,
+          0.019624696294932287
+        ],
+        "model": {
+          "path": "best_model.npz",
+          "sha256": "30d0977a32a6c7766763b4bf09082ea719ead1fabdb41e0e57aee711c7cdccf4"
+        }
+      },
+      "initial_best": {
+        "score": [
+          0.9894791666666668,
+          0.02230882754361892
+        ],
+        "epoch": 2600,
+        "model": {
+          "path": "runs/simple-d20-seed-43/best_model.npz",
+          "sha256": "d69fc5ae333480d26fb1c951754b36fb074f5442b32de269438f05715a598d01"
+        }
+      },
+      "initial_adam_state": {
+        "updates": 3000,
+        "epoch": 3000,
+        "first_moment_tensors": 12,
+        "second_moment_tensors": 12,
+        "rng": {
+          "bit_generator": "PCG64",
+          "state": {
+            "state": 232581737250460889827461960265919007678,
+            "inc": 25065611243303971628957076795638243391
+          },
+          "has_uint32": 0,
+          "uinteger": 3243412643
+        }
+      },
+      "effective_model": {
+        "architecture": [
+          35,
+          40,
+          20,
+          20,
+          20,
+          40,
+          35
+        ],
+        "activation": "tanh",
+        "output": "logistica",
+        "loss": "bce",
+        "latent_activation": "tanh",
+        "lr_scheduler": null,
+        "beta": 1.0,
+        "batch_size": 32,
+        "optimizer": {
+          "name": "adam",
+          "learning_rate": 0.002,
+          "beta1": 0.9,
+          "beta2": 0.999,
+          "optimizer_epsilon": 1e-08
+        },
+        "initialization": "auto",
+        "l2": 0.0,
+        "augmentation": null,
+        "batch_norm": null
+      },
+      "source_files": {
+        "best_model.npz": "d69fc5ae333480d26fb1c951754b36fb074f5442b32de269438f05715a598d01",
+        "config.json": "51d597c19df6a7d1bfe3ec41117708d073c6cc0baadc2b3b87313173274bc123",
+        "history.json": "9087656deecec690a029bca9329ef832d5955582a9ed6bc3a219389e26415887",
+        "last_model.npz": "c6ae8adfb41aac7f0c76e41006f81afd3b741fb506e0354f7ae45d0466e03ca3",
+        "manifest.json": "4861574bcf79afc82f3c4ebc41dee7ced995aa47885472950e1febecf209d4b0"
+      },
+      "duration_seconds": 208.70991090000007,
+      "last_model": {
+        "path": "last_model.npz",
+        "sha256": "67d13d221b34acf18e42b4df8c4133fb4f7feb049463c88e08d1520fb9320eb8"
+      }
+    },
+    {
+      "run_id": "simple-d20-seed-44",
+      "variant": "simple-d20",
+      "seed": 44,
+      "status": "completed",
+      "initial_epoch": 3000,
+      "target_epoch": 6000,
+      "epochs_completed": 6000,
+      "additional_epochs_completed": 3000,
+      "best": {
+        "epoch": 5100,
+        "score": [
+          0.8618750000000001,
+          0.019353907737460513
+        ],
+        "model": {
+          "path": "best_model.npz",
+          "sha256": "0c2bbdc2dd53ce456908ceb80124f058ee115458bb4098ec284fee20e53e02d2"
+        }
+      },
+      "initial_best": {
+        "score": [
+          1.0222916666666666,
+          0.022868992561955282
+        ],
+        "epoch": 3000,
+        "model": {
+          "path": "runs/simple-d20-seed-44/best_model.npz",
+          "sha256": "4a153e3ce4941d1ee082de619c963abaa56b3eddb544aea73e7e02fbb0ef40f4"
+        }
+      },
+      "initial_adam_state": {
+        "updates": 3000,
+        "epoch": 3000,
+        "first_moment_tensors": 12,
+        "second_moment_tensors": 12,
+        "rng": {
+          "bit_generator": "PCG64",
+          "state": {
+            "state": 19278457542429613455413020667580713523,
+            "inc": 762441968459946881146668352658223677
+          },
+          "has_uint32": 1,
+          "uinteger": 3839595417
+        }
+      },
+      "effective_model": {
+        "architecture": [
+          35,
+          40,
+          20,
+          20,
+          20,
+          40,
+          35
+        ],
+        "activation": "tanh",
+        "output": "logistica",
+        "loss": "bce",
+        "latent_activation": "tanh",
+        "lr_scheduler": null,
+        "beta": 1.0,
+        "batch_size": 32,
+        "optimizer": {
+          "name": "adam",
+          "learning_rate": 0.002,
+          "beta1": 0.9,
+          "beta2": 0.999,
+          "optimizer_epsilon": 1e-08
+        },
+        "initialization": "auto",
+        "l2": 0.0,
+        "augmentation": null,
+        "batch_norm": null
+      },
+      "source_files": {
+        "best_model.npz": "4a153e3ce4941d1ee082de619c963abaa56b3eddb544aea73e7e02fbb0ef40f4",
+        "config.json": "32b8716893897f363341ebcd395465f3a4e3174e5ddc812b2334dbfb056ae74a",
+        "history.json": "ab187caa2396c4ccb3d8367d5be1ac06aadddc893cee4025afd34a80ed3f76ec",
+        "last_model.npz": "4a153e3ce4941d1ee082de619c963abaa56b3eddb544aea73e7e02fbb0ef40f4",
+        "manifest.json": "beb724ccb2f89c3feb02af8551d89b674dafcc698d5351824a0da70368906955"
+      },
+      "duration_seconds": 202.83302850000018,
+      "last_model": {
+        "path": "last_model.npz",
+        "sha256": "641934bc627b27f06bdd40e5e5e86098b5d6f037f5d83d4f11c8b332bdd88c58"
+      }
+    }
+  ],
+  "old_mean_score": [
+    1.0135416666666668,
+    0.022816195935522702
+  ],
+  "new_mean_score": [
+    0.873125,
+    0.019573298720962275
+  ],
+  "manifest_sha256": "2b1219f100634e22025f64cc9843688e5ce7293d31acd62a077efe4641af76cc"
+}

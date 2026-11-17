@@ -1,5 +1,17 @@
 # TP5: autoencoder básico de caracteres
 
+La extensión de 1.b compara tres profundidades × cuatro anchos centrales × tres
+semillas. Protocolo, presupuesto y comandos en
+[denoising-architecture-plan.md](denoising-architecture-plan.md).
+El [informe de las 36 combinaciones](results/denoising-architectures-2026-11-17/report.md)
+selecciona la red simple con código 20 por validación; se conservan las tres
+corridas previas de la red actual con código 10 y se ejecutan 33 nuevas.
+La continuación de esa ganadora hasta 6000 épocas totales por semilla se
+describe en [denoising-continuation-plan.md](denoising-continuation-plan.md).
+El [informe de continuación](results/denoising-6000-2026-11-17/report.md) registra
+una reducción del error medio de validación de 13,85 % y mejoras en la evaluación
+independiente. Se conserva la comparación anterior con 3000 épocas.
+
 ## Ejecutar desde otra computadora
 
 Clonar el repositorio completo en la rama `feat/tp5` (o hacer `git pull` en esa

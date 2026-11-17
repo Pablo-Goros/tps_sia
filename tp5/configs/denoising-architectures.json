@@ -1,0 +1,13 @@
+{
+  "source_campaign": "results/denoising",
+  "seeds": [42, 43, 44],
+  "dimensions": [5, 10, 15, 20],
+  "encoders": {
+    "simple": [35, 40, 20],
+    "current": [35, 40, 20, 10],
+    "deeper": [35, 40, 30, 20, 10]
+  },
+  "max_epochs": 3000,
+  "evaluate_every": 100,
+  "final_seed": 20261117
+}

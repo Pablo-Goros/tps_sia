@@ -1,5 +1,7 @@
 # Preserve published campaign bytes so recorded SHA256 hashes survive checkout.
 tp5/results/denoising/** -text
+tp5/results/denoising-architectures-2026-11-17/** -text
+tp5/results/denoising-6000-2026-11-17/** -text
 tp5/results/final/** -text
 tp5/results/presentation-campaign-2026-11-10/** -text
 tp5/results/denoising-extended-6000/** -text

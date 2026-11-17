@@ -1,0 +1,88 @@
+{
+  "run_id": "simple-d20-seed-42",
+  "variant": "simple-d20",
+  "seed": 42,
+  "status": "completed",
+  "initial_epoch": 3000,
+  "target_epoch": 6000,
+  "epochs_completed": 6000,
+  "additional_epochs_completed": 3000,
+  "best": {
+    "epoch": 6000,
+    "score": [
+      0.8768750000000001,
+      0.01974129213049403
+    ],
+    "model": {
+      "path": "best_model.npz",
+      "sha256": "69e1061d9df213478c815becb703cd8b997d847ebc20df76852dec415c8e53e9"
+    }
+  },
+  "initial_best": {
+    "score": [
+      1.0288541666666668,
+      0.023270767700993913
+    ],
+    "epoch": 2900,
+    "model": {
+      "path": "runs/simple-d20-seed-42/best_model.npz",
+      "sha256": "cee300c8949b3e10fdbc8b6ce56626170d388dc16639f315311f4aa5e60c4468"
+    }
+  },
+  "initial_adam_state": {
+    "updates": 3000,
+    "epoch": 3000,
+    "first_moment_tensors": 12,
+    "second_moment_tensors": 12,
+    "rng": {
+      "bit_generator": "PCG64",
+      "state": {
+        "state": 81535446119282227309282258842068326435,
+        "inc": 332724090758049132448979897138935081983
+      },
+      "has_uint32": 0,
+      "uinteger": 3007875699
+    }
+  },
+  "effective_model": {
+    "architecture": [
+      35,
+      40,
+      20,
+      20,
+      20,
+      40,
+      35
+    ],
+    "activation": "tanh",
+    "output": "logistica",
+    "loss": "bce",
+    "latent_activation": "tanh",
+    "lr_scheduler": null,
+    "beta": 1.0,
+    "batch_size": 32,
+    "optimizer": {
+      "name": "adam",
+      "learning_rate": 0.002,
+      "beta1": 0.9,
+      "beta2": 0.999,
+      "optimizer_epsilon": 1e-08
+    },
+    "initialization": "auto",
+    "l2": 0.0,
+    "augmentation": null,
+    "batch_norm": null
+  },
+  "source_files": {
+    "best_model.npz": "cee300c8949b3e10fdbc8b6ce56626170d388dc16639f315311f4aa5e60c4468",
+    "config.json": "0db5b05db2baff285e7e00dbc5fa63beb4a815f5e2f50cb8041f48adb31ab0a3",
+    "history.json": "e102f0ef930037d8e41b7f70842bd514360e8c4108d0273366fd703d39023102",
+    "last_model.npz": "ae71c8e75694ca489acca39038e45068ee7625f9d6a99e309b355b8d3eec2cac",
+    "manifest.json": "fe6f902472f587fe2492d1a00e65c31fa2c0a1631e44276a7c5ece1fd02afbc3"
+  },
+  "duration_seconds": 216.93089959999998,
+  "last_model": {
+    "path": "last_model.npz",
+    "sha256": "69e1061d9df213478c815becb703cd8b997d847ebc20df76852dec415c8e53e9"
+  }
+}

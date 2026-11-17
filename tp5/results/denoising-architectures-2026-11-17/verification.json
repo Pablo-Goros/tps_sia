@@ -1,0 +1,345 @@
+{
+  "status": "passed",
+  "runs_verified": [
+    {
+      "run_id": "simple-d5-seed-42",
+      "validation_recomputed": [
+        1.3212499999999998,
+        0.02948745348646466
+      ],
+      "best_epoch": 2900,
+      "reused": false
+    },
+    {
+      "run_id": "simple-d5-seed-43",
+      "validation_recomputed": [
+        1.3357291666666666,
+        0.029793711026940877
+      ],
+      "best_epoch": 3000,
+      "reused": false
+    },
+    {
+      "run_id": "simple-d5-seed-44",
+      "validation_recomputed": [
+        1.3719791666666667,
+        0.03095158937163946
+      ],
+      "best_epoch": 2800,
+      "reused": false
+    },
+    {
+      "run_id": "simple-d10-seed-42",
+      "validation_recomputed": [
+        1.0942708333333335,
+        0.024452635436794035
+      ],
+      "best_epoch": 2800,
+      "reused": false
+    },
+    {
+      "run_id": "simple-d10-seed-43",
+      "validation_recomputed": [
+        1.0963541666666667,
+        0.024695416076581028
+      ],
+      "best_epoch": 2900,
+      "reused": false
+    },
+    {
+      "run_id": "simple-d10-seed-44",
+      "validation_recomputed": [
+        1.0885416666666667,
+        0.024340409570600713
+      ],
+      "best_epoch": 2800,
+      "reused": false
+    },
+    {
+      "run_id": "simple-d15-seed-42",
+      "validation_recomputed": [
+        1.0529166666666665,
+        0.023710750929500108
+      ],
+      "best_epoch": 2900,
+      "reused": false
+    },
+    {
+      "run_id": "simple-d15-seed-43",
+      "validation_recomputed": [
+        1.0811458333333333,
+        0.02410855620164792
+      ],
+      "best_epoch": 2600,
+      "reused": false
+    },
+    {
+      "run_id": "simple-d15-seed-44",
+      "validation_recomputed": [
+        1.0759375,
+        0.024151022791764416
+      ],
+      "best_epoch": 2800,
+      "reused": false
+    },
+    {
+      "run_id": "simple-d20-seed-42",
+      "validation_recomputed": [
+        1.0288541666666668,
+        0.023270767700993913
+      ],
+      "best_epoch": 2900,
+      "reused": false
+    },
+    {
+      "run_id": "simple-d20-seed-43",
+      "validation_recomputed": [
+        0.9894791666666668,
+        0.02230882754361892
+      ],
+      "best_epoch": 2600,
+      "reused": false
+    },
+    {
+      "run_id": "simple-d20-seed-44",
+      "validation_recomputed": [
+        1.0222916666666666,
+        0.022868992561955282
+      ],
+      "best_epoch": 3000,
+      "reused": false
+    },
+    {
+      "run_id": "current-d5-seed-42",
+      "validation_recomputed": [
+        1.3868749999999999,
+        0.031490150285255605
+      ],
+      "best_epoch": 3000,
+      "reused": false
+    },
+    {
+      "run_id": "current-d5-seed-43",
+      "validation_recomputed": [
+        1.4895833333333333,
+        0.0333952193991157
+      ],
+      "best_epoch": 3000,
+      "reused": false
+    },
+    {
+      "run_id": "current-d5-seed-44",
+      "validation_recomputed": [
+        1.2911458333333334,
+        0.029385369386035688
+      ],
+      "best_epoch": 2800,
+      "reused": false
+    },
+    {
+      "run_id": "current-d10-seed-42",
+      "validation_recomputed": [
+        1.2538541666666667,
+        0.028414231058554163
+      ],
+      "best_epoch": 3000,
+      "reused": true
+    },
+    {
+      "run_id": "current-d10-seed-43",
+      "validation_recomputed": [
+        1.2260416666666665,
+        0.02785771745354092
+      ],
+      "best_epoch": 2600,
+      "reused": true
+    },
+    {
+      "run_id": "current-d10-seed-44",
+      "validation_recomputed": [
+        1.2027083333333335,
+        0.027460141302224322
+      ],
+      "best_epoch": 3000,
+      "reused": true
+    },
+    {
+      "run_id": "current-d15-seed-42",
+      "validation_recomputed": [
+        1.2256250000000002,
+        0.027726708993193395
+      ],
+      "best_epoch": 2900,
+      "reused": false
+    },
+    {
+      "run_id": "current-d15-seed-43",
+      "validation_recomputed": [
+        1.2003125,
+        0.027345406775454228
+      ],
+      "best_epoch": 2600,
+      "reused": false
+    },
+    {
+      "run_id": "current-d15-seed-44",
+      "validation_recomputed": [
+        1.2446875,
+        0.028009858561081184
+      ],
+      "best_epoch": 2700,
+      "reused": false
+    },
+    {
+      "run_id": "current-d20-seed-42",
+      "validation_recomputed": [
+        1.170625,
+        0.026394123425957598
+      ],
+      "best_epoch": 2900,
+      "reused": false
+    },
+    {
+      "run_id": "current-d20-seed-43",
+      "validation_recomputed": [
+        1.1739583333333332,
+        0.026765876657087805
+      ],
+      "best_epoch": 2600,
+      "reused": false
+    },
+    {
+      "run_id": "current-d20-seed-44",
+      "validation_recomputed": [
+        1.2263541666666666,
+        0.02774575148259077
+      ],
+      "best_epoch": 2900,
+      "reused": false
+    },
+    {
+      "run_id": "deeper-d5-seed-42",
+      "validation_recomputed": [
+        1.3361458333333334,
+        0.03087040021495273
+      ],
+      "best_epoch": 2900,
+      "reused": false
+    },
+    {
+      "run_id": "deeper-d5-seed-43",
+      "validation_recomputed": [
+        1.3786458333333333,
+        0.03178856393858937
+      ],
+      "best_epoch": 2900,
+      "reused": false
+    },
+    {
+      "run_id": "deeper-d5-seed-44",
+      "validation_recomputed": [
+        1.50125,
+        0.03471103521118693
+      ],
+      "best_epoch": 2800,
+      "reused": false
+    },
+    {
+      "run_id": "deeper-d10-seed-42",
+      "validation_recomputed": [
+        1.2302083333333333,
+        0.02810833724529334
+      ],
+      "best_epoch": 2800,
+      "reused": false
+    },
+    {
+      "run_id": "deeper-d10-seed-43",
+      "validation_recomputed": [
+        1.0676041666666667,
+        0.024342504768921636
+      ],
+      "best_epoch": 2600,
+      "reused": false
+    },
+    {
+      "run_id": "deeper-d10-seed-44",
+      "validation_recomputed": [
+        1.280625,
+        0.02903912538276542
+      ],
+      "best_epoch": 2800,
+      "reused": false
+    },
+    {
+      "run_id": "deeper-d15-seed-42",
+      "validation_recomputed": [
+        1.14875,
+        0.026254331370985724
+      ],
+      "best_epoch": 2900,
+      "reused": false
+    },
+    {
+      "run_id": "deeper-d15-seed-43",
+      "validation_recomputed": [
+        1.1266666666666667,
+        0.026064259796116773
+      ],
+      "best_epoch": 2900,
+      "reused": false
+    },
+    {
+      "run_id": "deeper-d15-seed-44",
+      "validation_recomputed": [
+        1.1198958333333333,
+        0.025586732281392088
+      ],
+      "best_epoch": 2800,
+      "reused": false
+    },
+    {
+      "run_id": "deeper-d20-seed-42",
+      "validation_recomputed": [
+        1.1866666666666665,
+        0.026972912784121356
+      ],
+      "best_epoch": 2900,
+      "reused": false
+    },
+    {
+      "run_id": "deeper-d20-seed-43",
+      "validation_recomputed": [
+        1.090625,
+        0.02491103274251974
+      ],
+      "best_epoch": 2600,
+      "reused": false
+    },
+    {
+      "run_id": "deeper-d20-seed-44",
+      "validation_recomputed": [
+        1.26,
+        0.028642078873931498
+      ],
+      "best_epoch": 2800,
+      "reused": false
+    }
+  ],
+  "new_runs": 33,
+  "reused_runs": 3,
+  "new_epochs": 99000,
+  "represented_epochs": 108000,
+  "original_files_preserved": 80,
+  "selection_sha256": "819a456051ebc444fddba6d28761343d7ef2d658b2f604116f08236694ee4660",
+  "evaluation_sha256": "ebdabcd6d2f621dd7bc085bb873a272dbffa2be0b818e5b04e63c904af6378e2",
+  "evaluation_reloaded": {
+    "status": "passed",
+    "arrays_identical": 19,
+    "csv_files_identical": 3,
+    "metrics_equal": true
+  },
+  "reload_comparison_sha256": "2519aa91ba2171667708fcca87555faf9318140469d344f39f343e97f24922c6",
+  "tests_passed": 40,
+  "test_log_sha256": "3fa6b974a692dd0da9740894754832d8b3e6a131ff2236dc702a4bcb97a8c7a3"
+}

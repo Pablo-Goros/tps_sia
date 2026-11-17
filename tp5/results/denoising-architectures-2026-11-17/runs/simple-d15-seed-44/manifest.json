@@ -1,0 +1,54 @@
+{
+  "run_id": "simple-d15-seed-44",
+  "variant": "simple-d15",
+  "seed": 44,
+  "status": "completed",
+  "epochs_completed": 3000,
+  "best": {
+    "score": [
+      1.0759375,
+      0.024151022791764416
+    ],
+    "epoch": 2800,
+    "model": {
+      "path": "runs/simple-d15-seed-44/best_model.npz",
+      "sha256": "86d6d9dcaaa9104344ac92318427c30254eff2dcfbc5d5616fd15feae94eaef9"
+    }
+  },
+  "effective_model": {
+    "architecture": [
+      35,
+      40,
+      20,
+      15,
+      20,
+      40,
+      35
+    ],
+    "activation": "tanh",
+    "output": "logistica",
+    "loss": "bce",
+    "latent_activation": "tanh",
+    "lr_scheduler": null,
+    "beta": 1.0,
+    "batch_size": 32,
+    "optimizer": {
+      "name": "adam",
+      "learning_rate": 0.002,
+      "beta1": 0.9,
+      "beta2": 0.999,
+      "optimizer_epsilon": 1e-08
+    },
+    "initialization": "auto",
+    "l2": 0.0,
+    "augmentation": null,
+    "batch_norm": null
+  },
+  "duration_seconds": 53.120056900000236,
+  "last_model": {
+    "path": "runs/simple-d15-seed-44/last_model.npz",
+    "sha256": "6e7dba51a67915dbde7248046caf4e2365b627843a6f4c13344b77c4ad31d30e"
+  },
+  "reused": false,
+  "new_epochs_completed": 3000
+}

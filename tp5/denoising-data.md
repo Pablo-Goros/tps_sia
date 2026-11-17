@@ -1,5 +1,12 @@
 # Datos y reproducción del ejercicio 1.b
 
+La comparación posterior del 2026-11-17 explora tres profundidades y cuatro
+anchos centrales con tres semillas. Ver su
+[plan y comandos](denoising-architecture-plan.md) y el
+[informe de resultados](results/denoising-architectures-2026-11-17/report.md).
+Este documento sigue describiendo la campaña original de dos variantes,
+conservada como referencia.
+
 Este documento describe las interfaces y archivos para reutilizar la evidencia.
 El flujo de entrenamiento y evaluación no genera gráficos; las figuras salen del
 script aparte descrito más abajo, y el informe está en `results/denoising/report.md`. El fundamento

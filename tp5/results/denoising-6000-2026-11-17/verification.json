@@ -1,0 +1,20 @@
+{
+  "status": "passed",
+  "additional_epochs": 9000,
+  "total_epochs_per_seed": 6000,
+  "source_files_preserved": 231,
+  "history_prefix_preserved": true,
+  "adam_updates_per_seed": 6000,
+  "validation_recomputed": true,
+  "selection_sha256": "41920cf47cb60ccbb34409f6e8e570b85d508b1f96ee9db50d5df666c572b81d",
+  "evaluation_reload": {
+    "status": "passed",
+    "arrays_identical": 11,
+    "metrics_equal": true,
+    "csv_equal": true,
+    "metrics_sha256": "e53d05182f6847238efb686b5e1cc0969f63f8b1250595d5f997293bc9b612ef",
+    "reloaded_metrics_sha256": "e53d05182f6847238efb686b5e1cc0969f63f8b1250595d5f997293bc9b612ef"
+  },
+  "tests_passed": 41,
+  "test_log_sha256": "201ff25aed2ffd5a7518cf246874afc707f129930aaef02a842f7d0d8c7ec1c1"
+}
