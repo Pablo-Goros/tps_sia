@@ -1,5 +1,11 @@
 # TP5 — Planes de autoencoders
 
+Continuación autorizada de la ganadora de 1.b hasta 6000 épocas por semilla:
+[plan](denoising-continuation-plan.md). Tres semillas desde sus checkpoints de
+época 3000; presupuesto nuevo de 9000 épocas, sin cambiar hiperparámetros.
+Completada: validación media 1,01354 → 0,87313; representante semilla 44,
+checkpoint 5100. [Informe](results/denoising-6000-2026-11-17/report.md).
+
 Extensión autorizada de 1.b el 2026-11-17: [comparación de tres arquitecturas y
 cuatro dimensiones](denoising-architecture-plan.md), con tres semillas por
 variante (36 combinaciones; 33 entrenamientos nuevos y tres reutilizados).

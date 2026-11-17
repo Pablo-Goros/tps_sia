@@ -1,0 +1,36 @@
+bad-seed-1: failed max_errors=None source=C:\Users\Pablo\AppData\Local\Temp\tmp2f71ok8q\comparison\bad-seed-1
+bad-seed-1: failed max_errors=None source=C:\Users\Pablo\AppData\Local\Temp\tmp2f71ok8q\comparison\bad-seed-1
+bad-seed-1: failed max_errors=None source=C:\Users\Pablo\AppData\Local\Temp\tmp2f71ok8q\pending\bad-seed-1
+Evaluation epoch=0 max_errors=23 within=0.000
+Evaluation epoch=1 max_errors=24 within=0.000
+base-seed-1: completed max_errors=24 source=C:\Users\Pablo\AppData\Local\Temp\tmpg_cpewag\comparison\base-seed-1
+Evaluation epoch=0 max_errors=24 within=0.000
+Evaluation epoch=1 max_errors=23 within=0.000
+base-seed-2: completed max_errors=23 source=C:\Users\Pablo\AppData\Local\Temp\tmpg_cpewag\comparison\base-seed-2
+base-seed-1: completed max_errors=24 source=C:\Users\Pablo\AppData\Local\Temp\tmpg_cpewag\comparison\base-seed-1
+base-seed-2: completed max_errors=23 source=C:\Users\Pablo\AppData\Local\Temp\tmpg_cpewag\comparison\base-seed-2
+base-seed-1: completed max_errors=24 source=C:\Users\Pablo\AppData\Local\Temp\tmpg_cpewag\moved-comparison\base-seed-1
+base-seed-2: completed max_errors=23 source=C:\Users\Pablo\AppData\Local\Temp\tmpg_cpewag\moved-comparison\base-seed-2
+base-seed-1: completed max_errors=24 source=C:\Users\Pablo\AppData\Local\Temp\tmpg_cpewag\moved-comparison\base-seed-1
+base-seed-2: completed max_errors=23 source=C:\Users\Pablo\AppData\Local\Temp\tmpg_cpewag\moved-comparison\base-seed-2
+Evaluation epoch=0 max_errors=25 within=0.000
+Evaluation epoch=1 max_errors=23 within=0.000
+continued: epoch=1 max=23 within=0.00000
+Evaluation epoch=0 max_errors=25 within=0.000
+Evaluation epoch=2 max_errors=22 within=0.000
+continued: epoch=2 max=22 within=0.00000
+continued: epoch=4 max=23 within=0.00000
+Evaluation epoch=0 max_errors=25 within=0.000
+Evaluation epoch=2 max_errors=22 within=0.000
+continued: epoch=2 max=22 within=0.00000
+continued: epoch=4 max=22 within=0.00000
+run epoch=0 validation_errors=17.60417
+run epoch=1 validation_errors=17.48958
+run epoch=2 validation_errors=17.43750
+Evaluation epoch=0 max_errors=25 within=0.000
+Evaluation epoch=2 max_errors=24 within=0.000
+Evaluation epoch=4 max_errors=25 within=0.000
+----------------------------------------------------------------------
+Ran 41 tests in 83.863s
+
+OK

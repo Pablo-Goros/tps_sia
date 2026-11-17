@@ -1,0 +1,8 @@
+{
+  "status": "passed",
+  "arrays_identical": 11,
+  "metrics_equal": true,
+  "csv_equal": true,
+  "metrics_sha256": "e53d05182f6847238efb686b5e1cc0969f63f8b1250595d5f997293bc9b612ef",
+  "reloaded_metrics_sha256": "e53d05182f6847238efb686b5e1cc0969f63f8b1250595d5f997293bc9b612ef"
+}

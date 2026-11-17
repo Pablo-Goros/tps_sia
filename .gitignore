@@ -30,5 +30,6 @@ docs/*
 /tp5/results/*
 !/tp5/results/denoising/
 !/tp5/results/denoising-architectures-2026-11-17/
+!/tp5/results/denoising-6000-2026-11-17/
 !/tp5/results/final/
 !/tp5/results/presentation-campaign-2026-11-10/
