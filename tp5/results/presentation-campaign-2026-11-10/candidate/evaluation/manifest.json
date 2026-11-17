@@ -1,0 +1,11 @@
+{
+  "model": {
+    "path": "C:\\Users\\Pablo\\Documents\\Projects\\facultad\\sistemas-de-inteligencia-artificial\\tps_sia\\tp5\\results\\presentation-campaign-2026-11-10\\candidate\\model.npz",
+    "sha256": "e39ab072ed146e11a337d82e5f625a775d8cc73628d90355746a8ece653fa85e"
+  },
+  "dataset": {
+    "path": "C:\\Users\\Pablo\\Documents\\Projects\\facultad\\sistemas-de-inteligencia-artificial\\tps_sia\\tp5\\data\\font.h",
+    "sha256": "e2073997b8161ac11ef5ea562c1f406999c0a0f1bbff4b39115d83170e3e8950"
+  },
+  "mode": "evaluation"
+}

@@ -56,7 +56,15 @@ class MLP:
                  tamano_lote: int | None = 32, inicializacion: str = "auto",
                  semilla: int = 0, optimizador: Optimizador | None = None,
                  l2: float = 0.0, augmentation: dict | None = None,
-                 lr_scheduler: dict | None = None, batch_norm: dict | None = None) -> None:
+                 lr_scheduler: dict | None = None, batch_norm: dict | None = None,
+                 loss: str = 'half_squared_error', linear_hidden_layer: int | None = None) -> None:
+        if loss not in ('half_squared_error', 'bce') or (loss == 'bce' and salida != 'logistica'):
+            raise ValueError('BCE requires logistic output.')
+        if linear_hidden_layer is not None and (type(linear_hidden_layer) is not int
+                or not 0 <= linear_hidden_layer < len(arquitectura)-2 or batch_norm):
+            raise ValueError('Linear hidden layer must index a hidden layer without BatchNorm.')
+        self.loss = loss
+        self.linear_hidden_layer = linear_hidden_layer
         if (len(arquitectura) < 2 or any(isinstance(n, (bool, np.bool_)) or
                 not isinstance(n, (int, np.integer)) or n <= 0 for n in arquitectura)):
             raise ValueError("La arquitectura debe contener al menos dos tamaños enteros positivos")
@@ -148,6 +156,9 @@ class MLP:
             raise ValueError("Cada fila de y debe sumar 1 para softmax (one-hot o distribución)")
         return y
 
+    def hidden_activation(self, index):
+        return construir_activacion('lineal') if index == self.linear_hidden_layer else self.activacion
+
     def _forward(self, X: np.ndarray, *, training=False, update_running=False,
                  bn_cache=None) -> tuple[list[np.ndarray], list[np.ndarray]]:
         activaciones, nets = [X], []
@@ -174,7 +185,7 @@ class MLP:
                 h = self.bn_gamma[i]*normalized + self.bn_beta[i]
             nets.append(h)
             if i < len(self.pesos) - 1:
-                o = self.activacion.theta(h)
+                o = self.hidden_activation(i).theta(h)
             elif self.salida == "logistica":
                 o = self.activacion_salida.theta(h)
             else:
@@ -196,6 +207,9 @@ class MLP:
 
     def _costo(self, y: np.ndarray, o: np.ndarray, h: np.ndarray) -> float:
         if self.salida == "logistica":
+            if self.loss == 'bce':
+                logits = 2 * self.beta * h
+                return float(np.mean(np.sum(np.logaddexp(0, logits) - y*logits, axis=1)))
             return float(0.5 * np.mean(np.sum((o - y) ** 2, axis=1)))
         # Log-softmax estable: no se recortan probabilidades ni se altera su gradiente.
         z = h - h.max(axis=1, keepdims=True)
@@ -214,7 +228,7 @@ class MLP:
                              update_running=update_running, bn_cache=cache)
         delta = (a[-1] - y) / len(X)
         if self.salida == "logistica":
-            delta *= self.activacion_salida.dtheta(h[-1], a[-1])
+            delta *= 2*self.beta if self.loss == 'bce' else self.activacion_salida.dtheta(h[-1], a[-1])
         dw, db = [None] * len(self.pesos), [None] * len(self.biases)
         dg, dt = [None]*len(self.bn_gamma), [None]*len(self.bn_beta)
         for i in range(len(self.pesos) - 1, -1, -1):
@@ -225,7 +239,7 @@ class MLP:
                 dw[i] += self.l2 * self.pesos[i]
             db[i] = delta.sum(axis=0)
             if i > 0:
-                delta = (delta @ self.pesos[i].T) * self.activacion.dtheta(h[i - 1], a[i])
+                delta = (delta @ self.pesos[i].T) * self.hidden_activation(i-1).dtheta(h[i - 1], a[i])
         return dw + db + dg + dt
 
     def backprop(self, X: np.ndarray, y: np.ndarray) -> list[np.ndarray]:
@@ -381,7 +395,7 @@ class MLP:
         selected = [tuple(int(i) for i in index) for index in selected]
         config = {"shuffle": bool(mezclar), "epsilon": float(epsilon), "epsilon_quantity": "training_loss",
                   "patience": patience, "min_delta": float(min_delta), "monitor": monitor,
-                  "loss": "cross_entropy" if self.salida == "softmax" else "half_squared_error",
+                  "loss": "cross_entropy" if self.salida == "softmax" else self.loss,
                   "gradient_reduction": "mean_per_sample", "learning_rate_schedule": "constant",
                   "strategy": "batch" if self.tamano_lote is None else "online" if self.tamano_lote == 1 else "mini_batch",
                   "batch_size": self.tamano_lote, "validation": X_val is not None}
@@ -395,7 +409,7 @@ class MLP:
                 raise ValueError('BatchNorm training requires at least2 samples.')
             config['batch_norm'] = self.batch_norm
         if self.lr_scheduler:
-            if X_val is None:
+            if X_val is None and self.lr_scheduler['name'] == 'reduce_on_plateau':
                 raise ValueError('Plateau scheduler requires validation data.')
             config['learning_rate_schedule'] = self.lr_scheduler
         if self.training_config and config != self.training_config:
@@ -486,7 +500,16 @@ class MLP:
             hist.updates.append(self.updates_completed)
             hist.learning_rate.append(rate)
             if self.lr_scheduler:
-                next_rate = plateau_step(self.lr_scheduler, self.scheduler_state, val_metrics[0], rate)
+                if self.lr_scheduler['name'] == 'cosine':
+                    import math
+                    horizon = self.lr_scheduler['total_epochs']
+                    initial_rate = self.scheduler_state.setdefault('initial_lr', rate)
+                    # The terminal zero is a boundary, not an additional update.
+                    t = min(hist.epocas_corridas, horizon-1)
+                    next_rate = self.lr_scheduler['min_lr'] + (initial_rate-self.lr_scheduler['min_lr'])*(1+math.cos(math.pi*t/horizon))/2
+                    self.scheduler_state['current_lr'] = next_rate
+                else:
+                    next_rate = plateau_step(self.lr_scheduler, self.scheduler_state, val_metrics[0], rate)
                 if hasattr(self.optimizador, 'learning_rate'):
                     self.optimizador.learning_rate = next_rate
                 else:
@@ -552,6 +575,7 @@ class MLP:
             "augmentation": self.augmentation,
             "lr_scheduler": self.lr_scheduler,
             "batch_norm": self.batch_norm,
+            "loss": self.loss, "linear_hidden_layer": self.linear_hidden_layer,
             "optimizador": self.optimizador.configuracion(),
             "rng": self.rng.bit_generator.state, "historia": self.historia.to_dict(),
         }

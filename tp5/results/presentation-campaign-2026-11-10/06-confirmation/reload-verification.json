@@ -1,0 +1,62 @@
+[
+  {
+    "run_id": "confirmation-reference-seed-45",
+    "sha256": "e5f069593898a566da085b309abd8e1973f47e72e7feb7191353291f4c6a16c0",
+    "metrics_reproduced": true,
+    "predictions_codes_and_rates_verified": true
+  },
+  {
+    "run_id": "confirmation-reference-seed-46",
+    "sha256": "0f5a9bbf35acdc732809c6f37f9b02b27857f5a189810f7ef05ae7dc89611860",
+    "metrics_reproduced": true,
+    "predictions_codes_and_rates_verified": true
+  },
+  {
+    "run_id": "confirmation-reference-seed-47",
+    "sha256": "f83c9ed55a68353c76e7e23f3812af0990a85b7311fe6e2f29e0767092916d8c",
+    "metrics_reproduced": true,
+    "predictions_codes_and_rates_verified": true
+  },
+  {
+    "run_id": "confirmation-reference-seed-48",
+    "sha256": "39bc1c1ab91315f367d961cd6cf9d429c079023366d10471e9a4faea5ba07c15",
+    "metrics_reproduced": true,
+    "predictions_codes_and_rates_verified": true
+  },
+  {
+    "run_id": "confirmation-reference-seed-49",
+    "sha256": "0c501cba1607298d7f03d2d7738f1f71ed207bec782ce1051335827e35dc6055",
+    "metrics_reproduced": true,
+    "predictions_codes_and_rates_verified": true
+  },
+  {
+    "run_id": "confirmation-finalist-seed-45",
+    "sha256": "39b8469fbcd1eeed6875a8f957fbce2dde9aa364e2fbe0049755126e7ca85f14",
+    "metrics_reproduced": true,
+    "predictions_codes_and_rates_verified": true
+  },
+  {
+    "run_id": "confirmation-finalist-seed-46",
+    "sha256": "afaaa5f50a1de9281eb0fc75ea2bbf6fe23ef58796244e101b16a1ccec06fe61",
+    "metrics_reproduced": true,
+    "predictions_codes_and_rates_verified": true
+  },
+  {
+    "run_id": "confirmation-finalist-seed-47",
+    "sha256": "9c4bdf7bcf185770ce99291dfa29109774441276c10f43f754965502c3541414",
+    "metrics_reproduced": true,
+    "predictions_codes_and_rates_verified": true
+  },
+  {
+    "run_id": "confirmation-finalist-seed-48",
+    "sha256": "6bb697cc4184c301197c6b54cba5f2ef8a01737a812301d3b4249f236e896ba5",
+    "metrics_reproduced": true,
+    "predictions_codes_and_rates_verified": true
+  },
+  {
+    "run_id": "confirmation-finalist-seed-49",
+    "sha256": "e39ab072ed146e11a337d82e5f625a775d8cc73628d90355746a8ece653fa85e",
+    "metrics_reproduced": true,
+    "predictions_codes_and_rates_verified": true
+  }
+]

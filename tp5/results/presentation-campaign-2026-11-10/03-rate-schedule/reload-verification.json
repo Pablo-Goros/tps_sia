@@ -1,0 +1,74 @@
+[
+  {
+    "run_id": "bce-tanh-adam-seed-42",
+    "sha256": "bcbe74b18c63c3dc5a2f8220deb040e207a909e0cacd8f3276873cb63a7cf15a",
+    "metrics_reproduced": true,
+    "predictions_codes_and_rates_verified": true
+  },
+  {
+    "run_id": "bce-tanh-adam-seed-43",
+    "sha256": "37123947ba939d622819dbb0762ea9e78075f87abbf68c9ea710ce51ba81df7d",
+    "metrics_reproduced": true,
+    "predictions_codes_and_rates_verified": true
+  },
+  {
+    "run_id": "bce-tanh-adam-seed-44",
+    "sha256": "a4b08a24db6c5b9a01e52a2324169b3e9f1cae027358c5def3834813f9192d3b",
+    "metrics_reproduced": true,
+    "predictions_codes_and_rates_verified": true
+  },
+  {
+    "run_id": "bce-tanh-adam-lr-20-cosine-seed-42",
+    "sha256": "8c23ca7275798530180b828c3fd16b4d0f68b6d85cd98bb2a374104b7e4a409e",
+    "metrics_reproduced": true,
+    "predictions_codes_and_rates_verified": true
+  },
+  {
+    "run_id": "bce-tanh-adam-lr-20-cosine-seed-43",
+    "sha256": "a7db4eac71e4d236d73af03625eb8d454523c528b23edc4a42b44c05e184119a",
+    "metrics_reproduced": true,
+    "predictions_codes_and_rates_verified": true
+  },
+  {
+    "run_id": "bce-tanh-adam-lr-20-cosine-seed-44",
+    "sha256": "0feec457f7d3e54ddaf8755622777c884cb381b87b0a3017b1742e38c93acceb",
+    "metrics_reproduced": true,
+    "predictions_codes_and_rates_verified": true
+  },
+  {
+    "run_id": "bce-tanh-adam-lr-30-constant-seed-42",
+    "sha256": "e64581df79177a98d57a7a808229f5ec65950bd7c9f8387e6b58123dab03b2ff",
+    "metrics_reproduced": true,
+    "predictions_codes_and_rates_verified": true
+  },
+  {
+    "run_id": "bce-tanh-adam-lr-30-constant-seed-43",
+    "sha256": "d48aeabff0bba2882bd4e6a52a92c13542288223061f5215a7805c6a2ba65aae",
+    "metrics_reproduced": true,
+    "predictions_codes_and_rates_verified": true
+  },
+  {
+    "run_id": "bce-tanh-adam-lr-30-constant-seed-44",
+    "sha256": "3699be31bc394ed17d7732cb9061f8215602f1a30c4c86bb458b90f9791d894e",
+    "metrics_reproduced": true,
+    "predictions_codes_and_rates_verified": true
+  },
+  {
+    "run_id": "bce-tanh-adam-lr-30-cosine-seed-42",
+    "sha256": "3bc8e2432f02d26e6f7f1f5054e62f6ee6b4573dca362b0a958225e219aebeed",
+    "metrics_reproduced": true,
+    "predictions_codes_and_rates_verified": true
+  },
+  {
+    "run_id": "bce-tanh-adam-lr-30-cosine-seed-43",
+    "sha256": "93e9c5f1c8a7c6d3c93c7457f9c21375ebf5054d05fd1a40da550407fc8e06e0",
+    "metrics_reproduced": true,
+    "predictions_codes_and_rates_verified": true
+  },
+  {
+    "run_id": "bce-tanh-adam-lr-30-cosine-seed-44",
+    "sha256": "4f1ba45025aad0bbc40b2385924ebbc8250ef86c83421662dc4b1f243cc49b0c",
+    "metrics_reproduced": true,
+    "predictions_codes_and_rates_verified": true
+  }
+]

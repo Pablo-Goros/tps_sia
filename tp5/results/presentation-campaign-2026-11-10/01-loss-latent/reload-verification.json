@@ -1,0 +1,74 @@
+[
+  {
+    "run_id": "reference-seed-42",
+    "sha256": "b2338480d43cadc09978eaca031bfe52eeec26a107360f3a9ae509177d45a568",
+    "metrics_reproduced": true,
+    "predictions_codes_and_rates_verified": true
+  },
+  {
+    "run_id": "reference-seed-43",
+    "sha256": "bb76058fb6d163bc2ffa8a5d58fd047e2a9698287315f76b4f39738d8435a7b2",
+    "metrics_reproduced": true,
+    "predictions_codes_and_rates_verified": true
+  },
+  {
+    "run_id": "reference-seed-44",
+    "sha256": "f26201c684a7220d9c6dfd79cf760e720d3f2a40a992e871da8a8d6f00ad8fd8",
+    "metrics_reproduced": true,
+    "predictions_codes_and_rates_verified": true
+  },
+  {
+    "run_id": "bce-tanh-seed-42",
+    "sha256": "f86db076a5564ba0c71380138827ee2cc36e72732ebcf80fae9ef0151eeb2a63",
+    "metrics_reproduced": true,
+    "predictions_codes_and_rates_verified": true
+  },
+  {
+    "run_id": "bce-tanh-seed-43",
+    "sha256": "0d5212ea635eeb6269843a4758ba13c6e32f4fdef235ac919310b9bbec271049",
+    "metrics_reproduced": true,
+    "predictions_codes_and_rates_verified": true
+  },
+  {
+    "run_id": "bce-tanh-seed-44",
+    "sha256": "cd9b61c355cdf613a158b66fcad55eec3a94f0261c0815f60a54d9b506f71d8d",
+    "metrics_reproduced": true,
+    "predictions_codes_and_rates_verified": true
+  },
+  {
+    "run_id": "squared-linear-seed-42",
+    "sha256": "c25cf1922b8e7d92c1939f063534bc308ab03ade5877e8461b64d78ace56e18e",
+    "metrics_reproduced": true,
+    "predictions_codes_and_rates_verified": true
+  },
+  {
+    "run_id": "squared-linear-seed-43",
+    "sha256": "6cc10989df79ff6c5cfb47cf20a0f21a0d3e26bfeead43c4dfa94946b14bf231",
+    "metrics_reproduced": true,
+    "predictions_codes_and_rates_verified": true
+  },
+  {
+    "run_id": "squared-linear-seed-44",
+    "sha256": "749a0770f6d15df258b3dd8b976da5db94d8a2a2a50f97bf0f0eeefb5768a5b0",
+    "metrics_reproduced": true,
+    "predictions_codes_and_rates_verified": true
+  },
+  {
+    "run_id": "bce-linear-seed-42",
+    "sha256": "f52980b6647b3e10eaa33364336c681b6667cca66227376b8a710ad79ae09799",
+    "metrics_reproduced": true,
+    "predictions_codes_and_rates_verified": true
+  },
+  {
+    "run_id": "bce-linear-seed-43",
+    "sha256": "24ef9d08a524a567fba722548a6421bac4cb59ba92a8d5f4e322f4ae3665310d",
+    "metrics_reproduced": true,
+    "predictions_codes_and_rates_verified": true
+  },
+  {
+    "run_id": "bce-linear-seed-44",
+    "sha256": "2a976927d293d48bf24e838872052ad024985b14021f96e56d3aab368b0ec278",
+    "metrics_reproduced": true,
+    "predictions_codes_and_rates_verified": true
+  }
+]

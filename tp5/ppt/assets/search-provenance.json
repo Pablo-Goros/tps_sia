@@ -1,0 +1,85 @@
+{
+  "design_source": "tps_sia/tp5/configs/comparison-broad.json",
+  "architectures": [
+    [
+      35,
+      20,
+      2,
+      20,
+      35
+    ],
+    [
+      35,
+      40,
+      2,
+      40,
+      35
+    ],
+    [
+      35,
+      60,
+      2,
+      60,
+      35
+    ],
+    [
+      35,
+      30,
+      15,
+      2,
+      15,
+      30,
+      35
+    ],
+    [
+      35,
+      40,
+      20,
+      10,
+      2,
+      10,
+      20,
+      40,
+      35
+    ]
+  ],
+  "optimizer_rates": {
+    "adam": [
+      0.0005,
+      0.001,
+      0.002
+    ],
+    "momentum": [
+      0.02,
+      0.05,
+      0.1
+    ],
+    "rmsprop": [
+      0.0005,
+      0.001,
+      0.002
+    ],
+    "sgd": [
+      0.01,
+      0.03,
+      0.05
+    ]
+  },
+  "seeds": [
+    42,
+    43,
+    44
+  ],
+  "configurations": 60,
+  "runs": 180,
+  "full_cross_verified": true,
+  "result_source": "tps_sia/tp5/comparison.md, Criterio y resultados",
+  "best_variant_mean_max_pixel_errors": [
+    4,
+    4.3333,
+    4.6667,
+    2,
+    1.6667
+  ],
+  "historical_models_recomputed": false
+}

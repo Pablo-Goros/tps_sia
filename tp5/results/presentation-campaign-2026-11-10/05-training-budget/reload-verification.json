@@ -1,0 +1,56 @@
+[
+  {
+    "run_id": "bce-tanh-adam-seed-42",
+    "sha256": "bcbe74b18c63c3dc5a2f8220deb040e207a909e0cacd8f3276873cb63a7cf15a",
+    "metrics_reproduced": true,
+    "predictions_codes_and_rates_verified": true
+  },
+  {
+    "run_id": "bce-tanh-adam-seed-43",
+    "sha256": "37123947ba939d622819dbb0762ea9e78075f87abbf68c9ea710ce51ba81df7d",
+    "metrics_reproduced": true,
+    "predictions_codes_and_rates_verified": true
+  },
+  {
+    "run_id": "bce-tanh-adam-seed-44",
+    "sha256": "a4b08a24db6c5b9a01e52a2324169b3e9f1cae027358c5def3834813f9192d3b",
+    "metrics_reproduced": true,
+    "predictions_codes_and_rates_verified": true
+  },
+  {
+    "run_id": "bce-tanh-adam-long-constant-seed-42",
+    "sha256": "69d17364a990e6f2760bbb1c9f5f96bb715bf501620581070a78998d4aa5e8d0",
+    "metrics_reproduced": true,
+    "predictions_codes_and_rates_verified": true
+  },
+  {
+    "run_id": "bce-tanh-adam-long-constant-seed-43",
+    "sha256": "7ee4aff22eaa6eb7573d3df4920975a3545726f1c4a994d03c93b481fc3c33c9",
+    "metrics_reproduced": true,
+    "predictions_codes_and_rates_verified": true
+  },
+  {
+    "run_id": "bce-tanh-adam-long-constant-seed-44",
+    "sha256": "c43257aa0bf0a160001f9ff9b2c5891837eef3e102021c9a7071568209028599",
+    "metrics_reproduced": true,
+    "predictions_codes_and_rates_verified": true
+  },
+  {
+    "run_id": "bce-tanh-adam-long-cosine-seed-42",
+    "sha256": "eca15cfc63a4508f6407233c8e466f09e0983aa26a45ff41147a6e743adb23a1",
+    "metrics_reproduced": true,
+    "predictions_codes_and_rates_verified": true
+  },
+  {
+    "run_id": "bce-tanh-adam-long-cosine-seed-43",
+    "sha256": "b5c75151d87d2691a6c70838abe35254b3f279b1bd54ee224e56c9f94d4bd8d1",
+    "metrics_reproduced": true,
+    "predictions_codes_and_rates_verified": true
+  },
+  {
+    "run_id": "bce-tanh-adam-long-cosine-seed-44",
+    "sha256": "daf4fd4e228ed2cb01fb74813207aae777c2bb3c157f0165e79f62b0b27ff133",
+    "metrics_reproduced": true,
+    "predictions_codes_and_rates_verified": true
+  }
+]

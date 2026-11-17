@@ -26,6 +26,8 @@ tp3/presentation-content.md
 tp3/presentation-plan.md
 docs/*
 
-# Local TP5 experiment artifacts, except the published exercise 1.b campaign
+# Keep new experiments local; publish the completed TP5 campaigns.
 /tp5/results/*
 !/tp5/results/denoising/
+!/tp5/results/final/
+!/tp5/results/presentation-campaign-2026-11-10/

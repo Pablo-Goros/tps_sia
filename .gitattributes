@@ -1,2 +1,6 @@
 # Preserve published campaign bytes so recorded SHA256 hashes survive checkout.
 tp5/results/denoising/** -text
+tp5/results/final/** -text
+tp5/results/presentation-campaign-2026-11-10/** -text
+# The published campaigns recorded font.h with CRLF, on every platform.
+tp5/data/font.h text eol=crlf

@@ -6,6 +6,12 @@ import math
 def validate_scheduler(config):
     if config is None:
         return None
+    if isinstance(config, dict) and config.get('name') == 'cosine':
+        if set(config) != {'name', 'total_epochs', 'min_lr'} or type(config['total_epochs']) is not int or config['total_epochs'] < 2:
+            raise ValueError('Cosine requires total_epochs >= 2 and min_lr.')
+        if isinstance(config['min_lr'], bool) or not isinstance(config['min_lr'], (int, float)) or not math.isfinite(config['min_lr']) or config['min_lr'] < 0:
+            raise ValueError('Cosine min_lr must be finite and nonnegative.')
+        return copy.deepcopy(config)
     defaults = {'name': 'reduce_on_plateau', 'factor': 0.5, 'patience': 3,
                 'min_lr': 0.001875, 'min_delta': 0.0001}
     if not isinstance(config, dict) or set(config) - set(defaults):

@@ -1,0 +1,79 @@
+{
+  "learning_rate": {
+    "source": "tps_sia/tp5/comparison.md, Tasas fijas cercanas de RMSProp",
+    "values": [
+      {
+        "lr": 0.0015,
+        "successes": 0,
+        "runs": 3
+      },
+      {
+        "lr": 0.002,
+        "successes": 1,
+        "runs": 3
+      },
+      {
+        "lr": 0.0025,
+        "successes": 1,
+        "runs": 3
+      }
+    ],
+    "historical_artifacts_available": false
+  },
+  "gradient": {
+    "kind": "analytical illustration, not measured training gradients",
+    "output": "p=sigmoid(u), u=2*beta*h",
+    "quadratic": "L=0.5*(p-y)^2; dL/du=(p-y)*p*(1-p)",
+    "bce": "dL/du=p-y",
+    "target": 1
+  },
+  "loss_result": {
+    "source": "tps_sia/tp5/results/presentation-campaign-2026-11-10/01-loss-latent/summary.json",
+    "control": {
+      "variant": "reference",
+      "runs": 3,
+      "completed": 3,
+      "failed": 0,
+      "interrupted": 0,
+      "not_run": 0,
+      "success_fraction": 0.3333333333333333,
+      "max_pixel_errors_mean": 1.6666666666666667,
+      "max_pixel_errors_std": 0.4714045207910317,
+      "mean_pixel_errors_mean": 0.4583333333333333,
+      "mean_pixel_errors_std": 0.01473139127471974,
+      "mse_per_pixel_mean": 0.013156959077479097,
+      "mse_per_pixel_std": 0.00036681064202202313,
+      "exact_fraction_mean": 0.5729166666666666,
+      "exact_fraction_std": 0.01473139127471974,
+      "within_tolerance_fraction_mean": 0.96875,
+      "within_tolerance_fraction_std": 0.02551551815399144,
+      "epochs_completed_mean": 2733.3333333333335,
+      "epochs_completed_std": 377.12361663282536,
+      "duration_seconds_mean": 31.192144266666674,
+      "duration_seconds_std": 6.442241650112066
+    },
+    "bce": {
+      "variant": "bce-tanh",
+      "runs": 3,
+      "completed": 3,
+      "failed": 0,
+      "interrupted": 0,
+      "not_run": 0,
+      "success_fraction": 1.0,
+      "max_pixel_errors_mean": 1.0,
+      "max_pixel_errors_std": 0.0,
+      "mean_pixel_errors_mean": 0.052083333333333336,
+      "mean_pixel_errors_std": 0.02946278254943948,
+      "mse_per_pixel_mean": 0.0037386109655021273,
+      "mse_per_pixel_std": 0.0009843526406633771,
+      "exact_fraction_mean": 0.9479166666666666,
+      "exact_fraction_std": 0.02946278254943948,
+      "within_tolerance_fraction_mean": 1.0,
+      "within_tolerance_fraction_std": 0.0,
+      "epochs_completed_mean": 1033.3333333333333,
+      "epochs_completed_std": 94.28090415820634,
+      "duration_seconds_mean": 9.240257733333314,
+      "duration_seconds_std": 0.7589697931891797
+    }
+  }
+}

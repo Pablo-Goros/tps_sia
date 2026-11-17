@@ -1,0 +1,59 @@
+{
+  "source": "tps_sia/tp5/results/presentation-campaign-2026-11-10/02-optimizer/summary.json",
+  "loss": "bce",
+  "latent_activation": "tanh",
+  "learning_rate": 0.002,
+  "seeds": [
+    42,
+    43,
+    44
+  ],
+  "aggregates": [
+    {
+      "variant": "bce-tanh",
+      "runs": 3,
+      "completed": 3,
+      "failed": 0,
+      "interrupted": 0,
+      "not_run": 0,
+      "success_fraction": 1.0,
+      "max_pixel_errors_mean": 1.0,
+      "max_pixel_errors_std": 0.0,
+      "mean_pixel_errors_mean": 0.052083333333333336,
+      "mean_pixel_errors_std": 0.02946278254943948,
+      "mse_per_pixel_mean": 0.0037386109655021273,
+      "mse_per_pixel_std": 0.0009843526406633771,
+      "exact_fraction_mean": 0.9479166666666666,
+      "exact_fraction_std": 0.02946278254943948,
+      "within_tolerance_fraction_mean": 1.0,
+      "within_tolerance_fraction_std": 0.0,
+      "epochs_completed_mean": 1033.3333333333333,
+      "epochs_completed_std": 94.28090415820634,
+      "duration_seconds_mean": 9.240257733333314,
+      "duration_seconds_std": 0.7589697931891797
+    },
+    {
+      "variant": "bce-tanh-adam",
+      "runs": 3,
+      "completed": 3,
+      "failed": 0,
+      "interrupted": 0,
+      "not_run": 0,
+      "success_fraction": 1.0,
+      "max_pixel_errors_mean": 0.3333333333333333,
+      "max_pixel_errors_std": 0.4714045207910317,
+      "mean_pixel_errors_mean": 0.010416666666666666,
+      "mean_pixel_errors_std": 0.01473139127471974,
+      "mse_per_pixel_mean": 0.0030650372292587505,
+      "mse_per_pixel_std": 0.0011595636014428258,
+      "exact_fraction_mean": 0.9895833333333334,
+      "exact_fraction_std": 0.01473139127471974,
+      "within_tolerance_fraction_mean": 1.0,
+      "within_tolerance_fraction_std": 0.0,
+      "epochs_completed_mean": 666.6666666666666,
+      "epochs_completed_std": 47.14045207910317,
+      "duration_seconds_mean": 6.320130199999994,
+      "duration_seconds_std": 0.4582109354133274
+    }
+  ]
+}

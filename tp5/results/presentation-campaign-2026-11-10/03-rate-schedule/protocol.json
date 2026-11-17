@@ -1,0 +1,125 @@
+{
+  "stage": "03-rate-schedule",
+  "approval": "User authorized experiment_plan.md on 2026-11-10, then explicitly authorized reconstructing three missing references: at most 43 new runs and 321000 epochs. No retries or additional sweeps.",
+  "seeds": [
+    42,
+    43,
+    44
+  ],
+  "selection": "success_max_mean_mse",
+  "variants": [
+    {
+      "name": "bce-tanh-adam",
+      "architecture": [
+        35,
+        40,
+        20,
+        10,
+        2,
+        10,
+        20,
+        40,
+        35
+      ],
+      "optimizer": {
+        "name": "adam",
+        "learning_rate": 0.002
+      },
+      "batch_size": 32,
+      "max_epochs": 3000,
+      "evaluate_every": 100,
+      "stop_on_tolerance": true,
+      "loss": "bce",
+      "latent_activation": "tanh",
+      "lr_scheduler": null
+    },
+    {
+      "name": "bce-tanh-adam-lr-20-cosine",
+      "architecture": [
+        35,
+        40,
+        20,
+        10,
+        2,
+        10,
+        20,
+        40,
+        35
+      ],
+      "optimizer": {
+        "name": "adam",
+        "learning_rate": 0.002
+      },
+      "batch_size": 32,
+      "max_epochs": 3000,
+      "evaluate_every": 100,
+      "stop_on_tolerance": true,
+      "loss": "bce",
+      "latent_activation": "tanh",
+      "lr_scheduler": {
+        "name": "cosine",
+        "total_epochs": 3000,
+        "min_lr": 0.0
+      }
+    },
+    {
+      "name": "bce-tanh-adam-lr-30-constant",
+      "architecture": [
+        35,
+        40,
+        20,
+        10,
+        2,
+        10,
+        20,
+        40,
+        35
+      ],
+      "optimizer": {
+        "name": "adam",
+        "learning_rate": 0.003
+      },
+      "batch_size": 32,
+      "max_epochs": 3000,
+      "evaluate_every": 100,
+      "stop_on_tolerance": true,
+      "loss": "bce",
+      "latent_activation": "tanh",
+      "lr_scheduler": null
+    },
+    {
+      "name": "bce-tanh-adam-lr-30-cosine",
+      "architecture": [
+        35,
+        40,
+        20,
+        10,
+        2,
+        10,
+        20,
+        40,
+        35
+      ],
+      "optimizer": {
+        "name": "adam",
+        "learning_rate": 0.003
+      },
+      "batch_size": 32,
+      "max_epochs": 3000,
+      "evaluate_every": 100,
+      "stop_on_tolerance": true,
+      "loss": "bce",
+      "latent_activation": "tanh",
+      "lr_scheduler": {
+        "name": "cosine",
+        "total_epochs": 3000,
+        "min_lr": 0.0
+      }
+    }
+  ],
+  "reuse_runs": {
+    "bce-tanh-adam-seed-42": "C:\\Users\\Pablo\\Documents\\Projects\\facultad\\sistemas-de-inteligencia-artificial\\tps_sia\\tp5\\results\\presentation-campaign-2026-11-10\\02-optimizer\\bce-tanh-adam-seed-42",
+    "bce-tanh-adam-seed-43": "C:\\Users\\Pablo\\Documents\\Projects\\facultad\\sistemas-de-inteligencia-artificial\\tps_sia\\tp5\\results\\presentation-campaign-2026-11-10\\02-optimizer\\bce-tanh-adam-seed-43",
+    "bce-tanh-adam-seed-44": "C:\\Users\\Pablo\\Documents\\Projects\\facultad\\sistemas-de-inteligencia-artificial\\tps_sia\\tp5\\results\\presentation-campaign-2026-11-10\\02-optimizer\\bce-tanh-adam-seed-44"
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "architecture": [
+    35,
+    40,
+    20,
+    10,
+    2,
+    10,
+    20,
+    40,
+    35
+  ],
+  "optimizer": {
+    "name": "adam",
+    "learning_rate": 0.002
+  },
+  "batch_size": 32,
+  "max_epochs": 3000,
+  "evaluate_every": 100,
+  "stop_on_tolerance": true,
+  "loss": "bce",
+  "latent_activation": "tanh",
+  "lr_scheduler": null,
+  "seed": 49
+}

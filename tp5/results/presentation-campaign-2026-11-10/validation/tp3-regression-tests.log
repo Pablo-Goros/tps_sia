@@ -1,0 +1,16 @@
+test_exact_resume_with_momentum_augmentation_and_best_checkpoint (tps_sia.tp3.ej3.tests.test_scheduler.SchedulerTests.test_exact_resume_with_momentum_augmentation_and_best_checkpoint) ... ok
+test_invalid_settings_and_missing_validation (tps_sia.tp3.ej3.tests.test_scheduler.SchedulerTests.test_invalid_settings_and_missing_validation) ... ok
+test_plateau_reduces_next_rate_and_respects_floor (tps_sia.tp3.ej3.tests.test_scheduler.SchedulerTests.test_plateau_reduces_next_rate_and_respects_floor) ... ok
+test_gradient_matches_regularized_objective_and_excludes_biases (tps_sia.tp3.ej3.tests.test_regularization.RegularizationTests.test_gradient_matches_regularized_objective_and_excludes_biases) ... ok
+test_invalid_strength_and_default_config_identity (tps_sia.tp3.ej3.tests.test_regularization.RegularizationTests.test_invalid_strength_and_default_config_identity) ... ok
+test_validation_loss_unpenalized_and_resume_exact (tps_sia.tp3.ej3.tests.test_regularization.RegularizationTests.test_validation_loss_unpenalized_and_resume_exact) ... ok
+test_configuration_and_legacy_defaults (tps_sia.tp3.ej3.tests.test_batch_norm.BatchNormTests.test_configuration_and_legacy_defaults) ... ok
+test_exact_resume_best_model_and_singleton_tail (tps_sia.tp3.ej3.tests.test_batch_norm.BatchNormTests.test_exact_resume_best_model_and_singleton_tail) ... ok
+test_failed_epoch_restores_batch_norm_statistics_and_momentum (tps_sia.tp3.ej3.tests.test_batch_norm.BatchNormTests.test_failed_epoch_restores_batch_norm_statistics_and_momentum) ... ok
+test_inference_is_batch_independent_and_never_updates_statistics (tps_sia.tp3.ej3.tests.test_batch_norm.BatchNormTests.test_inference_is_batch_independent_and_never_updates_statistics) ... ok
+test_multilayer_numerical_gradient_and_stateless_backprop (tps_sia.tp3.ej3.tests.test_batch_norm.BatchNormTests.test_multilayer_numerical_gradient_and_stateless_backprop) ... ok
+
+----------------------------------------------------------------------
+Ran 11 tests in 1.446s
+
+OK

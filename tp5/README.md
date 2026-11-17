@@ -1,5 +1,42 @@
 # TP5: autoencoder básico de caracteres
 
+## Ejecutar desde otra computadora
+
+Clonar el repositorio completo en la rama `feat/tp5` (o hacer `git pull` en esa
+rama). TP5 importa `tp3/shared`: no alcanza con copiar solamente `tp5/`.
+El MLP compartido incluye BCE, código lineal y scheduler cosenoidal, necesarios
+para las configuraciones y modelos publicados.
+
+Desde la raíz del repositorio, en PowerShell:
+
+```powershell
+cd tp5
+python -m venv .venv
+.venv\Scripts\python -m pip install -r requirements.txt
+.venv\Scripts\python -m unittest discover -s tests -p "test_*.py" -v
+.venv\Scripts\python -m src.train evaluate --model results/final/model.npz --output results/final-local-evaluation
+.venv\Scripts\python -m src.denoise evaluate --campaign results/denoising --output results/denoising-local-evaluation
+```
+
+En Linux/macOS usar `.venv/bin/python` en lugar de `.venv\Scripts\python`.
+Las evaluaciones cargan los modelos publicados y no entrenan. Cada salida debe
+ser nueva; cambiar su nombre para repetir los comandos. Para crear una campaña
+de denoising desde cero, seguir [denoising-data.md](denoising-data.md) usando una
+salida nueva, por ejemplo `results/denoising-new`.
+
+Se publican el modelo final de 1.a (`results/final/`), sus 43 corridas
+(`results/presentation-campaign-2026-11-10/`), la campaña completa de 1.b
+(`results/denoising/`) y los scripts y recursos de presentación (`ppt/`).
+Los manifiestos conservan las rutas históricas de la máquina de origen;
+los comandos anteriores usan las rutas de la copia local.
+
+El entorno original fue Python 3.14.4, NumPy 2.4.4 y Matplotlib 3.11.1.
+`requirements.txt` permite instalar versiones compatibles; para usar las
+versiones originales de NumPy y Matplotlib, instalar
+`requirements-reproduction.txt` en un entorno con Python 3.14.4.
+Git conserva los bytes de los artefactos y usa CRLF para `data/font.h`, como
+en los hashes de estas campañas, también en Linux/macOS.
+
 La selección vigente y la comparación confirmatoria están en
 [presentation-results.md](presentation-results.md). Configuración reproducible:
 [configs/presentation-selected.json](configs/presentation-selected.json).

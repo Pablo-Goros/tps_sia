@@ -1,0 +1,54 @@
+test_model_and_json_saves_survive_transient_locks (test_atomic_files.CallerTests.test_model_and_json_saves_survive_transient_locks) ... ok
+test_other_errors_are_not_retried (test_atomic_files.ReplaceTests.test_other_errors_are_not_retried) ... ok
+test_persistent_lock_raises_after_all_attempts (test_atomic_files.ReplaceTests.test_persistent_lock_raises_after_all_attempts) ... ok
+test_real_lock_released_during_retries (test_atomic_files.ReplaceTests.test_real_lock_released_during_retries) ... ok
+test_retries_permission_error_then_succeeds (test_atomic_files.ReplaceTests.test_retries_permission_error_then_succeeds) ... ok
+test_artifacts_reload_and_analysis (test_experiments.ExperimentTests.test_artifacts_reload_and_analysis) ... ok
+test_figures_from_saved_results (test_experiments.ExperimentTests.test_figures_from_saved_results) ... ok
+test_invalid_configs (test_experiments.ExperimentTests.test_invalid_configs) ... ok
+test_new_run_from_weights_resets_history (test_experiments.ExperimentTests.test_new_run_from_weights_resets_history) ... ok
+test_numerical_failure_excluded (test_experiments.ExperimentTests.test_numerical_failure_excluded) ... ok
+test_partition_indices_preserve_default (test_experiments.ExperimentTests.test_partition_indices_preserve_default) ... ok
+test_resume_exact_for_all_optimizers (test_experiments.ExperimentTests.test_resume_exact_for_all_optimizers) ... ok
+test_resume_from_existing_weights (test_experiments.ExperimentTests.test_resume_from_existing_weights) ... ok
+test_source_changes_block_resume (test_experiments.ExperimentTests.test_source_changes_block_resume) ... ok
+test_summary_spread_and_no_duplicate_seeds (test_experiments.ExperimentTests.test_summary_spread_and_no_duplicate_seeds) ... ok
+test_test_dataset_rejected_before_loading (test_experiments.ExperimentTests.test_test_dataset_rejected_before_loading) ... ok
+test_train_only_standardization (test_experiments.ExperimentTests.test_train_only_standardization) ... ok
+test_confusion_rejects_invalid_labels (test_metrics.MetricsTests.test_confusion_rejects_invalid_labels) ... ok
+test_cross_entropy (test_metrics.MetricsTests.test_cross_entropy) ... ok
+test_hand_computed_and_absent_classes (test_metrics.MetricsTests.test_hand_computed_and_absent_classes) ... ok
+test_no_predictions_for_observed_class (test_metrics.MetricsTests.test_no_predictions_for_observed_class) ... ok
+test_adam_manual_steps (test_optimizers.OptimizerTests.test_adam_manual_steps) ... ok
+test_all_mlp_weights_and_biases_updated (test_optimizers.OptimizerTests.test_all_mlp_weights_and_biases_updated) ... ok
+test_defaults_and_factory (test_optimizers.OptimizerTests.test_defaults_and_factory) ... ok
+test_float32_parameters_and_zero_gradients (test_optimizers.OptimizerTests.test_float32_parameters_and_zero_gradients) ... ok
+test_invalid_gradients_are_atomic (test_optimizers.OptimizerTests.test_invalid_gradients_are_atomic) ... ok
+test_invalid_hyperparameters (test_optimizers.OptimizerTests.test_invalid_hyperparameters) ... ok
+test_invalid_parameters_and_overflow_are_atomic (test_optimizers.OptimizerTests.test_invalid_parameters_and_overflow_are_atomic) ... ok
+test_invalid_state_restore_is_atomic (test_optimizers.OptimizerTests.test_invalid_state_restore_is_atomic) ... ok
+test_legacy_sgd_and_corrupt_checkpoint (test_optimizers.OptimizerTests.test_legacy_sgd_and_corrupt_checkpoint) ... ok
+test_mlp_checkpoint_resumes_exactly (test_optimizers.OptimizerTests.test_mlp_checkpoint_resumes_exactly) ... ok
+test_sgd_and_momentum_manual_steps (test_optimizers.OptimizerTests.test_sgd_and_momentum_manual_steps) ... ok
+test_state_roundtrip_and_copy_isolation (test_optimizers.OptimizerTests.test_state_roundtrip_and_copy_isolation) ... ok
+test_xor_with_momentum_and_adam (test_optimizers.OptimizerTests.test_xor_with_momentum_and_adam) ... ok
+test_all_mlp_weights_and_biases_updated (test_optimizers.RMSPropTests.test_all_mlp_weights_and_biases_updated) ... ok
+test_configuration_roundtrip_and_validation (test_optimizers.RMSPropTests.test_configuration_roundtrip_and_validation) ... ok
+test_exact_resume_through_state_and_checkpoint (test_optimizers.RMSPropTests.test_exact_resume_through_state_and_checkpoint) ... ok
+test_invalid_gradient_changes_nothing (test_optimizers.RMSPropTests.test_invalid_gradient_changes_nothing) ... ok
+test_manual_two_steps (test_optimizers.RMSPropTests.test_manual_two_steps) ... ok
+test_mlp_trains_and_lowers_cost (test_optimizers.RMSPropTests.test_mlp_trains_and_lowers_cost) ... ok
+test_best_and_last_are_separate_and_best_can_resume (test_training_state.TrainingStateTests.test_best_and_last_are_separate_and_best_can_resume) ... ok
+test_exact_resume_all_optimizers_and_logging (test_training_state.TrainingStateTests.test_exact_resume_all_optimizers_and_logging) ... ok
+test_invalid_options_do_not_train (test_training_state.TrainingStateTests.test_invalid_options_do_not_train) ... ok
+test_legacy_versions_migrate_and_resume (test_training_state.TrainingStateTests.test_legacy_versions_migrate_and_resume) ... ok
+test_mid_epoch_interrupt_and_numerical_failure_rollback (test_training_state.TrainingStateTests.test_mid_epoch_interrupt_and_numerical_failure_rollback) ... ok
+test_min_delta_controls_patience_but_exports_actual_best (test_training_state.TrainingStateTests.test_min_delta_controls_patience_but_exports_actual_best) ... ok
+test_periodic_checkpoints_and_atomic_failure (test_training_state.TrainingStateTests.test_periodic_checkpoints_and_atomic_failure) ... ok
+test_stop_reasons_and_accuracy_monitor (test_training_state.TrainingStateTests.test_stop_reasons_and_accuracy_monitor) ... ok
+test_validation_does_not_change_parameters_optimizer_or_rng (test_training_state.TrainingStateTests.test_validation_does_not_change_parameters_optimizer_or_rng) ... ok
+
+----------------------------------------------------------------------
+Ran 49 tests in 12.068s
+
+OK

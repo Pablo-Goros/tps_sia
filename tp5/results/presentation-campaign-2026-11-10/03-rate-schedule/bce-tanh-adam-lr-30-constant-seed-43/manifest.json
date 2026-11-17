@@ -1,0 +1,85 @@
+{
+  "config": {
+    "architecture": [
+      35,
+      40,
+      20,
+      10,
+      2,
+      10,
+      20,
+      40,
+      35
+    ],
+    "optimizer": {
+      "name": "adam",
+      "learning_rate": 0.003
+    },
+    "batch_size": 32,
+    "max_epochs": 3000,
+    "evaluate_every": 100,
+    "stop_on_tolerance": true,
+    "loss": "bce",
+    "latent_activation": "tanh",
+    "lr_scheduler": null,
+    "seed": 43
+  },
+  "effective_model": {
+    "architecture": [
+      35,
+      40,
+      20,
+      10,
+      2,
+      10,
+      20,
+      40,
+      35
+    ],
+    "activation": "tanh",
+    "output": "logistica",
+    "loss": "bce",
+    "latent_activation": "tanh",
+    "lr_scheduler": null,
+    "beta": 1.0,
+    "batch_size": 32,
+    "optimizer": {
+      "name": "adam",
+      "learning_rate": 0.003,
+      "beta1": 0.9,
+      "beta2": 0.999,
+      "optimizer_epsilon": 1e-08
+    },
+    "initialization": "auto",
+    "l2": 0.0,
+    "augmentation": null,
+    "batch_norm": null
+  },
+  "dataset": {
+    "path": "C:\\Users\\Pablo\\Documents\\Projects\\facultad\\sistemas-de-inteligencia-artificial\\tps_sia\\tp5\\data\\font.h",
+    "sha256": "e2073997b8161ac11ef5ea562c1f406999c0a0f1bbff4b39115d83170e3e8950"
+  },
+  "versions": {
+    "python": "3.14.4",
+    "numpy": "2.4.4",
+    "matplotlib": "3.11.1"
+  },
+  "training_loss_normalization": "mean(sum(logaddexp(0, logits)-target*logits, axis=1)); logits=2*beta*preactivation",
+  "metrics_training_loss_note": "metrics.training_loss always reports half squared error for backward compatibility; history.costo reports the optimized objective",
+  "threshold": 0.5,
+  "stop_reason": "pixel_tolerance",
+  "epochs_completed": 400,
+  "checkpoint": {
+    "path": "C:\\Users\\Pablo\\Documents\\Projects\\facultad\\sistemas-de-inteligencia-artificial\\tps_sia\\tp5\\results\\presentation-campaign-2026-11-10\\03-rate-schedule\\bce-tanh-adam-lr-30-constant-seed-43\\checkpoint.npz",
+    "sha256": "d48aeabff0bba2882bd4e6a52a92c13542288223061f5215a7805c6a2ba65aae"
+  },
+  "duration_seconds": 4.921140500000092,
+  "model": {
+    "path": "C:\\Users\\Pablo\\Documents\\Projects\\facultad\\sistemas-de-inteligencia-artificial\\tps_sia\\tp5\\results\\presentation-campaign-2026-11-10\\03-rate-schedule\\bce-tanh-adam-lr-30-constant-seed-43\\model.npz",
+    "sha256": "d48aeabff0bba2882bd4e6a52a92c13542288223061f5215a7805c6a2ba65aae"
+  },
+  "thread_environment": {
+    "OPENBLAS_NUM_THREADS": null,
+    "OMP_NUM_THREADS": null
+  }
+}

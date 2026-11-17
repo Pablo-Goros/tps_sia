@@ -39,8 +39,10 @@ Cada salida de evaluación debe ser nueva. Para trasladar la campaña, copiar to
 su directorio: las rutas operativas son relativas a él. Las rutas absolutas en
 manifiestos individuales conservan procedencia histórica. La campaña completa
 `results/denoising/` está versionada en Git, incluidas la referencia, colecciones,
-modelos y ambas evaluaciones. Los demás experimentos nuevos de `results/` siguen
-ignorados. Git conserva los bytes de la campaña para mantener válidos sus SHA256.
+modelos y ambas evaluaciones. También se publican `results/final/` y
+`results/presentation-campaign-2026-11-10/` como referencia de 1.a. Los experimentos
+nuevos en otros directorios de `results/` siguen ignorados. Git conserva los bytes
+de las campañas para mantener válidos sus SHA256.
 
 ## Arquitecturas y protocolo
 

@@ -1,0 +1,11 @@
+{
+  "model": "tps_sia/tp5/results/final/model.npz",
+  "model_sha256": "e39ab072ed146e11a337d82e5f625a775d8cc73628d90355746a8ece653fa85e",
+  "run": "confirmation-finalist-seed-49",
+  "dataset_sha256": "e2073997b8161ac11ef5ea562c1f406999c0a0f1bbff4b39115d83170e3e8950",
+  "latent_verified_against_saved_coordinates": true,
+  "exact_reconstructions": 32,
+  "threshold": 0.5,
+  "historical_architecture_values_source": "tps_sia/tp5/comparison.md, campaña factorial histórica",
+  "confirmation_source": "tps_sia/tp5/results/presentation-campaign-2026-11-10/06-confirmation/summary.json"
+}

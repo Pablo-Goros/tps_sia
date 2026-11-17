@@ -1,0 +1,38 @@
+[
+  {
+    "run_id": "bce-tanh-seed-42",
+    "sha256": "f86db076a5564ba0c71380138827ee2cc36e72732ebcf80fae9ef0151eeb2a63",
+    "metrics_reproduced": true,
+    "predictions_codes_and_rates_verified": true
+  },
+  {
+    "run_id": "bce-tanh-seed-43",
+    "sha256": "0d5212ea635eeb6269843a4758ba13c6e32f4fdef235ac919310b9bbec271049",
+    "metrics_reproduced": true,
+    "predictions_codes_and_rates_verified": true
+  },
+  {
+    "run_id": "bce-tanh-seed-44",
+    "sha256": "cd9b61c355cdf613a158b66fcad55eec3a94f0261c0815f60a54d9b506f71d8d",
+    "metrics_reproduced": true,
+    "predictions_codes_and_rates_verified": true
+  },
+  {
+    "run_id": "bce-tanh-adam-seed-42",
+    "sha256": "bcbe74b18c63c3dc5a2f8220deb040e207a909e0cacd8f3276873cb63a7cf15a",
+    "metrics_reproduced": true,
+    "predictions_codes_and_rates_verified": true
+  },
+  {
+    "run_id": "bce-tanh-adam-seed-43",
+    "sha256": "37123947ba939d622819dbb0762ea9e78075f87abbf68c9ea710ce51ba81df7d",
+    "metrics_reproduced": true,
+    "predictions_codes_and_rates_verified": true
+  },
+  {
+    "run_id": "bce-tanh-adam-seed-44",
+    "sha256": "a4b08a24db6c5b9a01e52a2324169b3e9f1cae027358c5def3834813f9192d3b",
+    "metrics_reproduced": true,
+    "predictions_codes_and_rates_verified": true
+  }
+]

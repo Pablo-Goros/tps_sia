@@ -1,0 +1,19 @@
+{
+  "old_pilot_reproduced": true,
+  "initial_weights": [
+    {
+      "seed": 42,
+      "all_initial_weights_equal": true
+    },
+    {
+      "seed": 43,
+      "all_initial_weights_equal": true
+    },
+    {
+      "seed": 44,
+      "all_initial_weights_equal": true
+    }
+  ],
+  "dataset_sha256": "e2073997b8161ac11ef5ea562c1f406999c0a0f1bbff4b39115d83170e3e8950",
+  "approval": "User authorized experiment_plan.md on 2026-11-10, then explicitly authorized reconstructing three missing references: at most 43 new runs and 321000 epochs. No retries or additional sweeps."
+}

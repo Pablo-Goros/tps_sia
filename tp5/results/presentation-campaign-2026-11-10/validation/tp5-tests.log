@@ -1,0 +1,52 @@
+test_public_model_roundtrip_and_continued_training (test_autoencoder.AutoencoderTests.test_public_model_roundtrip_and_continued_training) ... ok
+test_failed_runs_remain_visible_and_are_not_selected (test_compare.ComparisonTests.test_failed_runs_remain_visible_and_are_not_selected) ... bad-seed-1: failed max_errors=None source=C:\Users\Pablo\AppData\Local\Temp\tmpgj4mr_hh\comparison\bad-seed-1
+bad-seed-1: failed max_errors=None source=C:\Users\Pablo\AppData\Local\Temp\tmpgj4mr_hh\comparison\bad-seed-1
+bad-seed-1: failed max_errors=None source=C:\Users\Pablo\AppData\Local\Temp\tmpgj4mr_hh\pending\bad-seed-1
+ok
+test_short_stage_preserves_runs_and_selects_traceable_model (test_compare.ComparisonTests.test_short_stage_preserves_runs_and_selects_traceable_model) ... Evaluation epoch=0 max_errors=23 within=0.000
+Evaluation epoch=1 max_errors=24 within=0.000
+base-seed-1: completed max_errors=24 source=C:\Users\Pablo\AppData\Local\Temp\tmpqe04ebma\comparison\base-seed-1
+Evaluation epoch=0 max_errors=24 within=0.000
+Evaluation epoch=1 max_errors=23 within=0.000
+base-seed-2: completed max_errors=23 source=C:\Users\Pablo\AppData\Local\Temp\tmpqe04ebma\comparison\base-seed-2
+base-seed-1: completed max_errors=24 source=C:\Users\Pablo\AppData\Local\Temp\tmpqe04ebma\comparison\base-seed-1
+base-seed-2: completed max_errors=23 source=C:\Users\Pablo\AppData\Local\Temp\tmpqe04ebma\comparison\base-seed-2
+base-seed-1: completed max_errors=24 source=C:\Users\Pablo\AppData\Local\Temp\tmpqe04ebma\moved-comparison\base-seed-1
+base-seed-2: completed max_errors=23 source=C:\Users\Pablo\AppData\Local\Temp\tmpqe04ebma\moved-comparison\base-seed-2
+base-seed-1: completed max_errors=24 source=C:\Users\Pablo\AppData\Local\Temp\tmpqe04ebma\moved-comparison\base-seed-1
+base-seed-2: completed max_errors=23 source=C:\Users\Pablo\AppData\Local\Temp\tmpqe04ebma\moved-comparison\base-seed-2
+ok
+test_expired_budget_performs_no_updates (test_continuation.ContinuationTests.test_expired_budget_performs_no_updates) ... Evaluation epoch=0 max_errors=25 within=0.000
+Evaluation epoch=1 max_errors=23 within=0.000
+continued: epoch=1 max=23 within=0.00000
+ok
+test_reload_and_rate_change_preserve_trajectory_and_source (test_continuation.ContinuationTests.test_reload_and_rate_change_preserve_trajectory_and_source) ... Evaluation epoch=0 max_errors=25 within=0.000
+Evaluation epoch=2 max_errors=22 within=0.000
+continued: epoch=2 max=22 within=0.00000
+continued: epoch=4 max=23 within=0.00000
+Evaluation epoch=0 max_errors=25 within=0.000
+Evaluation epoch=2 max_errors=22 within=0.000
+continued: epoch=2 max=22 within=0.00000
+continued: epoch=4 max=22 within=0.00000
+ok
+test_cli_produces_dataset_sheet_and_identity (test_dataset.DatasetTests.test_cli_produces_dataset_sheet_and_identity) ... ok
+test_comments_do_not_contribute_pixels_or_patterns (test_dataset.DatasetTests.test_comments_do_not_contribute_pixels_or_patterns) ... ok
+test_malformed_initializers_are_rejected (test_dataset.DatasetTests.test_malformed_initializers_are_rejected) ... ok
+test_original_patterns_keep_orientation_and_identity (test_dataset.DatasetTests.test_original_patterns_keep_orientation_and_identity) ... ok
+test_bce_corrects_confidently_wrong_saturated_outputs (test_experiment_options.ExperimentOptionsTests.test_bce_corrects_confidently_wrong_saturated_outputs) ... ok
+test_cosine_and_linear_bce_survive_save_and_resume (test_experiment_options.ExperimentOptionsTests.test_cosine_and_linear_bce_survive_save_and_resume) ... ok
+test_gradients_for_both_losses_and_hidden_activations (test_experiment_options.ExperimentOptionsTests.test_gradients_for_both_losses_and_hidden_activations) ... ok
+test_options_preserve_initial_weights (test_experiment_options.ExperimentOptionsTests.test_options_preserve_initial_weights) ... ok
+test_candidate_novelty_uses_all_original_patterns_and_inclusive_threshold (test_explore.LatentTests.test_candidate_novelty_uses_all_original_patterns_and_inclusive_threshold) ... ok
+test_saved_coordinates_regenerate_interpolations_and_occupied_grid (test_explore.LatentTests.test_saved_coordinates_regenerate_interpolations_and_occupied_grid) ... ok
+test_saved_model_yields_reproducible_labeled_coordinates_without_training (test_explore.LatentTests.test_saved_model_yields_reproducible_labeled_coordinates_without_training) ... ok
+test_pixel_tolerance_and_inclusive_threshold (test_metrics.MetricsTests.test_pixel_tolerance_and_inclusive_threshold) ... ok
+test_short_public_workflow_and_reload_evaluation (test_training.TrainingTests.test_short_public_workflow_and_reload_evaluation) ... Evaluation epoch=0 max_errors=25 within=0.000
+Evaluation epoch=2 max_errors=24 within=0.000
+Evaluation epoch=4 max_errors=25 within=0.000
+ok
+
+----------------------------------------------------------------------
+Ran 18 tests in 36.012s
+
+OK

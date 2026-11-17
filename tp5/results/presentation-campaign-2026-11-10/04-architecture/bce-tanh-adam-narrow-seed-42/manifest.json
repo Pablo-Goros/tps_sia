@@ -1,0 +1,85 @@
+{
+  "config": {
+    "architecture": [
+      35,
+      25,
+      15,
+      8,
+      2,
+      8,
+      15,
+      25,
+      35
+    ],
+    "optimizer": {
+      "name": "adam",
+      "learning_rate": 0.002
+    },
+    "batch_size": 32,
+    "max_epochs": 3000,
+    "evaluate_every": 100,
+    "stop_on_tolerance": true,
+    "loss": "bce",
+    "latent_activation": "tanh",
+    "lr_scheduler": null,
+    "seed": 42
+  },
+  "effective_model": {
+    "architecture": [
+      35,
+      25,
+      15,
+      8,
+      2,
+      8,
+      15,
+      25,
+      35
+    ],
+    "activation": "tanh",
+    "output": "logistica",
+    "loss": "bce",
+    "latent_activation": "tanh",
+    "lr_scheduler": null,
+    "beta": 1.0,
+    "batch_size": 32,
+    "optimizer": {
+      "name": "adam",
+      "learning_rate": 0.002,
+      "beta1": 0.9,
+      "beta2": 0.999,
+      "optimizer_epsilon": 1e-08
+    },
+    "initialization": "auto",
+    "l2": 0.0,
+    "augmentation": null,
+    "batch_norm": null
+  },
+  "dataset": {
+    "path": "C:\\Users\\Pablo\\Documents\\Projects\\facultad\\sistemas-de-inteligencia-artificial\\tps_sia\\tp5\\data\\font.h",
+    "sha256": "e2073997b8161ac11ef5ea562c1f406999c0a0f1bbff4b39115d83170e3e8950"
+  },
+  "versions": {
+    "python": "3.14.4",
+    "numpy": "2.4.4",
+    "matplotlib": "3.11.1"
+  },
+  "training_loss_normalization": "mean(sum(logaddexp(0, logits)-target*logits, axis=1)); logits=2*beta*preactivation",
+  "metrics_training_loss_note": "metrics.training_loss always reports half squared error for backward compatibility; history.costo reports the optimized objective",
+  "threshold": 0.5,
+  "stop_reason": "pixel_tolerance",
+  "epochs_completed": 700,
+  "checkpoint": {
+    "path": "C:\\Users\\Pablo\\Documents\\Projects\\facultad\\sistemas-de-inteligencia-artificial\\tps_sia\\tp5\\results\\presentation-campaign-2026-11-10\\04-architecture\\bce-tanh-adam-narrow-seed-42\\checkpoint.npz",
+    "sha256": "7c3f6968245d9fa1e3c7c7aa422ef3929af457f9458fa382881ce35d5636b1cd"
+  },
+  "duration_seconds": 7.314168999999993,
+  "model": {
+    "path": "C:\\Users\\Pablo\\Documents\\Projects\\facultad\\sistemas-de-inteligencia-artificial\\tps_sia\\tp5\\results\\presentation-campaign-2026-11-10\\04-architecture\\bce-tanh-adam-narrow-seed-42\\model.npz",
+    "sha256": "7c3f6968245d9fa1e3c7c7aa422ef3929af457f9458fa382881ce35d5636b1cd"
+  },
+  "thread_environment": {
+    "OPENBLAS_NUM_THREADS": null,
+    "OMP_NUM_THREADS": null
+  }
+}

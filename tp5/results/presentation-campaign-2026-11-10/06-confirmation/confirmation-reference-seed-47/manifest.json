@@ -1,0 +1,84 @@
+{
+  "config": {
+    "architecture": [
+      35,
+      40,
+      20,
+      10,
+      2,
+      10,
+      20,
+      40,
+      35
+    ],
+    "optimizer": {
+      "name": "rmsprop",
+      "learning_rate": 0.002
+    },
+    "batch_size": 32,
+    "max_epochs": 3000,
+    "evaluate_every": 100,
+    "stop_on_tolerance": true,
+    "loss": "half_squared_error",
+    "latent_activation": "tanh",
+    "lr_scheduler": null,
+    "seed": 47
+  },
+  "effective_model": {
+    "architecture": [
+      35,
+      40,
+      20,
+      10,
+      2,
+      10,
+      20,
+      40,
+      35
+    ],
+    "activation": "tanh",
+    "output": "logistica",
+    "loss": "half_squared_error",
+    "latent_activation": "tanh",
+    "lr_scheduler": null,
+    "beta": 1.0,
+    "batch_size": 32,
+    "optimizer": {
+      "name": "rmsprop",
+      "learning_rate": 0.002,
+      "rho": 0.9,
+      "optimizer_epsilon": 1e-08
+    },
+    "initialization": "auto",
+    "l2": 0.0,
+    "augmentation": null,
+    "batch_norm": null
+  },
+  "dataset": {
+    "path": "C:\\Users\\Pablo\\Documents\\Projects\\facultad\\sistemas-de-inteligencia-artificial\\tps_sia\\tp5\\data\\font.h",
+    "sha256": "e2073997b8161ac11ef5ea562c1f406999c0a0f1bbff4b39115d83170e3e8950"
+  },
+  "versions": {
+    "python": "3.14.4",
+    "numpy": "2.4.4",
+    "matplotlib": "3.11.1"
+  },
+  "training_loss_normalization": "0.5 * mean(sum((prediction-target)^2, axis=1))",
+  "metrics_training_loss_note": "metrics.training_loss always reports half squared error for backward compatibility; history.costo reports the optimized objective",
+  "threshold": 0.5,
+  "stop_reason": "max_epochs",
+  "epochs_completed": 3000,
+  "checkpoint": {
+    "path": "C:\\Users\\Pablo\\Documents\\Projects\\facultad\\sistemas-de-inteligencia-artificial\\tps_sia\\tp5\\results\\presentation-campaign-2026-11-10\\06-confirmation\\confirmation-reference-seed-47\\checkpoint.npz",
+    "sha256": "f83c9ed55a68353c76e7e23f3812af0990a85b7311fe6e2f29e0767092916d8c"
+  },
+  "duration_seconds": 35.193474299999934,
+  "model": {
+    "path": "C:\\Users\\Pablo\\Documents\\Projects\\facultad\\sistemas-de-inteligencia-artificial\\tps_sia\\tp5\\results\\presentation-campaign-2026-11-10\\06-confirmation\\confirmation-reference-seed-47\\model.npz",
+    "sha256": "f83c9ed55a68353c76e7e23f3812af0990a85b7311fe6e2f29e0767092916d8c"
+  },
+  "thread_environment": {
+    "OPENBLAS_NUM_THREADS": null,
+    "OMP_NUM_THREADS": null
+  }
+}
