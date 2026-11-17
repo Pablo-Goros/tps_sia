@@ -1,0 +1,40 @@
+{
+  "variant": "winner",
+  "seed": 43,
+  "model": {
+    "architecture": [
+      35,
+      40,
+      20,
+      10,
+      2,
+      10,
+      20,
+      40,
+      35
+    ],
+    "optimizer": {
+      "name": "adam",
+      "learning_rate": 0.002
+    },
+    "loss": "bce",
+    "latent_activation": "tanh",
+    "lr_scheduler": null,
+    "batch_size": 32
+  },
+  "max_epochs": 3000,
+  "evaluate_every": 100,
+  "training_levels": [
+    0,
+    0.05,
+    0.1,
+    0.2
+  ],
+  "selection_levels": [
+    0.05,
+    0.1,
+    0.2
+  ],
+  "dataset_sha256": "e2073997b8161ac11ef5ea562c1f406999c0a0f1bbff4b39115d83170e3e8950",
+  "validation_sha256": "e938f10cb71db7776d0621de8c460553e0ecf09c466dc801e43b98a07a58a555"
+}

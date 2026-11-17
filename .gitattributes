@@ -1,0 +1,2 @@
+# Preserve published campaign bytes so recorded SHA256 hashes survive checkout.
+tp5/results/denoising/** -text

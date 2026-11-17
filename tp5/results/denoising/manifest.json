@@ -1,0 +1,121 @@
+{
+  "schema_version": 1,
+  "status": "prepared",
+  "paths_relative_to": ".",
+  "protocol": {
+    "source_selection": "results/final/selection.json",
+    "seeds": [
+      42,
+      43,
+      44
+    ],
+    "batch_size": 32,
+    "max_epochs": 3000,
+    "evaluate_every": 100,
+    "stop_on_tolerance": false,
+    "noise": {
+      "type": "bit_flip",
+      "training_levels": [
+        0,
+        0.05,
+        0.1,
+        0.2
+      ],
+      "evaluation_levels": [
+        0,
+        0.05,
+        0.1,
+        0.2,
+        0.3
+      ],
+      "selection_levels": [
+        0.05,
+        0.1,
+        0.2
+      ],
+      "validation_seed": 20261110,
+      "evaluation_seed": 20261111,
+      "realizations_per_character": 100,
+      "clean_realizations_per_character": 1
+    }
+  },
+  "variants": {
+    "winner": {
+      "architecture": [
+        35,
+        40,
+        20,
+        10,
+        2,
+        10,
+        20,
+        40,
+        35
+      ],
+      "optimizer": {
+        "name": "adam",
+        "learning_rate": 0.002
+      },
+      "loss": "bce",
+      "latent_activation": "tanh",
+      "lr_scheduler": null,
+      "batch_size": 32
+    },
+    "latent-10": {
+      "architecture": [
+        35,
+        40,
+        20,
+        10,
+        10,
+        10,
+        20,
+        40,
+        35
+      ],
+      "optimizer": {
+        "name": "adam",
+        "learning_rate": 0.002
+      },
+      "loss": "bce",
+      "latent_activation": "tanh",
+      "lr_scheduler": null,
+      "batch_size": 32
+    }
+  },
+  "reference": {
+    "selection.json": {
+      "path": "reference/selection.json",
+      "sha256": "1c84e6b7e9833e8ca8130c693f44f9301f54ecefe1257b18a7aea9908abd19bf"
+    },
+    "config.json": {
+      "path": "reference/config.json",
+      "sha256": "1640cc371ecb66a05efd982aca87164196475c3753a94086b171660a6dac78e2"
+    },
+    "manifest.json": {
+      "path": "reference/manifest.json",
+      "sha256": "3d8712a7da2e75737400d5628b0b4db7d3da30233207980e1ff9c7cfaf5bfeb3"
+    },
+    "model.npz": {
+      "path": "reference/model.npz",
+      "sha256": "e39ab072ed146e11a337d82e5f625a775d8cc73628d90355746a8ece653fa85e"
+    },
+    "font.h": {
+      "path": "reference/font.h",
+      "sha256": "e2073997b8161ac11ef5ea562c1f406999c0a0f1bbff4b39115d83170e3e8950"
+    }
+  },
+  "dataset": {
+    "path": "reference/font.h",
+    "sha256": "e2073997b8161ac11ef5ea562c1f406999c0a0f1bbff4b39115d83170e3e8950"
+  },
+  "source": {
+    "selection": "C:\\Users\\Pablo\\Documents\\Projects\\facultad\\sistemas-de-inteligencia-artificial\\tps_sia\\tp5\\results\\final\\selection.json",
+    "tp5_root": "C:\\Users\\Pablo\\Documents\\Projects\\facultad\\sistemas-de-inteligencia-artificial\\tps_sia\\tp5"
+  },
+  "budget": {
+    "runs": 6,
+    "max_total_epochs": 18000,
+    "epochs_completed": 0
+  }
+}

@@ -37,8 +37,10 @@ python -m src.denoise evaluate --campaign results/denoising --output results/den
 
 Cada salida de evaluación debe ser nueva. Para trasladar la campaña, copiar todo
 su directorio: las rutas operativas son relativas a él. Las rutas absolutas en
-manifiestos individuales conservan procedencia histórica. `results/` está ignorado
-por Git; guardar una copia completa si se mueve el proyecto o se comparte evidencia.
+manifiestos individuales conservan procedencia histórica. La campaña completa
+`results/denoising/` está versionada en Git, incluidas la referencia, colecciones,
+modelos y ambas evaluaciones. Los demás experimentos nuevos de `results/` siguen
+ignorados. Git conserva los bytes de la campaña para mantener válidos sus SHA256.
 
 ## Arquitecturas y protocolo
 

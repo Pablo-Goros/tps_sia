@@ -1,0 +1,54 @@
+{
+  "run_id": "winner-seed-43",
+  "variant": "winner",
+  "seed": 43,
+  "status": "completed",
+  "epochs_completed": 3000,
+  "best": {
+    "score": [
+      2.1251041666666666,
+      0.04903695632182218
+    ],
+    "epoch": 3000,
+    "model": {
+      "path": "C:\\Users\\Pablo\\Documents\\Projects\\facultad\\sistemas-de-inteligencia-artificial\\tps_sia\\tp5\\results\\denoising\\runs\\winner-seed-43\\best_model.npz",
+      "sha256": "af85974fc23cb2d9f6b1f0fac7b66ef168d7589c08aa4a0c5a8647c00e0bea94"
+    }
+  },
+  "effective_model": {
+    "architecture": [
+      35,
+      40,
+      20,
+      10,
+      2,
+      10,
+      20,
+      40,
+      35
+    ],
+    "activation": "tanh",
+    "output": "logistica",
+    "loss": "bce",
+    "latent_activation": "tanh",
+    "lr_scheduler": null,
+    "beta": 1.0,
+    "batch_size": 32,
+    "optimizer": {
+      "name": "adam",
+      "learning_rate": 0.002,
+      "beta1": 0.9,
+      "beta2": 0.999,
+      "optimizer_epsilon": 1e-08
+    },
+    "initialization": "auto",
+    "l2": 0.0,
+    "augmentation": null,
+    "batch_norm": null
+  },
+  "duration_seconds": 57.51811930000258,
+  "last_model": {
+    "path": "C:\\Users\\Pablo\\Documents\\Projects\\facultad\\sistemas-de-inteligencia-artificial\\tps_sia\\tp5\\results\\denoising\\runs\\winner-seed-43\\last_model.npz",
+    "sha256": "af85974fc23cb2d9f6b1f0fac7b66ef168d7589c08aa4a0c5a8647c00e0bea94"
+  }
+}

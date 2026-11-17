@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "ordering": "level, character_index, realization_index",
+  "numpy_version": "2.4.4",
+  "dataset_sha256": "e2073997b8161ac11ef5ea562c1f406999c0a0f1bbff4b39115d83170e3e8950",
+  "collections": {
+    "validation": {
+      "path": "collections/validation.npz",
+      "sha256": "e938f10cb71db7776d0621de8c460553e0ecf09c466dc801e43b98a07a58a555",
+      "seed": 20261110,
+      "count": 12832,
+      "levels": [
+        0,
+        0.05,
+        0.1,
+        0.2,
+        0.3
+      ],
+      "generator": "numpy.default_rng/PCG64"
+    },
+    "final": {
+      "path": "collections/final.npz",
+      "sha256": "a599ed17a506ef43409588a8728b038e05e4dc35b2075e78c8e26b8758365d63",
+      "seed": 20261111,
+      "count": 12832,
+      "levels": [
+        0,
+        0.05,
+        0.1,
+        0.2,
+        0.3
+      ],
+      "generator": "numpy.default_rng/PCG64"
+    }
+  }
+}

@@ -1,0 +1,57 @@
+{
+  "status": "passed",
+  "runs": [
+    {
+      "run_id": "winner-seed-42",
+      "epochs": 3000,
+      "best_epoch": 3000,
+      "best_sha256": "ea7c01d9ef3976f9db7e8b9b68d62f1add716ac96523e399b841f18344b73062",
+      "validation_recomputed": true
+    },
+    {
+      "run_id": "winner-seed-43",
+      "epochs": 3000,
+      "best_epoch": 3000,
+      "best_sha256": "af85974fc23cb2d9f6b1f0fac7b66ef168d7589c08aa4a0c5a8647c00e0bea94",
+      "validation_recomputed": true
+    },
+    {
+      "run_id": "winner-seed-44",
+      "epochs": 3000,
+      "best_epoch": 2800,
+      "best_sha256": "ebd847e15b6fd7b196a42ef27317963c8a05961cdd40b446eaa58583fcf52938",
+      "validation_recomputed": true
+    },
+    {
+      "run_id": "latent-10-seed-42",
+      "epochs": 3000,
+      "best_epoch": 3000,
+      "best_sha256": "976548828b0c0aa4895bddf47f2886108b19520edd4cbb81a9009b974831451a",
+      "validation_recomputed": true
+    },
+    {
+      "run_id": "latent-10-seed-43",
+      "epochs": 3000,
+      "best_epoch": 2600,
+      "best_sha256": "972114fdb4a59ef5ca559747d88b59c09e4190767f3d0afe68a13eaf0ffcf667",
+      "validation_recomputed": true
+    },
+    {
+      "run_id": "latent-10-seed-44",
+      "epochs": 3000,
+      "best_epoch": 3000,
+      "best_sha256": "1fb3faba6087837044cb3f861fec7946429519faad481ad2e3564a4de4a206fd",
+      "validation_recomputed": true
+    }
+  ],
+  "epochs_completed": 18000,
+  "arrays_identical_on_reload": 55,
+  "preserved_original_files": 659,
+  "tests_passed": 29,
+  "standards_review": "no outstanding findings",
+  "spec_review": "no outstanding findings",
+  "figures_generated": false,
+  "report_generated": false,
+  "selection_sha256": "e7c25d18c7c0b36ce34f47f72b81e1289f0ed89c0febf86976904c5af8505da8",
+  "evaluation_metrics_sha256": "da311ae0b9e40ec7d6b751fc4c9ed03abdc3cab512b7f9f50519b898311a244e"
+}
