@@ -10,8 +10,10 @@ Este informe responde a los dos puntos de 1.b de la consigna:
 Todo lo que se afirma sale de la campaña guardada en esta carpeta (seis entrenamientos y
 una evaluación sobre una colección independiente). Las tablas se pueden recalcular
 con los archivos de `evaluation/`, y las figuras con `src/denoise_figures.py`
-(ver la sección 7). Se distingue lo que **pide la consigna**, lo que **decidió el
-grupo** (acuerdos de diseño) y lo que **muestra la evidencia**.
+(ver la sección 8). La sección 6 resume un análisis adicional con más épocas,
+exploratorio y fuera del protocolo acordado. Se distingue lo que **pide la
+consigna**, lo que **decidió el grupo** (acuerdos de diseño) y lo que **muestra la
+evidencia**.
 
 ## 1. Resumen
 
@@ -30,6 +32,10 @@ grupo** (acuerdos de diseño) y lo que **muestra la evidencia**.
 - Todas las imágenes de evaluación son versiones ruidosas de los mismos 32
   caracteres. Esto mide recuperación de caracteres conocidos, no generalización
   a letras nuevas.
+- Análisis adicional (sección 6): con el doble de épocas (6000), ambas variantes
+  mejoran y el código 10 sigue ganando. Con 10 % de ruido recupera el 91 % de las
+  imágenes exactas. Los resultados principales de este informe siguen siendo los
+  del protocolo de 3000 épocas.
 
 ## 2. Datos y ruido
 
@@ -233,9 +239,10 @@ el DAE de código 2 (semilla 43) deja 7, 0, 10, 8, 9 y 0, y el AE de 1.a deja 13
   de código 2, y no se reoptimizaron para el DAE.
 - **Presupuesto fijo.** Cuatro de las seis corridas eligieron como mejor
   checkpoint la última época (3000) y la validación todavía bajaba (por ejemplo, de
-  1,427 a 1,254 entre las épocas 2500 y 3000 en `latent-10-seed-42`). Es posible que
-  más épocas mejoren ambas variantes. No se probó porque el protocolo no
-  autorizaba ampliar el presupuesto.
+  1,427 a 1,254 entre las épocas 2500 y 3000 en `latent-10-seed-42`). El protocolo
+  no autorizaba ampliar el presupuesto. Un análisis adicional exploratorio
+  (sección 6) lo confirmó: con 6000 épocas ambas variantes mejoran y el código 10
+  sigue ganando, pero tampoco se observa una meseta clara.
 - **Un solo tipo de ruido.** Solo inversión independiente de píxeles. No se
   estudió ruido estructurado ni otros tipos.
 - **Selección con validación propia.** El nivel 0,30 y el nivel 0 no intervinieron
@@ -244,7 +251,58 @@ el DAE de código 2 (semilla 43) deja 7, 0, 10, 8, 9 y 0, y el AE de 1.a deja 13
 - **Análisis por carácter exploratorio.** La correlación con la distancia de
   Hamming se calculó sobre 32 caracteres y no sustituye una prueba controlada.
 
-## 6. Conclusiones
+## 6. Análisis adicional: ¿qué pasa con más épocas?
+
+Esta sección es **exploratoria y no forma parte del protocolo acordado**. Se hizo
+porque las limitaciones de la sección 5 señalaban que 3000 épocas podían quedar
+cortas. Los resultados principales del informe siguen siendo los del protocolo.
+
+**Cómo se hizo** ([src/denoise_extension.py](../../src/denoise_extension.py),
+resultados en [results/denoising-extended-6000/](../denoising-extended-6000/)):
+
+- Se partió del último estado guardado (época 3000) de las seis corridas y se las
+  continuó hasta la época 6000, con el mismo ruido (que depende de la semilla y de
+  la época absoluta), optimizador, lote y colección de validación.
+- La regla se fijó antes de ejecutar (`PROTOCOL.md` de esa carpeta). El mejor
+  checkpoint de cada corrida es el de menor error de validación en todo el rango
+  0–6000, y la variante ganadora se elige igual que en el protocolo original.
+- La colección de evaluación se usó una sola vez, después de fijar la selección.
+- Se verificó por SHA256 que los archivos publicados de `results/denoising/` no
+  cambiaron. La extensión corrió con Python 3.11 y NumPy 2.3.5 (la campaña original,
+  con 3.14.4 y 2.4.4): el arranque es idéntico, pero la numérica de las épocas nuevas
+  podría diferir levemente.
+
+**Resultados.** Media de las 3 semillas sobre la colección de evaluación:
+
+| Medida | Modelo | p = 0,05 | p = 0,10 | p = 0,20 | p = 0,30 (fuera de rango) |
+|---|---|---|---|---|---|
+| Píxeles erróneos por imagen | Código 2 | 0,553 → 0,290 | 1,327 → 0,852 | 4,654 → 3,957 | 9,032 → 8,598 |
+| (3000 → 6000 épocas) | Código 10 | 0,111 → 0,068 | 0,500 → 0,326 | 2,935 → 2,510 | 7,183 → 6,883 |
+| Imágenes exactas | Código 2 | 77 % → 87 % | 66 % → 79 % | 35 % → 47 % | 13 % → 18 % |
+| (3000 → 6000 épocas) | Código 10 | 96 % → 97 % | 85 % → 91 % | 50 % → 57 % | 17 % → 21 % |
+
+![Imágenes exactas con 3000 y 6000 épocas](../denoising-extended-6000/figures/extension-exact-by-level.png)
+
+- **Ambas variantes mejoran.** El error de validación (promedio de p = 0,05; 0,10 y
+  0,20) baja de 2,28 a 1,78 en el código 2 y de 1,23 a 1,02 en el código 10. El
+  presupuesto de 3000 épocas limitaba los resultados.
+- **El código 10 sigue ganando** en todos los niveles con ruido y con las tres
+  semillas: los rangos entre semillas no se solapan en ningún nivel con ruido. La
+  variante y la corrida seleccionadas no cambian (`latent-10-seed-44`).
+- **La brecha se reduce.** Con p = 0,10, la diferencia en imágenes exactas pasa de
+  casi 20 puntos (66 % contra 85 %) a 12 (79 % contra 91 %). El código 2 también
+  mejora con imágenes limpias: 0,26 → 0,11 píxeles erróneos de media. El código 10
+  sigue sin errores.
+- **No hay meseta clara.** Dos de las tres corridas del código 10 tienen su mejor
+  checkpoint exactamente en la época 6000 y las demás entre 5000 y 5700. No se
+  probó más allá de 6000 épocas.
+
+![Validación hasta 6000 épocas](../denoising-extended-6000/figures/extension-validation-curves.png)
+
+Las conclusiones de la sección 7 se mantienen: duplicar el presupuesto mejora los
+números de ambas variantes pero no cambia cuál es mejor.
+
+## 7. Conclusiones
 
 1. Un autoencoder entrenado con ruido (inversión de píxeles hasta 20 %) elimina una
    parte importante del ruido de caracteres de 7×5, mientras que uno entrenado sin
@@ -258,8 +316,12 @@ el DAE de código 2 (semilla 43) deja 7, 0, 10, 8, 9 y 0, y el AE de 1.a deja 13
 4. Con el protocolo acordado no se puede afirmar que 10 dimensiones sea el
    ancho óptimo, ni que el rendimiento se mantenga con letras nuevas o con ruido de otro
    tipo.
+5. Un análisis adicional con 6000 épocas (exploratorio, sección 6) mejora ambas
+   variantes sin cambiar la conclusión: el código 10 sigue siendo mejor, con 91 % de
+   imágenes exactas a 10 % de ruido. No se alcanzó una meseta, así que las cifras del
+   protocolo de 3000 épocas pueden subestimar lo que alcanzan los DAE.
 
-## 7. Reproducción y verificación
+## 8. Reproducción y verificación
 
 Desde `tp5/`, con Python 3.10 o posterior y las dependencias de `requirements.txt`:
 
@@ -281,9 +343,11 @@ python -m unittest tests.test_denoise_figures -v
   validación al recargar los modelos.
 - Entorno de la campaña: Python 3.14.4 y NumPy 2.4.4.
 - Volver a entrenar (`python -m src.denoise train`) consume otro presupuesto de
-  18.000 épocas. Además requiere los cambios del MLP de TP3 que usa `src/autoencoder.py`
-  (pérdida BCE, latente lineal y scheduler), que hoy no están en el repositorio.
-  Evaluar y graficar no los necesita.
+  18.000 épocas. Evaluar y graficar no entrena.
+- El análisis adicional de la sección 6 se repite, en una carpeta nueva, con
+  `python -m src.denoise_extension run --campaign results/denoising --output results/denoising-extended-nuevo`
+  (unos 15 minutos) y sus figuras con `python -m src.denoise_extension figures --extension results/denoising-extended-nuevo`.
+  Solo lee la campaña publicada, y verifica por SHA256 que no cambie.
 - Procedencia de la referencia de 1.a: modelo `confirmation-finalist-seed-49`
   (arquitectura `35→40→20→10→2→10→20→40→35`, BCE, Adam 0,002), SHA256
   `e39ab072ed146e11a337d82e5f625a775d8cc73628d90355746a8ece653fa85e`.

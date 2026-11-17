@@ -1,0 +1,154 @@
+{
+ "variant": "latent-10",
+ "run_id": "latent-10-seed-44",
+ "aggregates": [
+  {
+   "variant": "winner",
+   "mean_score": [
+    1.7822916666666666,
+    0.040656100005216925
+   ]
+  },
+  {
+   "variant": "latent-10",
+   "mean_score": [
+    1.0223611111111113,
+    0.023032124119846283
+   ]
+  }
+ ],
+ "criterion": "mean binary errors, mean MSE; representative tie: lower seed",
+ "selection_levels": [
+  0.05,
+  0.1,
+  0.2
+ ],
+ "runs": [
+  {
+   "run_id": "winner-seed-42",
+   "variant": "winner",
+   "seed": 42,
+   "status": "completed",
+   "epochs_completed": 6000,
+   "best": {
+    "score": [
+     1.8878125000000001,
+     0.04270349952174849
+    ],
+    "epoch": 5600
+   },
+   "best_3000": {
+    "score": [
+     2.4155208333333333,
+     0.05403332142714198
+    ],
+    "epoch": 3000
+   }
+  },
+  {
+   "run_id": "winner-seed-43",
+   "variant": "winner",
+   "seed": 43,
+   "status": "completed",
+   "epochs_completed": 6000,
+   "best": {
+    "score": [
+     1.6974999999999998,
+     0.039506237412487565
+    ],
+    "epoch": 5000
+   },
+   "best_3000": {
+    "score": [
+     2.1251041666666666,
+     0.04903695632182218
+    ],
+    "epoch": 3000
+   }
+  },
+  {
+   "run_id": "winner-seed-44",
+   "variant": "winner",
+   "seed": 44,
+   "status": "completed",
+   "epochs_completed": 6000,
+   "best": {
+    "score": [
+     1.7615625000000001,
+     0.03975856308141472
+    ],
+    "epoch": 5700
+   },
+   "best_3000": {
+    "score": [
+     2.300520833333333,
+     0.050590928685757604
+    ],
+    "epoch": 2800
+   }
+  },
+  {
+   "run_id": "latent-10-seed-42",
+   "variant": "latent-10",
+   "seed": 42,
+   "status": "completed",
+   "epochs_completed": 6000,
+   "best": {
+    "score": [
+     1.0251041666666667,
+     0.02298669662129739
+    ],
+    "epoch": 6000
+   },
+   "best_3000": {
+    "score": [
+     1.2538541666666667,
+     0.028414231058554163
+    ],
+    "epoch": 3000
+   }
+  },
+  {
+   "run_id": "latent-10-seed-43",
+   "variant": "latent-10",
+   "seed": 43,
+   "status": "completed",
+   "epochs_completed": 6000,
+   "best": {
+    "score": [
+     1.0486458333333333,
+     0.023619558721576662
+    ],
+    "epoch": 6000
+   },
+   "best_3000": {
+    "score": [
+     1.2260416666666665,
+     0.02785771745354092
+    ],
+    "epoch": 2600
+   }
+  },
+  {
+   "run_id": "latent-10-seed-44",
+   "variant": "latent-10",
+   "seed": 44,
+   "status": "completed",
+   "epochs_completed": 6000,
+   "best": {
+    "score": [
+     0.9933333333333335,
+     0.022490117016664802
+    ],
+    "epoch": 5700
+   },
+   "best_3000": {
+    "score": [
+     1.2027083333333335,
+     0.027460141302224322
+    ],
+    "epoch": 3000
+   }
+  }
+ ]
+}

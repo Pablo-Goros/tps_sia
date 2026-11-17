@@ -347,6 +347,18 @@ Produce `recovery-by-level.png`, `error-reduction.png`, `validation-curves.png`,
 `figures-manifest.json`. El informe de 1.b está en
 [results/denoising/report.md](results/denoising/report.md).
 
+Análisis adicional (exploratorio, fuera del protocolo acordado): continuar las seis
+corridas guardadas de 3000 a 6000 épocas, sin tocar la campaña publicada:
+
+```bash
+python -m src.denoise_extension run --campaign results/denoising --output results/denoising-extended-nuevo
+python -m src.denoise_extension figures --extension results/denoising-extended-nuevo
+```
+
+Tarda unos 15 minutos y verifica por SHA256 que `results/denoising/` no cambie. Los
+resultados publicados están en `results/denoising-extended-6000/` y se discuten en la
+sección 6 del informe.
+
 ## Ejercicio 2: Autoencoder Variacional (VAE)
 
 Los artefactos se generan en `results/vae/` (ignorado por Git, como el resto de

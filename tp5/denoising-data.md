@@ -158,6 +158,20 @@ La salida debe ser un directorio nuevo o vacío. Genera:
   regla de selección (mejor validación, luego menor semilla), quedan en
   `figures-manifest.json` junto con los SHA256 de las entradas.
 
+### Extensión exploratoria: `src/denoise_extension.py`
+
+Reanuda las seis corridas desde su `last_model.npz` (época 3000) hasta 6000 épocas
+(`--epochs` cambia el total, en múltiplos de 100), con el mismo ruido por época
+absoluta, optimizador, lote y validación. Reanudar equivale a entrenar de corrido:
+el estado guardado incluye pesos, optimizador y generador del MLP, y el ruido solo
+depende de la semilla y de la época. Escribe únicamente en un directorio nuevo:
+`PROTOCOL.md` (regla fijada antes de ejecutar), `runs/<corrida>/{best_model,last_model}.npz`
+y `history.json`, `selection-<época>.json`, `by-level-<época>.csv`,
+`comparison-3000-vs-<época>.csv`, `extension.json`, `run.log` y los hashes de la campaña
+antes y después, que deben coincidir. No forma parte del protocolo aprobado y no
+reemplaza a `selection.json` ni a `evaluation/`. Resultados publicados:
+`results/denoising-extended-6000/`.
+
 Para curvas de entrenamiento, usar `history.training.epochs` frente a `costo`
 o `mse`; para validación, `history.validation[*].epoch` frente a `score` o las
 métricas de cada nivel. Para recuperación por ruido, usar `by-level.csv` y

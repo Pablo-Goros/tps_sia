@@ -1,0 +1,11 @@
+{
+  "files": [
+    "extension-exact-by-level.png",
+    "extension-validation-curves.png"
+  ],
+  "start_epoch": 3000,
+  "end_epoch": 6000,
+  "inputs_sha256": {
+    "comparison-3000-vs-6000.csv": "e7f217af841011af2c39a9b6ef1b37eeaff19b9b3119c64367d56bb1871591be"
+  }
+}

@@ -1,0 +1,11 @@
+validation images used: 9632 | final images: 12832
+python 3.11.9 numpy 2.3.5
+winner-seed-42: best@3000 epoch 3000 score 2.4155 -> best@6000 epoch 5600 score 1.8878 | 151 s
+winner-seed-43: best@3000 epoch 3000 score 2.1251 -> best@6000 epoch 5000 score 1.6975 | 150 s
+winner-seed-44: best@3000 epoch 2800 score 2.3005 -> best@6000 epoch 5700 score 1.7616 | 151 s
+latent-10-seed-42: best@3000 epoch 3000 score 1.2539 -> best@6000 epoch 6000 score 1.0251 | 151 s
+latent-10-seed-43: best@3000 epoch 2600 score 1.2260 -> best@6000 epoch 6000 score 1.0486 | 150 s
+latent-10-seed-44: best@3000 epoch 3000 score 1.2027 -> best@6000 epoch 5700 score 0.9933 | 151 s
+selection at 6000: latent-10 / latent-10-seed-44; means: [{'variant': 'winner', 'mean_score': [1.7822916666666666, 0.040656100005216925]}, {'variant': 'latent-10', 'mean_score': [1.0223611111111113, 0.023032124119846283]}]
+published campaign unchanged (80 files verified by SHA256)
+total time: 907 s
