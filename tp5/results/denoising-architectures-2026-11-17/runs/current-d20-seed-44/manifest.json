@@ -1,0 +1,56 @@
+{
+  "run_id": "current-d20-seed-44",
+  "variant": "current-d20",
+  "seed": 44,
+  "status": "completed",
+  "epochs_completed": 3000,
+  "best": {
+    "score": [
+      1.2263541666666666,
+      0.02774575148259077
+    ],
+    "epoch": 2900,
+    "model": {
+      "path": "runs/current-d20-seed-44/best_model.npz",
+      "sha256": "f1b8beb27cd2db2cc325e5e5e13c264a924a71de9865ed4b7cb31b42abdf9130"
+    }
+  },
+  "effective_model": {
+    "architecture": [
+      35,
+      40,
+      20,
+      10,
+      20,
+      10,
+      20,
+      40,
+      35
+    ],
+    "activation": "tanh",
+    "output": "logistica",
+    "loss": "bce",
+    "latent_activation": "tanh",
+    "lr_scheduler": null,
+    "beta": 1.0,
+    "batch_size": 32,
+    "optimizer": {
+      "name": "adam",
+      "learning_rate": 0.002,
+      "beta1": 0.9,
+      "beta2": 0.999,
+      "optimizer_epsilon": 1e-08
+    },
+    "initialization": "auto",
+    "l2": 0.0,
+    "augmentation": null,
+    "batch_norm": null
+  },
+  "duration_seconds": 59.95323460000009,
+  "last_model": {
+    "path": "runs/current-d20-seed-44/last_model.npz",
+    "sha256": "7e845d2c3881c966fe723494aadad400a4b7109452c8e95e56e3122d0d8870b6"
+  },
+  "reused": false,
+  "new_epochs_completed": 3000
+}

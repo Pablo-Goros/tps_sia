@@ -1,0 +1,58 @@
+{
+  "run_id": "deeper-d5-seed-43",
+  "variant": "deeper-d5",
+  "seed": 43,
+  "status": "completed",
+  "epochs_completed": 3000,
+  "best": {
+    "score": [
+      1.3786458333333333,
+      0.03178856393858937
+    ],
+    "epoch": 2900,
+    "model": {
+      "path": "runs/deeper-d5-seed-43/best_model.npz",
+      "sha256": "3fcff22802d07960084fad88a428f0c294b2470735ed5a9b7e6b257ef5ef18c6"
+    }
+  },
+  "effective_model": {
+    "architecture": [
+      35,
+      40,
+      30,
+      20,
+      10,
+      5,
+      10,
+      20,
+      30,
+      40,
+      35
+    ],
+    "activation": "tanh",
+    "output": "logistica",
+    "loss": "bce",
+    "latent_activation": "tanh",
+    "lr_scheduler": null,
+    "beta": 1.0,
+    "batch_size": 32,
+    "optimizer": {
+      "name": "adam",
+      "learning_rate": 0.002,
+      "beta1": 0.9,
+      "beta2": 0.999,
+      "optimizer_epsilon": 1e-08
+    },
+    "initialization": "auto",
+    "l2": 0.0,
+    "augmentation": null,
+    "batch_norm": null
+  },
+  "duration_seconds": 84.18442969999978,
+  "last_model": {
+    "path": "runs/deeper-d5-seed-43/last_model.npz",
+    "sha256": "3c2d83d6e38c097815bdd5e5b01fa19035bb4ffaef47b0b756a0a1d944b3dd3a"
+  },
+  "reused": false,
+  "new_epochs_completed": 3000
+}

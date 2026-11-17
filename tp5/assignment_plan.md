@@ -1,5 +1,14 @@
 # TP5 — Planes de autoencoders
 
+Extensión autorizada de 1.b el 2026-11-17: [comparación de tres arquitecturas y
+cuatro dimensiones](denoising-architecture-plan.md), con tres semillas por
+variante (36 combinaciones; 33 entrenamientos nuevos y tres reutilizados).
+El protocolo preserva la campaña anterior y utiliza una evaluación nueva
+después de seleccionar por validación.
+Extensión completada: 36/36 combinaciones, 99.000 épocas nuevas; seleccionada
+`simple-d20` (representante semilla 43). Ver el
+[informe](results/denoising-architectures-2026-11-17/report.md).
+
 Campaña posterior del ejercicio 1.a: [plan completado](experiment_plan.md) y
 [resultados](presentation-results.md). Se probaron pérdida, latente, optimizador,
 tasa, scheduler, arquitectura y presupuesto; 43 corridas, 54300 épocas.

@@ -1,0 +1,40 @@
+{
+  "run_id": "confirmation-finalist-seed-49",
+  "seed": 49,
+  "model": {
+    "path": "results/final/model.npz",
+    "sha256": "e39ab072ed146e11a337d82e5f625a775d8cc73628d90355746a8ece653fa85e"
+  },
+  "source_run": "results/presentation-campaign-2026-11-10/06-confirmation/confirmation-finalist-seed-49",
+  "source_config": "results/presentation-campaign-2026-11-10/06-confirmation/confirmation-finalist-seed-49/config.json",
+  "comparison": "results/presentation-campaign-2026-11-10/06-confirmation/summary.json",
+  "criterion": "confirmed success_max_mean_mse; successful run by max error, mean error, MSE, seed",
+  "all_within_tolerance": true,
+  "configuration": {
+    "architecture": [
+      35,
+      40,
+      20,
+      10,
+      2,
+      10,
+      20,
+      40,
+      35
+    ],
+    "optimizer": {
+      "name": "adam",
+      "learning_rate": 0.002
+    },
+    "batch_size": 32,
+    "max_epochs": 3000,
+    "evaluate_every": 100,
+    "stop_on_tolerance": true,
+    "loss": "bce",
+    "latent_activation": "tanh",
+    "lr_scheduler": null,
+    "seed": 49
+  },
+  "previous_selection_note": "Historical final artifact absent; see previous-selection-unavailable.json in campaign directory.",
+  "visual_review": "pending"
+}

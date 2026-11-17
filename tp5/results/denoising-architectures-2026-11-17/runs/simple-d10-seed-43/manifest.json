@@ -1,0 +1,54 @@
+{
+  "run_id": "simple-d10-seed-43",
+  "variant": "simple-d10",
+  "seed": 43,
+  "status": "completed",
+  "epochs_completed": 3000,
+  "best": {
+    "score": [
+      1.0963541666666667,
+      0.024695416076581028
+    ],
+    "epoch": 2900,
+    "model": {
+      "path": "runs/simple-d10-seed-43/best_model.npz",
+      "sha256": "b8caa0161632a66d7ff4bbd117036a46a6829d6fab666a99bd80ead6513438c8"
+    }
+  },
+  "effective_model": {
+    "architecture": [
+      35,
+      40,
+      20,
+      10,
+      20,
+      40,
+      35
+    ],
+    "activation": "tanh",
+    "output": "logistica",
+    "loss": "bce",
+    "latent_activation": "tanh",
+    "lr_scheduler": null,
+    "beta": 1.0,
+    "batch_size": 32,
+    "optimizer": {
+      "name": "adam",
+      "learning_rate": 0.002,
+      "beta1": 0.9,
+      "beta2": 0.999,
+      "optimizer_epsilon": 1e-08
+    },
+    "initialization": "auto",
+    "l2": 0.0,
+    "augmentation": null,
+    "batch_norm": null
+  },
+  "duration_seconds": 56.18926280000005,
+  "last_model": {
+    "path": "runs/simple-d10-seed-43/last_model.npz",
+    "sha256": "7418629a92241775c927e6d9a8b7f3fb9e9e8eabe5ad3826a97e81531516cc2a"
+  },
+  "reused": false,
+  "new_epochs_completed": 3000
+}
