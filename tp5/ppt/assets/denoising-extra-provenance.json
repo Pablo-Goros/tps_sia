@@ -1,0 +1,20 @@
+{
+  "campaign": "tps_sia/tp5/results/denoising",
+  "inputs_sha256": {
+    "evaluation/by-level.csv": "1749fb425bcda2726dd51452544415aa8aeeb1ffd748b4fca4ca07777a6d14da",
+    "evaluation/seed-aggregates.csv": "01a43347674ee968a8f651a706789d15e87a8621fa30b2c501f9d1ca6b0d2e6f",
+    "selection.json": "e7c25d18c7c0b36ce34f47f72b81e1289f0ed89c0febf86976904c5af8505da8",
+    "runs/winner-seed-42/history.json": "2cb9de8e164c21cc7332c9637480f0eef926bd5f1418d780a38275b2ef6e0ecf",
+    "runs/winner-seed-43/history.json": "cd8563dddf4becb17892996dc7fbfbabff1705f83ccc5e48ebcf8ab90b4d10ae",
+    "runs/winner-seed-44/history.json": "9b7a1461ede951701d6959ea970a7e28fc59282aaabbb7480d62177ee2951d67",
+    "runs/latent-10-seed-42/history.json": "0a851dfd2563c9bbfd63c3fdb811e212b79af88f7631fd44c78c3d6420e4a0d3",
+    "runs/latent-10-seed-43/history.json": "c38562d088bce648a59b62e9dd9565cafb1b3c2388a2dc803411573c23bbc38d",
+    "runs/latent-10-seed-44/history.json": "68e8b014022b9e6ad4c624002d2ca7cbb38b8e01c7aaf0fbd655329120c267d0"
+  },
+  "selected_run": "latent-10-seed-44",
+  "validation_mean_pixel_errors": {
+    "winner": 2.2803819444444446,
+    "latent-10": 1.2275347222222222
+  },
+  "trained_or_loaded_models": false
+}

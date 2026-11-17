@@ -1,0 +1,144 @@
+{
+  "campaign": "tps_sia/tp5/results/denoising",
+  "inputs_sha256": {
+    "evaluation/by-level.csv": "1749fb425bcda2726dd51452544415aa8aeeb1ffd748b4fca4ca07777a6d14da",
+    "evaluation/by-character.csv": "8ef6d891e098afa38e8247560d2ef632cfb7e619ff785dd0151586a627c43e93",
+    "evaluation/seed-aggregates.csv": "01a43347674ee968a8f651a706789d15e87a8621fa30b2c501f9d1ca6b0d2e6f",
+    "evaluation/metrics.json": "da311ae0b9e40ec7d6b751fc4c9ed03abdc3cab512b7f9f50519b898311a244e",
+    "selection.json": "e7c25d18c7c0b36ce34f47f72b81e1289f0ed89c0febf86976904c5af8505da8",
+    "collections/final.npz": "a599ed17a506ef43409588a8728b038e05e4dc35b2075e78c8e26b8758365d63",
+    "evaluation/noisy-input.npz": "5aa6bbf5a408e8ff949d5e874d17bbbe8aafefd63c88a9f5405dffb1d7c8d2ec",
+    "evaluation/ae-reference.npz": "737b53704bf9e1582cebd9e073327791ad12e1d808373ee7c5858a44edef956a",
+    "evaluation/winner-seed-43.npz": "c6e4ae0b58ead079268db8ea578b9a80ef3c7e76878246f231d47a44f7719b96",
+    "evaluation/latent-10-seed-44.npz": "5119a1fe357623382869385c32b1d4114c597942719cee1d7e3427fdf5c794e8"
+  },
+  "selected_run": "latent-10-seed-44",
+  "sample_models": {
+    "winner": "winner-seed-43",
+    "latent-10": "latent-10-seed-44"
+  },
+  "example_indices": [
+    0,
+    1,
+    8,
+    16,
+    24,
+    31,
+    32,
+    132,
+    832,
+    1632,
+    2432,
+    3132,
+    3232,
+    3332,
+    4032,
+    4832,
+    5632,
+    6332,
+    6432,
+    6532,
+    7232,
+    8032,
+    8832,
+    9532,
+    9632,
+    9732,
+    10432,
+    11232,
+    12032,
+    12732
+  ],
+  "example_policy": "first realization of characters 0,1,8,16,24,31 at each level; fixed before inspection",
+  "noise_example": {
+    "character": "x",
+    "indices": [
+      24,
+      2432,
+      5632,
+      8832,
+      12032
+    ]
+  },
+  "example_pixel_errors": {
+    "denoising-05-examples-p020": {
+      "noisy-input": [
+        7,
+        6,
+        8,
+        4,
+        7,
+        8
+      ],
+      "ae-reference": [
+        13,
+        22,
+        22,
+        8,
+        17,
+        0
+      ],
+      "winner-seed-43": [
+        7,
+        0,
+        10,
+        8,
+        9,
+        0
+      ],
+      "latent-10-seed-44": [
+        3,
+        0,
+        3,
+        0,
+        0,
+        0
+      ]
+    },
+    "denoising-06-examples-p010": {
+      "noisy-input": [
+        2,
+        6,
+        2,
+        3,
+        4,
+        2
+      ],
+      "ae-reference": [
+        5,
+        0,
+        10,
+        9,
+        13,
+        0
+      ],
+      "winner-seed-43": [
+        1,
+        0,
+        0,
+        8,
+        0,
+        0
+      ],
+      "latent-10-seed-44": [
+        0,
+        3,
+        0,
+        0,
+        0,
+        0
+      ]
+    }
+  },
+  "validation_mean_pixel_errors": {
+    "winner": 2.2803819444444446,
+    "latent-10": 1.2275347222222222
+  },
+  "spearman_error_vs_min_hamming": {
+    "0.05": -0.8110775835765532,
+    "0.1": -0.5634666245657147,
+    "0.2": -0.24665718893864585,
+    "0.3": 0.02721991654198208
+  },
+  "trained_or_loaded_models": false
+}
