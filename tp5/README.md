@@ -334,9 +334,18 @@ python -m src.denoise evaluate --campaign results/denoising
 
 `collections` permite completar campañas preparadas antes de B2. `train` ejecuta
 una sola vez seis corridas de 3000 épocas. `evaluate` carga los mejores modelos
-sin entrenar y produce NPZ/JSON/CSV. No genera gráficos ni informe por pedido
-del usuario. Los comandos, esquemas y recetas para generar figuras después
-están en [denoising-data.md](denoising-data.md).
+sin entrenar y produce NPZ/JSON/CSV. Las figuras se generan aparte, sin entrenar
+ni cargar modelos, desde esa evaluación (esquemas y detalles en
+[denoising-data.md](denoising-data.md)):
+
+```bash
+python -m src.denoise_figures --campaign results/denoising --output results/denoising/figures
+```
+
+Produce `recovery-by-level.png`, `error-reduction.png`, `validation-curves.png`,
+`by-character.png`, una lámina `samples-p<nivel>.png` por nivel de ruido y
+`figures-manifest.json`. El informe de 1.b está en
+[results/denoising/report.md](results/denoising/report.md).
 
 ## Ejercicio 2: Autoencoder Variacional (VAE)
 

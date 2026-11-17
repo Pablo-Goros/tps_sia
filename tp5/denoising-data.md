@@ -1,7 +1,8 @@
 # Datos y reproducción del ejercicio 1.b
 
 Este documento describe las interfaces y archivos para reutilizar la evidencia.
-Por pedido del usuario, el flujo no genera gráficos ni informe. El fundamento
+El flujo de entrenamiento y evaluación no genera gráficos; las figuras salen del
+script aparte descrito más abajo, y el informe está en `results/denoising/report.md`. El fundamento
 académico es el par `(entrada ruidosa, objetivo limpio)` de OFF-022 p. 22,
 recogido en `wiki/topics/autoencoders.md` del repositorio del curso. Los niveles,
 semillas, tamaños y presupuesto son decisiones del plan, no requisitos textuales
@@ -131,6 +132,31 @@ medio error cuadrático (17.5 × MSE), incluso si el modelo optimizó BCE.
 `improved_fraction`, `worsened_fraction` y `unchanged_fraction` comparan conteos
 por ejemplo; no comparan MSE. No se debe promediar todos los niveles mezclando
 sus diferentes tamaños: seleccionar explícitamente niveles y promediar sus medias.
+
+### Figuras: `src/denoise_figures.py`
+
+```bash
+python -m src.denoise_figures --campaign results/denoising --output results/denoising/figures
+```
+
+Lee solo la evaluación guardada, `collections/final.npz`, `selection.json` y las
+historias de validación; no entrena, no carga modelos y no modifica la campaña.
+La salida debe ser un directorio nuevo o vacío. Genera:
+
+- `recovery-by-level.png`: error medio, fracción exacta y fracción con ≤1 error
+  contra el nivel de ruido, para la entrada ruidosa, el AE de 1.a y los DAE
+  (media de las 3 semillas con banda mínimo–máximo). El tramo posterior al
+  máximo nivel entrenado (p=0,30) se marca como fuera del rango.
+- `error-reduction.png`: reducción media de errores y fracciones de ejemplos que
+  mejoran o empeoran.
+- `validation-curves.png`: puntaje de validación de las seis corridas, con su
+  mejor checkpoint marcado.
+- `by-character.png`: error por carácter y nivel para cada variante.
+- `samples-p<nivel>.png`: original / entrada ruidosa / AE de 1.a / mejor DAE de
+  cada variante, usando los `example_indices` congelados (primera realización de
+  los caracteres 0, 1, 8, 16, 24 y 31). Las corridas mostradas, que siguen la
+  regla de selección (mejor validación, luego menor semilla), quedan en
+  `figures-manifest.json` junto con los SHA256 de las entradas.
 
 Para curvas de entrenamiento, usar `history.training.epochs` frente a `costo`
 o `mse`; para validación, `history.validation[*].epoch` frente a `score` o las
