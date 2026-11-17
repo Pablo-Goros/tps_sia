@@ -1,0 +1,60 @@
+{
+  "campaign": "C:\\Users\\Matias\\Desktop\\SIA\\TPS\\tps_sia\\tp5\\results\\denoising",
+  "files": [
+    "recovery-by-level.png",
+    "error-reduction.png",
+    "validation-curves.png",
+    "by-character.png",
+    "samples-p0.png",
+    "samples-p0.05.png",
+    "samples-p0.1.png",
+    "samples-p0.2.png",
+    "samples-p0.3.png"
+  ],
+  "sample_models": {
+    "winner": "winner-seed-43",
+    "latent-10": "latent-10-seed-44"
+  },
+  "example_indices": [
+    0,
+    1,
+    8,
+    16,
+    24,
+    31,
+    32,
+    132,
+    832,
+    1632,
+    2432,
+    3132,
+    3232,
+    3332,
+    4032,
+    4832,
+    5632,
+    6332,
+    6432,
+    6532,
+    7232,
+    8032,
+    8832,
+    9532,
+    9632,
+    9732,
+    10432,
+    11232,
+    12032,
+    12732
+  ],
+  "inputs_sha256": {
+    "selection.json": "e7c25d18c7c0b36ce34f47f72b81e1289f0ed89c0febf86976904c5af8505da8",
+    "evaluation/metrics.json": "da311ae0b9e40ec7d6b751fc4c9ed03abdc3cab512b7f9f50519b898311a244e",
+    "evaluation/by-character.csv": "8ef6d891e098afa38e8247560d2ef632cfb7e619ff785dd0151586a627c43e93",
+    "collections/final.npz": "a599ed17a506ef43409588a8728b038e05e4dc35b2075e78c8e26b8758365d63"
+  },
+  "versions": {
+    "numpy": "2.3.5",
+    "matplotlib": "3.11.1"
+  }
+}
